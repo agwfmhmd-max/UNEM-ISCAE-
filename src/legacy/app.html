@@ -904,14 +904,14 @@
             <!-- شبكة الرسوم البيانية الخطية للكمبيوتر -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">إجمالي الزيارات</h4>
+                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">الزوار الفريدون يومياً</h4>
                     <div style="position: relative; width: 100%; height: 320px;">
                         <canvas id="dailyVisitsChart"></canvas>
                     </div>
                 </div>
                 
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">دخول قسم النتائج</h4>
+                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">زوار قسم النتائج يومياً</h4>
                     <div style="position: relative; width: 100%; height: 320px;">
                         <canvas id="dailyResultsChart"></canvas>
                     </div>
@@ -921,7 +921,7 @@
             <!-- شبكة الرسوم البيانية الدائرية للكمبيوتر -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm);">
-                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">التخصصات (إجمالي الدخول)</h4>
+                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">التخصصات (زوار فريدون)</h4>
                     <!-- الحجم محدد بـ max-width ليحافظ على الدائرة -->
                     <div style="position: relative; width: 100%; max-width: 350px; height: 350px;">
                         <canvas id="specChart"></canvas>
@@ -929,7 +929,7 @@
                 </div>
                 
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm);">
-                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">المستويات (إجمالي الدخول)</h4>
+                    <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 20px;">المستويات (زوار فريدون)</h4>
                     <!-- الحجم محدد بـ max-width ليحافظ على الدائرة -->
                     <div style="position: relative; width: 100%; max-width: 350px; height: 350px;">
                         <canvas id="levelChart"></canvas>
@@ -1767,8 +1767,8 @@ function closeAnalyticsDashboard() {
 
                 // إدراج صور المخططات (بدون "شامل المتكرر")
                 const chartIds = [
-                    {id: 'dailyVisitsChart', title: 'إجمالي الزيارات اليومية'},
-                    {id: 'dailyResultsChart', title: 'دخول قسم النتائج اليومي'},
+                    {id: 'dailyVisitsChart', title: 'الزوار الفريدون يومياً'},
+                    {id: 'dailyResultsChart', title: 'زوار قسم النتائج يومياً'},
                     {id: 'specChart', title: 'التخصصات'},
                     {id: 'levelChart', title: 'المستويات'}
                 ];
