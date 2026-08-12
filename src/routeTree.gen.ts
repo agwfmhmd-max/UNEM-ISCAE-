@@ -10,33 +10,143 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MoyenneRouteImport } from './routes/moyenne'
+import { Route as ResultatsRouteImport } from './routes/resultats'
+import { Route as ApiPublicFileRouteImport } from './routes/api/public/file'
+import { Route as ApiPublicCloudinaryConfigRouteImport } from './routes/api/public/cloudinary/config'
+import { Route as ApiPublicCloudinaryDestroyRouteImport } from './routes/api/public/cloudinary/destroy'
+import { Route as ApiPublicCloudinarySignRouteImport } from './routes/api/public/cloudinary/sign'
+import { Route as ApiPublicPushSendRouteImport } from './routes/api/public/push/send'
+import { Route as ApiPublicPushVapidKeyRouteImport } from './routes/api/public/push/vapid-key'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MoyenneRoute = MoyenneRouteImport.update({
+  id: '/moyenne',
+  path: '/moyenne',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResultatsRoute = ResultatsRouteImport.update({
+  id: '/resultats',
+  path: '/resultats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicFileRoute = ApiPublicFileRouteImport.update({
+  id: '/api/public/file',
+  path: '/api/public/file',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCloudinaryConfigRoute =
+  ApiPublicCloudinaryConfigRouteImport.update({
+    id: '/api/public/cloudinary/config',
+    path: '/api/public/cloudinary/config',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCloudinaryDestroyRoute =
+  ApiPublicCloudinaryDestroyRouteImport.update({
+    id: '/api/public/cloudinary/destroy',
+    path: '/api/public/cloudinary/destroy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCloudinarySignRoute = ApiPublicCloudinarySignRouteImport.update({
+  id: '/api/public/cloudinary/sign',
+  path: '/api/public/cloudinary/sign',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushSendRoute = ApiPublicPushSendRouteImport.update({
+  id: '/api/public/push/send',
+  path: '/api/public/push/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPushVapidKeyRoute = ApiPublicPushVapidKeyRouteImport.update({
+  id: '/api/public/push/vapid-key',
+  path: '/api/public/push/vapid-key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/moyenne': typeof MoyenneRoute
+  '/resultats': typeof ResultatsRoute
+  '/api/public/file': typeof ApiPublicFileRoute
+  '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
+  '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
+  '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
+  '/api/public/push/send': typeof ApiPublicPushSendRoute
+  '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/moyenne': typeof MoyenneRoute
+  '/resultats': typeof ResultatsRoute
+  '/api/public/file': typeof ApiPublicFileRoute
+  '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
+  '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
+  '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
+  '/api/public/push/send': typeof ApiPublicPushSendRoute
+  '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/moyenne': typeof MoyenneRoute
+  '/resultats': typeof ResultatsRoute
+  '/api/public/file': typeof ApiPublicFileRoute
+  '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
+  '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
+  '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
+  '/api/public/push/send': typeof ApiPublicPushSendRoute
+  '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/moyenne'
+    | '/resultats'
+    | '/api/public/file'
+    | '/api/public/cloudinary/config'
+    | '/api/public/cloudinary/destroy'
+    | '/api/public/cloudinary/sign'
+    | '/api/public/push/send'
+    | '/api/public/push/vapid-key'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/moyenne'
+    | '/resultats'
+    | '/api/public/file'
+    | '/api/public/cloudinary/config'
+    | '/api/public/cloudinary/destroy'
+    | '/api/public/cloudinary/sign'
+    | '/api/public/push/send'
+    | '/api/public/push/vapid-key'
+  id:
+    | '__root__'
+    | '/'
+    | '/moyenne'
+    | '/resultats'
+    | '/api/public/file'
+    | '/api/public/cloudinary/config'
+    | '/api/public/cloudinary/destroy'
+    | '/api/public/cloudinary/sign'
+    | '/api/public/push/send'
+    | '/api/public/push/vapid-key'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MoyenneRoute: typeof MoyenneRoute
+  ResultatsRoute: typeof ResultatsRoute
+  ApiPublicFileRoute: typeof ApiPublicFileRoute
+  ApiPublicCloudinaryConfigRoute: typeof ApiPublicCloudinaryConfigRoute
+  ApiPublicCloudinaryDestroyRoute: typeof ApiPublicCloudinaryDestroyRoute
+  ApiPublicCloudinarySignRoute: typeof ApiPublicCloudinarySignRoute
+  ApiPublicPushSendRoute: typeof ApiPublicPushSendRoute
+  ApiPublicPushVapidKeyRoute: typeof ApiPublicPushVapidKeyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +158,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/moyenne': {
+      id: '/moyenne'
+      path: '/moyenne'
+      fullPath: '/moyenne'
+      preLoaderRoute: typeof MoyenneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resultats': {
+      id: '/resultats'
+      path: '/resultats'
+      fullPath: '/resultats'
+      preLoaderRoute: typeof ResultatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/file': {
+      id: '/api/public/file'
+      path: '/api/public/file'
+      fullPath: '/api/public/file'
+      preLoaderRoute: typeof ApiPublicFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cloudinary/config': {
+      id: '/api/public/cloudinary/config'
+      path: '/api/public/cloudinary/config'
+      fullPath: '/api/public/cloudinary/config'
+      preLoaderRoute: typeof ApiPublicCloudinaryConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cloudinary/destroy': {
+      id: '/api/public/cloudinary/destroy'
+      path: '/api/public/cloudinary/destroy'
+      fullPath: '/api/public/cloudinary/destroy'
+      preLoaderRoute: typeof ApiPublicCloudinaryDestroyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cloudinary/sign': {
+      id: '/api/public/cloudinary/sign'
+      path: '/api/public/cloudinary/sign'
+      fullPath: '/api/public/cloudinary/sign'
+      preLoaderRoute: typeof ApiPublicCloudinarySignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push/send': {
+      id: '/api/public/push/send'
+      path: '/api/public/push/send'
+      fullPath: '/api/public/push/send'
+      preLoaderRoute: typeof ApiPublicPushSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/push/vapid-key': {
+      id: '/api/public/push/vapid-key'
+      path: '/api/public/push/vapid-key'
+      fullPath: '/api/public/push/vapid-key'
+      preLoaderRoute: typeof ApiPublicPushVapidKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MoyenneRoute: MoyenneRoute,
+  ResultatsRoute: ResultatsRoute,
+  ApiPublicFileRoute: ApiPublicFileRoute,
+  ApiPublicCloudinaryConfigRoute: ApiPublicCloudinaryConfigRoute,
+  ApiPublicCloudinaryDestroyRoute: ApiPublicCloudinaryDestroyRoute,
+  ApiPublicCloudinarySignRoute: ApiPublicCloudinarySignRoute,
+  ApiPublicPushSendRoute: ApiPublicPushSendRoute,
+  ApiPublicPushVapidKeyRoute: ApiPublicPushVapidKeyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
