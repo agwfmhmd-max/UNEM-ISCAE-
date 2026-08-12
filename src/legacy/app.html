@@ -1405,8 +1405,10 @@
                     document.getElementById('analytics-end-date').value = '';
                 }
 
-                document.getElementById('stat-visits').textContent = "...";
-                document.getElementById('stat-results').textContent = "...";
+                ['stat-visits','stat-results','stat-today','stat-downloads','stat-searches','stat-events'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '...';
+                });
 
                 let allData = [];
                 let from = 0;
@@ -1436,70 +1438,104 @@
                     }
                 }
 
-                let uniqueVisits = 0;
-                let uniqueResults = 0;
-                let uniqueOtherSections = 0;
-                let uniqueSpecsTotal = 0;
-                let uniqueLevelsTotal = 0;
+                /* ================= احتساب دقيق ومستقر =================
+                   القاعدة: كل زائر يُحسب مرة واحدة عبر معرّف جهازه (visitor_id).
+                   الصفوف القديمة بلا معرّف: تُحسب مرة واحدة عبر معرّف الصف غير المتكرر.
+                   كل مجموعة قسم هي مجموعة جزئية من مجموعة الزوار الكلية،
+                   لذلك يستحيل أن يتجاوز أي قسم إجمالي الزوار.
+                ======================================================= */
+                const visitorKey = (row) => {
+                    if (row.visitor_id) return 'v:' + row.visitor_id;
+                    if (!String(row.action_type || '').includes('(متكرر)')) return 'l:' + row.id;
+                    return null; // صف متكرر قديم: لا يُحتسب في التفرّد
+                };
+                const baseType = (row) => String(row.action_type || '').replace(' (متكرر)', '').trim();
 
-                let dailyVisitsTotal = {};
-                let dailyResultsTotal = {}; 
-                let specCountsTotal = {};
-                let levelCountsTotal = {};
+                const allVisitors = new Set();
+                const resultsVisitors = new Set();
+                const todayVisitors = new Set();
+                const dailyVisitorSets = {};
+                const dailyResultSets = {};
+                const specVisitorSets = {};
+                const levelVisitorSets = {};
+                const fileCounts = {};
+                let downloadEvents = 0;
+                let searchEvents = 0;
+
+                const todayStr = new Date().toISOString().split('T')[0];
+                const addTo = (store, key, visitor) => {
+                    if (!key) return;
+                    if (!store[key]) store[key] = new Set();
+                    if (visitor) store[key].add(visitor);
+                };
 
                 allData.forEach(row => {
-                    const dateStr = row.created_at.split('T')[0];
-                    const isUnique = !row.action_type.includes('(متكرر)');
+                    const dateStr = String(row.created_at).split('T')[0];
+                    const type = baseType(row);
+                    const key = visitorKey(row);
 
-                    if (row.action_type.startsWith('زيارة الموقع')) {
-                        if (isUnique) uniqueVisits++; 
-                        dailyVisitsTotal[dateStr] = (dailyVisitsTotal[dateStr] || 0) + 1; 
+                    if (key) {
+                        allVisitors.add(key);
+                        addTo(dailyVisitorSets, dateStr, key);
+                        if (dateStr === todayStr) todayVisitors.add(key);
                     }
 
-                    if (row.action_type.startsWith('دخول قسم')) {
-                        if (row.action_detail === 'النتائج') {
-                            if (isUnique) uniqueResults++;
-                            dailyResultsTotal[dateStr] = (dailyResultsTotal[dateStr] || 0) + 1;
-                        } else if (isUnique) {
-                            uniqueOtherSections++;
-                        }
+                    if (type === 'دخول قسم' && row.action_detail === 'النتائج') {
+                        if (key) { resultsVisitors.add(key); addTo(dailyResultSets, dateStr, key); }
                     }
-
-                    
-                    if (row.action_type.startsWith('دخول تخصص')) {
-                        if (isUnique) uniqueSpecsTotal++;
-                        specCountsTotal[row.action_detail] = (specCountsTotal[row.action_detail] || 0) + 1;
+                    if (type === 'دخول تخصص' && row.action_detail) addTo(specVisitorSets, row.action_detail, key);
+                    if (type === 'دخول مستوى' && row.action_detail) addTo(levelVisitorSets, row.action_detail, key);
+                    if (type === 'تحميل ملف' || type === 'فتح ملف') {
+                        downloadEvents++;
+                        const name = row.action_detail || 'ملف غير معروف';
+                        fileCounts[name] = (fileCounts[name] || 0) + 1;
                     }
-
-                    if (row.action_type.startsWith('دخول مستوى')) {
-                        if (isUnique) uniqueLevelsTotal++;
-                        levelCountsTotal[row.action_detail] = (levelCountsTotal[row.action_detail] || 0) + 1;
-                    }
+                    if (type === 'بحث') searchEvents++;
                 });
 
-                // زوار الموقع = زوار النتائج + زوار باقي الأقسام + زوار التخصصات + زوار المستويات (بدون المتكرر).
-                const displayedVisits = uniqueResults + uniqueOtherSections + uniqueSpecsTotal + uniqueLevelsTotal;
+                const setsToCounts = (store, sortKeys) => {
+                    const keys = Object.keys(store);
+                    keys.sort(sortKeys ? undefined : (a, b) => store[b].size - store[a].size);
+                    if (sortKeys) keys.sort();
+                    const out = {};
+                    keys.forEach(k => { out[k] = store[k].size; });
+                    return out;
+                };
 
-                document.getElementById('stat-visits').textContent = displayedVisits;
-                document.getElementById('stat-results').textContent = uniqueResults;
+                const displayedVisits = allVisitors.size;
+                const uniqueResults = Math.min(resultsVisitors.size, displayedVisits);
+                const sortedDailyVisits = setsToCounts(dailyVisitorSets, true);
+                const sortedDailyResults = setsToCounts(dailyResultSets, true);
+                const specCountsTotal = setsToCounts(specVisitorSets);
+                const levelCountsTotal = setsToCounts(levelVisitorSets);
 
-                const sortedDatesVisits = Object.keys(dailyVisitsTotal).sort();
-                const sortedDailyVisits = {};
-                sortedDatesVisits.forEach(d => sortedDailyVisits[d] = dailyVisitsTotal[d]);
+                document.getElementById('stat-visits').textContent = displayedVisits.toLocaleString('en-US');
+                document.getElementById('stat-results').textContent = uniqueResults.toLocaleString('en-US');
+                document.getElementById('stat-today').textContent = todayVisitors.size.toLocaleString('en-US');
+                document.getElementById('stat-downloads').textContent = downloadEvents.toLocaleString('en-US');
+                document.getElementById('stat-searches').textContent = searchEvents.toLocaleString('en-US');
+                document.getElementById('stat-events').textContent = allData.length.toLocaleString('en-US');
 
-                const sortedDatesResults = Object.keys(dailyResultsTotal).sort();
-                const sortedDailyResults = {};
-                sortedDatesResults.forEach(d => sortedDailyResults[d] = dailyResultsTotal[d]);
+                // جدول أكثر الملفات تفاعلاً
+                const topFiles = Object.keys(fileCounts)
+                    .sort((a, b) => fileCounts[b] - fileCounts[a])
+                    .slice(0, 10)
+                    .map(name => ({ name, count: fileCounts[name] }));
+                renderTopFilesTable(topFiles);
 
-                renderAnalyticsChart('dailyVisitsChart', 'line', 'إجمالي الزيارات', sortedDailyVisits);
-                renderAnalyticsChart('dailyResultsChart', 'line', 'دخول قسم النتائج', sortedDailyResults);
-                renderAnalyticsChart('specChart', 'pie', 'التخصصات (إجمالي الدخول)', specCountsTotal);
-                renderAnalyticsChart('levelChart', 'doughnut', 'المستويات (إجمالي الدخول)', levelCountsTotal);
+                renderAnalyticsChart('dailyVisitsChart', 'line', 'الزوار الفريدون يومياً', sortedDailyVisits);
+                renderAnalyticsChart('dailyResultsChart', 'line', 'زوار قسم النتائج يومياً', sortedDailyResults);
+                renderAnalyticsChart('specChart', 'pie', 'التخصصات (زوار فريدون)', specCountsTotal);
+                renderAnalyticsChart('levelChart', 'doughnut', 'المستويات (زوار فريدون)', levelCountsTotal);
 
                 // حفظ البيانات لاستخدامها عند تصدير الصورة
                 window.__lastStatsData = {
                     startDate, endDate,
                     displayedVisits, uniqueResults,
+                    todayVisitors: todayVisitors.size,
+                    downloadEvents, searchEvents,
+                    totalEvents: allData.length,
+                    topFiles,
                     specCountsTotal, levelCountsTotal,
                     dailyVisitsTotal: sortedDailyVisits,
                     dailyResultsTotal: sortedDailyResults
@@ -1510,6 +1546,22 @@
                 errDiv.textContent = "حدث خطأ أثناء جلب البيانات أو أن الجدول (analytics) غير موجود.";
                 errDiv.classList.remove('hidden');
             }
+        }
+
+        function renderTopFilesTable(rows) {
+            const box = document.getElementById('top-files-body');
+            if (!box) return;
+            if (!rows || rows.length === 0) {
+                box.innerHTML = '<tr><td colspan="3" style="padding:14px; text-align:center; color:var(--text-secondary); font-weight:700;">لا توجد بيانات في هذه الفترة</td></tr>';
+                return;
+            }
+            box.innerHTML = rows.map((r, i) => (
+                '<tr>' +
+                '<td style="padding:10px 12px; border-bottom:1px solid var(--border-color); font-weight:800; color:var(--primary-color);">' + (i + 1) + '</td>' +
+                '<td style="padding:10px 12px; border-bottom:1px solid var(--border-color); font-weight:700; word-break:break-word;">' + String(r.name).replace(/[<>&]/g, '') + '</td>' +
+                '<td style="padding:10px 12px; border-bottom:1px solid var(--border-color); font-weight:800; text-align:center;">' + r.count + '</td>' +
+                '</tr>'
+            )).join('');
         }
 
         let activeCharts = {};
