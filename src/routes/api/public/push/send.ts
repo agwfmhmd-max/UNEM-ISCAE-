@@ -116,7 +116,11 @@ export const Route = createFileRoute("/api/public/push/send")({
           return json({ success: true, total: 0, delivered: 0, failed: 0, message: "لا يوجد مشتركون في الإشعارات حالياً." });
         }
 
-        const { delivered, failed, goneIds } = await sendInBatches(subs, { title, body: message, url }, vapid);
+        const { delivered, failed, goneIds } = await sendInBatches(
+          subs,
+          { title, body: message, ...(url ? { url } : {}) },
+          vapid,
+        );
 
         // تنظيف الاشتراكات المنتهية (المستخدم عطّل الإذن أو أزال المتصفح) — لا يُحسب فشلاً
         await deleteSubscriptions(goneIds, token);
