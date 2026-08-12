@@ -1820,17 +1820,38 @@ body.fp-open{ overflow:hidden !important; }
        يضمن تسجيل "زيارة الموقع" لأي زائر يصل مباشرة إلى /resultats
        حتى لا يتجاوز عدد فتحات النتائج عدد الزيارات الكلية.
        ============================================================ */
+    function getUnemVisitorId() {
+        try {
+            let v = localStorage.getItem('unem_visitor_id');
+            if (!v) {
+                v = (window.crypto && crypto.randomUUID)
+                    ? crypto.randomUUID()
+                    : 'v-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+                localStorage.setItem('unem_visitor_id', v);
+            }
+            return v;
+        } catch (e) {
+            return 'anon-' + Math.random().toString(36).slice(2, 10);
+        }
+    }
+
+    async function insertAnalyticsRow(client, row) {
+        if (!client) return;
+        try {
+            const { error } = await client.from('analytics').insert([{ ...row, visitor_id: getUnemVisitorId() }]);
+            if (error) throw error;
+        } catch (e) {
+            try { await client.from('analytics').insert([row]); } catch (e2) {}
+        }
+    }
+
     async function logSupabaseAnalytics(actionType, actionDetail) {
         if (!_supabase) return;
         try {
             // ضمان تسجيل زيارة الموقع أولاً إذا لم تُسجَّل بعد
             if (actionType !== 'زيارة الموقع' && !localStorage.getItem('unem_has_visited')) {
                 localStorage.setItem('unem_has_visited', 'true');
-                try {
-                    await _supabase.from('analytics').insert([
-                        { action_type: 'زيارة الموقع', action_detail: 'تلقائي - صفحة النتائج' }
-                    ]);
-                } catch (e) {}
+                await insertAnalyticsRow(_supabase, { action_type: 'زيارة الموقع', action_detail: 'تلقائي - صفحة النتائج' });
             }
 
             let isFirstTime = false;
@@ -1848,9 +1869,7 @@ body.fp-open{ overflow:hidden !important; }
                 }
             }
             const finalActionType = isFirstTime ? actionType : actionType + ' (متكرر)';
-            await _supabase.from('analytics').insert([
-                { action_type: finalActionType, action_detail: actionDetail }
-            ]);
+            await insertAnalyticsRow(_supabase, { action_type: finalActionType, action_detail: actionDetail });
         } catch (e) {}
     }
 
