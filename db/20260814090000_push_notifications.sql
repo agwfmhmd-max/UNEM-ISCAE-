@@ -35,47 +35,45 @@ create table if not exists public.push_notifications_log (
 create index if not exists push_notifications_log_created_idx on public.push_notifications_log(created_at desc);
 
 -- ---------- 3) الصلاحيات (Data API) ----------
-grant select, insert, update, delete on public.push_subscriptions   to anon, authenticated;
-grant all                            on public.push_subscriptions   to service_role;
+-- Direct writes to push_subscriptions are blocked. The website uses RPCs.
+revoke insert, update, delete on public.push_subscriptions from anon, authenticated;
+grant select on public.push_subscriptions to authenticated;
+grant all on public.push_subscriptions to service_role;
 
-grant select, insert               on public.push_notifications_log to authenticated;
-grant all                          on public.push_notifications_log to service_role;
+grant select, insert on public.push_notifications_log to authenticated;
+grant all on public.push_notifications_log to service_role;
 
-alter table public.push_subscriptions   enable row level security;
+alter table public.push_subscriptions enable row level security;
 alter table public.push_notifications_log enable row level security;
 
 -- ---------- 4) سياسات RLS: push_subscriptions ----------
--- الاشتراك متاح لأي زائر (يحتاجه الطالب حتى دون تسجيل دخول ليستقبل الإشعارات)
 drop policy if exists "push_subscriptions_public_insert" on public.push_subscriptions;
-create policy "push_subscriptions_public_insert"
-  on public.push_subscriptions for insert
-  with check (true);
-
--- تحديث الاشتراك (تجديد المفاتيح / آخر ظهور) متاح لصاحب نفس الـ endpoint
 drop policy if exists "push_subscriptions_public_update" on public.push_subscriptions;
-create policy "push_subscriptions_public_update"
-  on public.push_subscriptions for update
-  using (true) with check (true);
-
--- إلغاء الاشتراك (حذف) متاح للجميع (يحتاج معرفة الـ endpoint الدقيق، وهو رابط سري غير قابل للتخمين)
 drop policy if exists "push_subscriptions_public_delete" on public.push_subscriptions;
-create policy "push_subscriptions_public_delete"
-  on public.push_subscriptions for delete
-  using (true);
-
--- قراءة قائمة الاشتراكات: للمشرف الرئيسي فقط (حتى لا يطّلع أي زائر على بيانات الآخرين)
 drop policy if exists "push_subscriptions_admin_select" on public.push_subscriptions;
+drop policy if exists "push_subscriptions_admin_update" on public.push_subscriptions;
+drop policy if exists "push_subscriptions_admin_delete" on public.push_subscriptions;
+
 create policy "push_subscriptions_admin_select"
   on public.push_subscriptions for select to authenticated
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+create policy "push_subscriptions_admin_update"
+  on public.push_subscriptions for update to authenticated
+  using (public.has_role(auth.uid(), 'admin'::public.app_role))
+  with check (public.has_role(auth.uid(), 'admin'::public.app_role));
+
+create policy "push_subscriptions_admin_delete"
+  on public.push_subscriptions for delete to authenticated
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 -- ---------- 5) سياسات RLS: push_notifications_log ----------
 drop policy if exists "push_log_admin_select" on public.push_notifications_log;
 create policy "push_log_admin_select"
   on public.push_notifications_log for select to authenticated
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 drop policy if exists "push_log_admin_insert" on public.push_notifications_log;
 create policy "push_log_admin_insert"
   on public.push_notifications_log for insert to authenticated
-  with check (public.has_role(auth.uid(), 'admin'));
+  with check (public.has_role(auth.uid(), 'admin'::public.app_role));
