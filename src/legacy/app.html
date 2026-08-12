@@ -2108,7 +2108,13 @@ function closeAnalyticsDashboard() {
             try {
                 const reg = await navigator.serviceWorker.ready;
                 const sub = await reg.pushManager.getSubscription();
-                setPushIcon(!!sub && Notification.permission === 'granted');
+                const active = !!sub && Notification.permission === 'granted';
+                setPushIcon(active);
+                // إعادة مزامنة تلقائية: من فعّل الإشعارات سابقاً ولم يُسجَّل في القاعدة يُضاف الآن
+                if (active) {
+                    const saved = await savePushSubscriptionToDb(sub);
+                    if (!saved.ok) console.warn('push sync failed:', saved.message);
+                }
             } catch (e) { setPushIcon(false); }
         }
 
@@ -2130,19 +2136,36 @@ function closeAnalyticsDashboard() {
                     applicationServerKey: urlBase64ToUint8Array(data.publicKey),
                 });
             }
-            const json = sub.toJSON();
-            if (supabaseClient) {
-                await supabaseClient.from('push_subscriptions').upsert({
+            const saved = await savePushSubscriptionToDb(sub);
+            if (!saved.ok) {
+                alert('❌ تعذّر تسجيل جهازك في قاعدة بيانات الإشعارات: ' + saved.message);
+                return false;
+            }
+            localStorage.setItem('unem_push_enabled', '1');
+            return true;
+        }
+
+        /** يحفظ اشتراك المتصفح في قاعدة البيانات (مع إظهار الخطأ بدل تجاهله) */
+        async function savePushSubscriptionToDb(sub) {
+            if (!supabaseClient) return { ok: false, message: 'قاعدة البيانات غير متصلة.' };
+            try {
+                const json = sub.toJSON();
+                const row = {
                     endpoint: json.endpoint,
                     p256dh: json.keys.p256dh,
                     auth: json.keys.auth,
                     user_agent: navigator.userAgent,
-                    user_id: currentUserId,
                     last_seen_at: new Date().toISOString(),
-                }, { onConflict: 'endpoint' });
+                };
+                if (currentUserId) row.user_id = currentUserId;
+                const { error } = await supabaseClient
+                    .from('push_subscriptions')
+                    .upsert(row, { onConflict: 'endpoint' });
+                if (error) return { ok: false, message: error.message || 'خطأ غير معروف' };
+                return { ok: true };
+            } catch (e) {
+                return { ok: false, message: (e && e.message) || String(e) };
             }
-            localStorage.setItem('unem_push_enabled', '1');
-            return true;
         }
 
         async function unsubscribeFromPush() {
