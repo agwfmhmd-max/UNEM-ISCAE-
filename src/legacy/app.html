@@ -936,6 +936,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- أكثر الملفات تفاعلاً -->
+            <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 30px; overflow-x: auto;">
+                <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 18px;">أكثر الملفات تفاعلاً (تحميل / فتح)</h4>
+                <table style="width: 100%; border-collapse: collapse; text-align: start; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background: rgba(15,81,50,0.06);">
+                            <th style="padding: 10px 12px; text-align: start; font-weight: 900; width: 60px;">#</th>
+                            <th style="padding: 10px 12px; text-align: start; font-weight: 900;">اسم الملف</th>
+                            <th style="padding: 10px 12px; text-align: center; font-weight: 900; width: 110px;">عدد المرات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-files-body">
+                        <tr><td colspan="3" style="padding:14px; text-align:center; color:var(--text-secondary); font-weight:700;">—</td></tr>
+                    </tbody>
+                </table>
+            </div>
             
             <div id="analytics-error" class="status-msg error hidden" style="margin-top: 20px;"></div>
         </div>
