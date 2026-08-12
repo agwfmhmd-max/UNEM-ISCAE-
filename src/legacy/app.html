@@ -869,17 +869,37 @@
                 <button onclick="applyAnalyticsFilter()" class="btn-submit" style="flex: 0 0 auto; width: auto; padding: 11px 20px; margin: 0; min-width: 120px;">تطبيق الفلتر</button>
             </div>
             
-            <!-- البطاقات العلوية -->
-            <div style="display: flex; gap: 15px; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap;">
-                <div style="flex:1; min-width: 200px; background: rgba(15, 81, 50, 0.05); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); text-align: center; transition: transform 0.3s;">
-                    <h3 id="stat-visits" style="margin: 0; font-size: 2.5rem; color: var(--primary-color);">0</h3>
-                    <p style="margin: 10px 0 0 0; font-size: 1rem; font-weight: 800; color: var(--text-secondary);">زيارات الموقع الفريدة</p>
+            <!-- البطاقات العلوية (مؤشرات دقيقة) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 15px; margin-bottom: 22px;">
+                <div class="kpi-card" style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); border-top: 5px solid var(--primary-color); text-align: center; box-shadow: var(--shadow-sm);">
+                    <h3 id="stat-visits" style="margin: 0; font-size: 2.3rem; color: var(--primary-color); font-weight: 900;">0</h3>
+                    <p style="margin: 8px 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--text-secondary);">إجمالي الزوار الفريدين</p>
                 </div>
-                <div style="flex:1; min-width: 200px; background: rgba(15, 81, 50, 0.05); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); text-align: center; transition: transform 0.3s;">
-                    <h3 id="stat-results" style="margin: 0; font-size: 2.5rem; color: var(--primary-color);">0</h3>
-                    <p style="margin: 10px 0 0 0; font-size: 1rem; font-weight: 800; color: var(--text-secondary);">دخول النتائج (فريد)</p>
+                <div class="kpi-card" style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); border-top: 5px solid #15803d; text-align: center; box-shadow: var(--shadow-sm);">
+                    <h3 id="stat-results" style="margin: 0; font-size: 2.3rem; color: #15803d; font-weight: 900;">0</h3>
+                    <p style="margin: 8px 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--text-secondary);">زوار قسم النتائج</p>
+                </div>
+                <div class="kpi-card" style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); border-top: 5px solid #0ea5e9; text-align: center; box-shadow: var(--shadow-sm);">
+                    <h3 id="stat-today" style="margin: 0; font-size: 2.3rem; color: #0ea5e9; font-weight: 900;">0</h3>
+                    <p style="margin: 8px 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--text-secondary);">زوار اليوم</p>
+                </div>
+                <div class="kpi-card" style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); border-top: 5px solid #eab308; text-align: center; box-shadow: var(--shadow-sm);">
+                    <h3 id="stat-downloads" style="margin: 0; font-size: 2.3rem; color: #b45309; font-weight: 900;">0</h3>
+                    <p style="margin: 8px 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--text-secondary);">تحميلات وفتح الملفات</p>
+                </div>
+                <div class="kpi-card" style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); border-top: 5px solid #7c3aed; text-align: center; box-shadow: var(--shadow-sm);">
+                    <h3 id="stat-searches" style="margin: 0; font-size: 2.3rem; color: #7c3aed; font-weight: 900;">0</h3>
+                    <p style="margin: 8px 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--text-secondary);">عمليات البحث</p>
+                </div>
+                <div class="kpi-card" style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); border-top: 5px solid #64748b; text-align: center; box-shadow: var(--shadow-sm);">
+                    <h3 id="stat-events" style="margin: 0; font-size: 2.3rem; color: #475569; font-weight: 900;">0</h3>
+                    <p style="margin: 8px 0 0 0; font-size: 0.95rem; font-weight: 800; color: var(--text-secondary);">إجمالي الأحداث المسجلة</p>
                 </div>
             </div>
+
+            <p id="analytics-note" style="margin: 0 0 22px 0; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); background: rgba(15,81,50,0.05); border: 1px dashed var(--border-color); border-radius: 12px; padding: 10px 14px; text-align: start;">
+                يتم احتساب الزائر الفريد عبر معرّف ثابت للجهاز، ولا يمكن أن يتجاوز أي قسم إجمالي الزوار.
+            </p>
 
             <!-- شبكة الرسوم البيانية الخطية للكمبيوتر -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 20px;">
