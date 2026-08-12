@@ -1,0 +1,17 @@
+{
+  "name": "UNEM ISCAE - المنصة",
+  "short_name": "UNEM ISCAE",
+  "description": "منصة الاتحاد الوطني لطلبة موريتانيا - ISCAE لتوزيع الملفات الدراسية",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f5132",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
