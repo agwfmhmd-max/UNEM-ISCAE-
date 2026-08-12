@@ -2147,23 +2147,41 @@ function closeAnalyticsDashboard() {
 
         /** يحفظ اشتراك المتصفح في قاعدة البيانات (مع إظهار الخطأ بدل تجاهله) */
         async function savePushSubscriptionToDb(sub) {
-            if (!supabaseClient) return { ok: false, message: 'قاعدة البيانات غير متصلة.' };
+            if (!supabaseClient) {
+                return { ok: false, message: 'قاعدة البيانات غير متصلة.' };
+            }
+
             try {
                 const json = sub.toJSON();
-                const row = {
-                    endpoint: json.endpoint,
-                    p256dh: json.keys.p256dh,
-                    auth: json.keys.auth,
-                    user_agent: navigator.userAgent,
-                    last_seen_at: new Date().toISOString(),
-                };
-                if (currentUserId) row.user_id = currentUserId;
-                const { error } = await supabaseClient
-                    .from('push_subscriptions')
-                    .upsert(row, { onConflict: 'endpoint' });
-                if (error) return { ok: false, message: error.message || 'خطأ غير معروف' };
-                return { ok: true };
+                const endpoint = json.endpoint;
+                const p256dh = json.keys?.p256dh;
+                const auth = json.keys?.auth;
+                const userAgent = navigator.userAgent;
+
+                if (!endpoint || !p256dh || !auth) {
+                    return { ok: false, message: 'بيانات اشتراك الإشعارات غير مكتملة.' };
+                }
+
+                // حفظ الاشتراك عبر RPC آمنة بدل الكتابة المباشرة إلى الجدول.
+                // هذا يعمل للزائر anon وللمستخدم authenticated.
+                const { data, error } = await supabaseClient.rpc(
+                    'save_push_subscription',
+                    {
+                        p_endpoint: endpoint,
+                        p_p256dh: p256dh,
+                        p_auth: auth,
+                        p_user_agent: userAgent
+                    }
+                );
+
+                if (error) {
+                    console.error('save_push_subscription RPC error:', error);
+                    return { ok: false, message: error.message || 'تعذر حفظ اشتراك الإشعارات.' };
+                }
+
+                return { ok: true, id: data };
             } catch (e) {
+                console.error('Push subscription save error:', e);
                 return { ok: false, message: (e && e.message) || String(e) };
             }
         }
@@ -2172,12 +2190,29 @@ function closeAnalyticsDashboard() {
             try {
                 const reg = await navigator.serviceWorker.ready;
                 const sub = await reg.pushManager.getSubscription();
+
                 if (sub) {
                     const endpoint = sub.endpoint;
+
+                    // إلغاء اشتراك المتصفح أولاً.
                     await sub.unsubscribe();
-                    if (supabaseClient) await supabaseClient.from('push_subscriptions').delete().eq('endpoint', endpoint);
+
+                    // حذف السجل عبر RPC بدل DELETE المباشر الذي تمنعه RLS.
+                    if (supabaseClient && endpoint) {
+                        const { error } = await supabaseClient.rpc(
+                            'remove_push_subscription',
+                            { p_endpoint: endpoint }
+                        );
+
+                        if (error) {
+                            console.error('remove_push_subscription RPC error:', error);
+                        }
+                    }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error('Push unsubscribe error:', e);
+            }
+
             localStorage.setItem('unem_push_enabled', '0');
         }
 
