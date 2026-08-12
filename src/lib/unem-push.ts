@@ -54,8 +54,8 @@ export async function sendPushNotification(
     const request = await buildPushPayload(message, subscription, vapid);
     const res = await fetch(sub.endpoint, {
       method: request.method,
-      headers: request.headers,
-      body: request.body,
+      headers: request.headers as unknown as HeadersInit,
+      body: request.body as unknown as BodyInit,
     });
 
     if (res.ok) return "ok";
