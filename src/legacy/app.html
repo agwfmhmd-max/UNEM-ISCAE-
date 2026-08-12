@@ -2147,7 +2147,7 @@ function closeAnalyticsDashboard() {
 
         /** يحفظ اشتراك المتصفح في قاعدة البيانات (مع إظهار الخطأ بدل تجاهله) */
         async function savePushSubscriptionToDb(sub) {
-            if (!supabaseClient) return { ok: false, message: 'قاعدة البيانات غير متصلة.' };
+            if (!supabaseClient) return { ok: false, message: 'قاعدة البيانات غير متصلة. (SUPABASE_URL=' + SUPABASE_URL + ')' };
             try {
                 const json = sub.toJSON();
                 const row = {
@@ -2158,12 +2158,32 @@ function closeAnalyticsDashboard() {
                     last_seen_at: new Date().toISOString(),
                 };
                 if (currentUserId) row.user_id = currentUserId;
-                const { error } = await supabaseClient
+                // ===== DEBUG_PUSH_TMP: تشخيص مؤقت — يُزال لاحقاً =====
+                const { data: dbgData, error, status, statusText } = await supabaseClient
                     .from('push_subscriptions')
-                    .upsert(row, { onConflict: 'endpoint' });
-                if (error) return { ok: false, message: error.message || 'خطأ غير معروف' };
+                    .upsert(row, { onConflict: 'endpoint' })
+                    .select();
+                if (error) {
+                    const full = [
+                        'PROJECT: ' + SUPABASE_URL,
+                        'HTTP status: ' + status + ' ' + statusText,
+                        'code: ' + (error.code || '-'),
+                        'message: ' + (error.message || '-'),
+                        'details: ' + (error.details || '-'),
+                        'hint: ' + (error.hint || '-'),
+                        'row_sent: ' + JSON.stringify(row),
+                    ].join('\n');
+                    console.error('[DEBUG_PUSH_TMP]', full, error);
+                    alert('🔎 تفاصيل الخطأ الكاملة:\n\n' + full);
+                    return { ok: false, message: error.message || 'خطأ غير معروف' };
+                }
+                console.log('[DEBUG_PUSH_TMP] saved ok:', dbgData);
+                // ===== نهاية التشخيص المؤقت =====
                 return { ok: true };
             } catch (e) {
+                const full = 'EXCEPTION: ' + ((e && e.message) || String(e)) + '\nSTACK: ' + ((e && e.stack) || '-');
+                console.error('[DEBUG_PUSH_TMP]', full, e);
+                alert('🔎 استثناء أثناء الحفظ:\n\n' + full);
                 return { ok: false, message: (e && e.message) || String(e) };
             }
         }
