@@ -1753,9 +1753,11 @@ function closeAnalyticsDashboard() {
                     if (stroke) ctx.stroke();
                 }
 
-                // بطاقتان رئيسيتان (بدون "شامل المتكرر")
-                drawCard(80, 300, 700, 220, 'زيارات الموقع الفريدة', d.displayedVisits, '#0f5132');
-                drawCard(820, 300, 700, 220, 'دخول النتائج (فريد)', d.uniqueResults, '#15803d');
+                // بطاقات المؤشرات الدقيقة
+                drawCard(80, 300, 340, 220, 'الزوار الفريدون', d.displayedVisits, '#0f5132');
+                drawCard(450, 300, 340, 220, 'زوار النتائج', d.uniqueResults, '#15803d');
+                drawCard(820, 300, 340, 220, 'زوار اليوم', d.todayVisitors ?? 0, '#0ea5e9');
+                drawCard(1190, 300, 330, 220, 'الأحداث المسجلة', d.totalEvents ?? 0, '#b45309');
 
                 // عنوان قسم الرسوم
                 ctx.fillStyle = '#0f5132';
