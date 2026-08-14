@@ -440,7 +440,9 @@
         .up-item.failed .up-state { color:#ef4444; }
         .up-item.failed { border-color:rgba(239,68,68,0.5); }
         .cloud-badge { font-size:0.65rem; font-weight:800; color:var(--secondary-color); border:1px solid var(--secondary-color); border-radius:6px; padding:1px 5px; margin-inline-start:6px; }
-    </style>
+    
+.admin-dash-card{border:1px solid #e2e8f0;background:#fff;border-radius:18px;padding:20px;text-align:right;cursor:pointer;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 18px rgba(15,23,42,.06);transition:.2s}.admin-dash-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(15,23,42,.1);border-color:#93c5fd}.admin-dash-card b{font-size:1rem;color:#0f172a}.admin-dash-card span{font-size:.82rem;color:#64748b;font-weight:600;line-height:1.5}.admin-page-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:18px}.wa-admin-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px;margin-bottom:10px}.wa-admin-row input,.wa-admin-row select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px}.wa-actions{display:flex;gap:6px;flex-wrap:wrap}.wa-actions button{border:0;border-radius:9px;padding:8px 11px;font-weight:800;cursor:pointer}.wa-save{background:#25D366;color:#fff}.wa-del{background:#fee2e2;color:#991b1b}
+</style>
 </head>
 <body>
 
@@ -675,6 +677,38 @@
             <button onclick="adminLogin()" id="admin-login-btn" class="btn-submit" data-i18n="btn_login">دخول للوحة الرفع</button>
             <button onclick="closeAdminLogin()" class="btn-submit btn-cancel" style="margin-top: 8px;" data-i18n="btn_cancel">إلغاء</button>
         </div>
+    </div>
+
+    <!-- لوحة المشرف الرئيسية الاحترافية -->
+    <div id="admin-dashboard-overlay" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width:1050px;width:96%;max-height:92vh;overflow:auto;padding:0;">
+        <div style="padding:22px 24px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:18px 18px 0 0;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div><div class="admin-dashboard-title" style="font-size:1.35rem;font-weight:900">لوحة المشرف</div><div class="admin-dashboard-subtitle" style="opacity:.8;font-size:.85rem;margin-top:4px">الأقسام المسموح لك بإدارتها</div></div>
+          <button onclick="closeAdminDashboard()" style="background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:800">✕</button>
+        </div>
+        <div id="admin-dashboard-home" style="padding:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;">
+          <button class="admin-dash-card" onclick="adminDashOpen('upload')"><b>📚 إدارة الملفات</b><span>رفع وتحديث ملفات المواد</span></button>
+          <button class="admin-dash-card" onclick="adminDashOpen('whatsapp')"><b>🟢 مجموعات WhatsApp</b><span>المجموعات العامة للمستوى والمجموعات الخاصة بالتخصص</span></button>
+          <button class="admin-dash-card" onclick="adminDashOpen('permissions')"><b>🔐 صلاحيات المشرفين</b><span>حدد ما يظهر لكل مشرف</span></button>
+          <button class="admin-dash-card" onclick="adminDashOpen('analytics')"><b>📊 الإحصائيات</b><span>متابعة زوار المنصة</span></button>
+          <button class="admin-dash-card" onclick="adminDashOpen('announcements')"><b>📢 الإعلانات</b><span>إدارة شريط الإعلانات</span></button>
+          <button class="admin-dash-card" onclick="adminDashOpen('notifications')"><b>🔔 الإشعارات</b><span>إرسال ومراجعة الإشعارات</span></button>
+          <button class="admin-dash-card" onclick="adminDashOpen('types')"><b>🗂️ أنواع الملفات</b><span>تنظيم أنواع ملفات المواد</span></button>
+        </div>
+        <div id="admin-dashboard-page" style="display:none;padding:22px;">
+          <button onclick="adminDashHome()" class="back-btn" style="margin-bottom:15px">← لوحة التحكم</button>
+          <div id="admin-dashboard-page-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- مجموعات WhatsApp للطلاب -->
+    <div id="whatsapp-groups-overlay" class="modal-overlay hidden">
+      <div class="modal-content" style="max-width:650px;width:94%;">
+        <div class="header-with-back"><button class="back-btn" onclick="closeWhatsAppGroups()">إغلاق</button><h2 class="section-title">🟢 مجموعات WhatsApp</h2></div>
+        <p id="whatsapp-groups-scope" style="text-align:center;font-weight:800;color:var(--text-secondary);margin:8px 0 18px"></p>
+        <div id="whatsapp-groups-list"><div style="text-align:center;padding:25px">⏳ جاري التحميل...</div></div>
+      </div>
     </div>
 
     <!-- نافذة الرفع المتعدد -->
@@ -1289,6 +1323,7 @@
             }
             currentUserRole = (data === 'admin' || data === 'uploader') ? data : 'user';
             isAdminLoggedIn = canUpload();
+            await loadMyPermissions();
             return currentUserRole;
         }
 
@@ -1420,6 +1455,10 @@
         }
 
         async function openAnalyticsDashboard(startDate = null, endDate = null) {
+            if(!hasPermission('view_analytics')){
+                alert('❌ ليست لديك الصلاحية لعرض الإحصائيات.');
+                return;
+            }
             document.getElementById('upload-modal-overlay').classList.add('hidden');
             document.getElementById('analytics-overlay').classList.remove('hidden');
             const errDiv = document.getElementById('analytics-error');
@@ -1981,7 +2020,7 @@ function closeAnalyticsDashboard() {
                 resetBtn();
                 document.getElementById('admin-pass').value = '';
                 logSupabaseAnalytics('دخول الإدارة', role);
-                openUploadModal();
+                openAdminDashboard();
             } catch (e) {
                 errorMsg.textContent = e.message || '❌ فشل تسجيل الدخول.';
                 errorMsg.classList.remove('hidden');
@@ -1995,6 +2034,7 @@ function closeAnalyticsDashboard() {
             currentUserRole = 'user'; currentUserId = null; isAdminLoggedIn = false;
             applyRoleUI();
             closeUploadModal();
+            closeAdminDashboard();
         }
         function closeAdminLogin() { document.getElementById('admin-login-overlay').classList.add('hidden'); }
 
@@ -2358,6 +2398,7 @@ function closeAnalyticsDashboard() {
                 div.innerHTML = `<div class="icon-box"><i class="fas fa-layer-group"></i></div><h3>Semestre ${sem.replace('s','')}</h3>`;
                 div.onclick = () => showSubjects(sem); grid.appendChild(div);
             });
+            const wa = document.createElement('button'); wa.type='button'; wa.className='btn-submit'; wa.style.cssText='grid-column:1/-1;background:#25D366;color:#fff;max-width:360px;margin:4px auto 0;border:0;'; wa.innerHTML='<i class="fab fa-whatsapp"></i> مجموعات WhatsApp لـ '+String(level).toUpperCase(); wa.onclick=()=>openWhatsAppGroups(currentSpecialization,String(level).toUpperCase()); grid.appendChild(wa);
         }
         
 
@@ -3802,14 +3843,298 @@ function closeAnalyticsDashboard() {
         
         function openWebViewer(url, title) { document.getElementById('web-viewer-title').textContent = title; document.getElementById('web-frame').src = url; document.getElementById('web-viewer-overlay').classList.remove('hidden'); }
         function closeWebViewer() { document.getElementById('web-viewer-overlay').classList.add('hidden'); document.getElementById('web-frame').src = ''; }
-        function openUploadModal() {
-            if (!canUpload()) { document.getElementById('admin-login-overlay').classList.remove('hidden'); return; }
+        let currentAdminDashPage = null;
+        const ADMIN_PERMISSIONS = [
+            ['upload_files','رفع الملفات'],['delete_files','حذف الملفات'],['manage_whatsapp','إدارة مجموعات WhatsApp'],
+            ['manage_announcements','إدارة الإعلانات'],['send_notifications','إرسال الإشعارات'],['view_analytics','عرض الإحصائيات'],
+            ['manage_document_types','إدارة أنواع الملفات']
+        ];
+        let myPermissions = {};
+        function hasPermission(key){ return isAdmin() || myPermissions[key] === true; }
+function escapeHtml(value){
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        async function loadMyPermissions(){
+            myPermissions={};
+            if(isAdmin() || !supabaseClient) return;
+            const email=(await supabaseClient.auth.getUser()).data?.user?.email;
+            if(!email) return;
+            const {data}=await supabaseClient.from('supervisor_permissions').select('*').eq('email',email).maybeSingle();
+            if(data) ADMIN_PERMISSIONS.forEach(([k])=>myPermissions[k]=data[k]===true);
+        }
+        function openAdminDashboard(){
+            if(!canUpload()){
+                document.getElementById('admin-login-overlay').classList.remove('hidden');
+                return;
+            }
+
+            /*
+             * نظام الدخول الجديد:
+             * - Super Admin: لوحة المشرف الرئيسي كاملة.
+             * - Supervisor بصلاحية رفع فقط: صفحة الرفع مباشرة.
+             * - Supervisor لديه رفع + صلاحيات أخرى: تظهر له لوحة مشرف مصغرة
+             *   تحتوي فقط على الأقسام التي منحه المشرف الرئيسي صلاحيتها.
+             *
+             * مهم: لا نربط ظهور اللوحة بوجود upload_files فقط، لأن ذلك كان
+             * سبب اختفاء الصلاحيات الإضافية سابقاً.
+             */
+            loadMyPermissions().then(()=>{
+                if(!isAdmin()){
+                    const nonUploadPermissions = ADMIN_PERMISSIONS
+                        .map(([key])=>key)
+                        .filter(key=>key !== 'upload_files' && myPermissions[key] === true);
+
+                    if(!hasPermission('upload_files') && nonUploadPermissions.length === 0){
+                        alert('❌ ليست لديك صلاحية للوصول إلى لوحة الإدارة.');
+                        return;
+                    }
+
+                    // إذا كانت الصلاحية الوحيدة هي رفع الملفات، افتح صفحة الرفع مباشرة.
+                    if(nonUploadPermissions.length === 0 && hasPermission('upload_files')){
+                        closeAdminDashboard();
+                        openUploadModal('upload');
+                        return;
+                    }
+
+                    // إذا كانت هناك صلاحيات إضافية، اعرض لوحة المشرف المصغرة.
+                    const overlay=document.getElementById('admin-dashboard-overlay');
+                    const home=document.getElementById('admin-dashboard-home');
+                    if(!overlay || !home) return;
+                    overlay.classList.remove('hidden');
+                    adminDashHome();
+                    updateAdminDashboardCards();
+                    const title=overlay.querySelector('.admin-dashboard-title');
+                    const subtitle=overlay.querySelector('.admin-dashboard-subtitle');
+                    if(title) title.textContent='لوحة المشرف';
+                    if(subtitle) subtitle.textContent='الأقسام التي منحك المشرف الرئيسي صلاحية الوصول إليها';
+                    return;
+                }
+
+                // المشرف الرئيسي يرى اللوحة الكاملة.
+                const overlay=document.getElementById('admin-dashboard-overlay');
+                const home=document.getElementById('admin-dashboard-home');
+                if(home) home.querySelectorAll('.admin-dash-card').forEach(b=>b.style.display='none');
+                overlay.classList.remove('hidden');
+                adminDashHome();
+                updateAdminDashboardCards();
+                const title=overlay.querySelector('.admin-dashboard-title');
+                const subtitle=overlay.querySelector('.admin-dashboard-subtitle');
+                if(title) title.textContent='لوحة المشرف الرئيسي';
+                if(subtitle) subtitle.textContent='إدارة المنصة والصلاحيات والمجموعات من مكان واحد';
+            }).catch(err=>{
+                console.error('openAdminDashboard permissions', err);
+                alert('❌ تعذر تحميل صلاحيات الحساب.');
+            });
+        }
+        function updateAdminDashboardCards(){
+            const map={
+                upload:'upload_files',
+                whatsapp:'manage_whatsapp',
+                permissions:'__admin_only__',
+                analytics:'view_analytics',
+                announcements:'manage_announcements',
+                notifications:'send_notifications',
+                types:'manage_document_types'
+            };
+            document.querySelectorAll('#admin-dashboard-home .admin-dash-card').forEach(b=>{
+                const onclick=b.getAttribute('onclick')||'';
+                const key=Object.keys(map).find(k=>onclick.includes("'"+k+"'")||onclick.includes(k+'Dashboard'));
+                if(!key) return;
+                const allowed=map[key]==='__admin_only__' ? isAdmin() : hasPermission(map[key]);
+                b.style.display=allowed?'flex':'none';
+            });
+        }
+        function closeAdminDashboard(){document.getElementById('admin-dashboard-overlay')?.classList.add('hidden');}
+        function adminDashHome(){currentAdminDashPage=null;document.getElementById('admin-dashboard-home').style.display='grid';document.getElementById('admin-dashboard-page').style.display='none';}
+        async function adminDashOpen(page){
+            const required={
+                upload:'upload_files',
+                whatsapp:'manage_whatsapp',
+                announcements:'manage_announcements',
+                notifications:'send_notifications',
+                types:'manage_document_types',
+                analytics:'view_analytics'
+            }[page];
+            if(page==='permissions'&&!isAdmin()) return alert('❌ هذه الصفحة للمشرف الرئيسي فقط.');
+            if(required && !hasPermission(required)) return alert('❌ ليست لديك الصلاحية لهذا القسم.');
+            currentAdminDashPage=page;
+            if(page==='analytics'){ closeAdminDashboard(); openAnalyticsDashboard(); return; }
+            if(page==='upload'||page==='announcements'||page==='notifications'||page==='types'){
+                closeAdminDashboard();
+                openUploadModal(page);
+                return;
+            }
+            document.getElementById('admin-dashboard-home').style.display='none'; document.getElementById('admin-dashboard-page').style.display='block';
+            const c=document.getElementById('admin-dashboard-page-content');
+            if(page==='permissions'){renderPermissionsAdmin();return;}
+            if(page==='whatsapp'){renderWhatsAppAdmin();return;}
+        }
+        async function renderWhatsAppAdmin(){
+            const c=document.getElementById('admin-dashboard-page-content');
+            c.innerHTML='<div class="admin-page-box"><h3>🟢 إدارة مجموعات WhatsApp</h3><p>يمكنك إضافة مجموعات عامة للمستوى (تظهر لجميع التخصصات) أو مجموعة خاصة بتخصص ومستوى محدد. عند إضافة رابط جديد لنفس النوع والمستوى يتم استبدال الرابط القديم تلقائياً.</p><div class="wa-admin-row"><div style="display:grid;gap:8px;grid-template-columns:repeat(4,1fr)"><select id="wa-type" onchange="toggleWhatsAppSpecField()"><option value="general">🌐 مجموعة عامة للمستوى</option><option value="specialization">🎓 مجموعة خاصة بالتخصص</option></select><select id="wa-spec"><option>BA</option><option>FC</option><option>TCM</option><option>GRH</option><option>SAE</option><option>IG</option></select><select id="wa-level"><option>L1</option><option>L2</option><option>L3</option></select><input id="wa-url" type="url" placeholder="رابط مجموعة WhatsApp"></div><div class="wa-actions"><button class="wa-save" onclick="saveWhatsAppGroup()">حفظ الرابط</button></div></div><div id="wa-admin-list">⏳ جاري التحميل...</div></div>'; toggleWhatsAppSpecField();
+            await loadWhatsAppAdminList();
+        }
+        function toggleWhatsAppSpecField(){
+            const type=document.getElementById('wa-type')?.value||'general';
+            const spec=document.getElementById('wa-spec');
+            if(spec){spec.disabled=type==='general'; spec.style.opacity=type==='general'?'.55':'1';}
+        }
+        async function loadWhatsAppAdminList(){
+            const el=document.getElementById('wa-admin-list'); if(!el||!supabaseClient)return;
+            const {data,error}=await supabaseClient.from('whatsapp_groups').select('*').order('level').order('group_type').order('specialization');
+            if(error){el.innerHTML='<div class="status-msg error">❌ '+escapeHtml(error.message)+'</div>';return;}
+            const rows=data||[];
+            el.innerHTML=rows.map(x=>{
+                const isGeneral=(x.group_type||'specialization')==='general';
+                const title=isGeneral?`🌐 مجموعة عامة · ${escapeHtml(x.level)}`:`🎓 ${escapeHtml(x.specialization)} · ${escapeHtml(x.level)}`;
+                const badge=isGeneral?'لجميع التخصصات':'خاصة بالتخصص';
+                return `<div class="wa-admin-row"><div><b>${title}</b><div style="font-size:.78rem;color:#64748b;margin-top:5px">${badge} · ${escapeHtml(x.url)}</div></div><div class="wa-actions"><button class="wa-del" onclick="deleteWhatsAppGroup('${x.id}')">حذف</button></div></div>`;
+            }).join('')||'<p>لا توجد مجموعات مضافة.</p>';
+        }
+        async function saveWhatsAppGroup(){
+            if(!hasPermission('manage_whatsapp'))return;
+            const v=id=>document.getElementById(id)?.value.trim()||'';
+            const type=v('wa-type')||'general';
+            const spec=v('wa-spec').toUpperCase();
+            const level=v('wa-level').toUpperCase();
+            const url=v('wa-url');
+            const saveBtn=document.querySelector('#admin-dashboard-page-content .wa-save');
+
+            if(!['general','specialization'].includes(type))return alert('❌ اختر نوع المجموعة.');
+            if(type==='specialization'&&!spec)return alert('❌ اختر التخصص.');
+            if(!level)return alert('❌ اختر المستوى.');
+            if(!url)return alert('❌ أدخل رابط مجموعة WhatsApp.');
+            if(!/^https:\/\/(chat\.whatsapp\.com|wa\.me)\//i.test(url)) return alert('❌ أدخل رابط WhatsApp صالحاً.');
+
+            if(saveBtn){saveBtn.disabled=true;saveBtn.dataset.originalText=saveBtn.textContent;saveBtn.textContent='⏳ جاري الحفظ...';}
+            try{
+                if(!supabaseClient) throw new Error('Supabase غير متصل.');
+                // نستبدل الرابط السابق لنفس النوع والمستوى (وللتخصص نفسه عند النوع الخاص).
+                let del=supabaseClient.from('whatsapp_groups').delete().eq('level',level).eq('group_type',type);
+                if(type==='specialization') del=del.eq('specialization',spec);
+                else del=del.is('specialization',null);
+                const {error:deleteError}=await del;
+                if(deleteError) throw deleteError;
+
+                const {error:insertError}=await supabaseClient.from('whatsapp_groups').insert({
+                    name:type==='general'?'مجموعة WhatsApp عامة':'مجموعة WhatsApp للتخصص',
+                    specialization:type==='general'?null:spec,
+                    level:level,
+                    group_type:type,
+                    url:url,
+                    is_active:true
+                });
+                if(insertError) throw insertError;
+                const input=document.getElementById('wa-url'); if(input)input.value='';
+                await loadWhatsAppAdminList();
+                alert('✅ تم حفظ رابط WhatsApp بنجاح.');
+            }catch(error){alert('❌ تعذر حفظ الرابط: '+(error?.message||error));}
+            finally{if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=saveBtn.dataset.originalText||'حفظ الرابط';}}
+        }
+        async function deleteWhatsAppGroup(id){if(!confirm('حذف رابط مجموعة WhatsApp؟'))return;const {error}=await supabaseClient.from('whatsapp_groups').delete().eq('id',id);if(error)alert('❌ '+error.message);else loadWhatsAppAdminList();}
+        async function openWhatsAppGroups(spec, level){
+            const ov=document.getElementById('whatsapp-groups-overlay'); const list=document.getElementById('whatsapp-groups-list'); if(!ov||!list)return;
+            ov.classList.remove('hidden');
+            const upperSpec=(spec||'').toUpperCase(), upperLevel=String(level||'').toUpperCase();
+            document.getElementById('whatsapp-groups-scope').textContent=upperLevel?'L'+upperLevel.replace(/^L/,'')+' · جميع المجموعات المتاحة':'مجموعات WhatsApp';
+            list.innerHTML='⏳ جاري التحميل...';
+            if(!supabaseClient)return;
+            // عند اختيار مستوى من تخصص: اعرض المجموعة العامة للمستوى + المجموعة الخاصة بالتخصص إن وجدت.
+            let q=supabaseClient.from('whatsapp_groups').select('*').eq('is_active',true).eq('level',upperLevel);
+            const {data,error}=await q.order('group_type').order('specialization');
+            if(error){list.innerHTML='<div class="status-msg error">تعذر تحميل المجموعات.</div>';return;}
+            const groups=(data||[]).filter(x=>{
+                const type=x.group_type||'specialization';
+                return type==='general'||(type==='specialization'&&String(x.specialization||'').toUpperCase()===upperSpec);
+            });
+            list.innerHTML=groups.map(x=>{
+                const general=(x.group_type||'specialization')==='general';
+                const title=general?'🌐 مجموعة عامة للمستوى':'🎓 مجموعة خاصة بتخصص '+escapeHtml(x.specialization||upperSpec);
+                const desc=general?'متاحة لجميع تخصصات '+escapeHtml(upperLevel):'خاصة بتخصص '+escapeHtml(x.specialization||upperSpec)+' · '+escapeHtml(upperLevel);
+                return `<a href="${escapeHtml(x.url)}" target="_blank" rel="noopener" style="display:block;padding:15px;border:1px solid ${general?'#dbeafe':'#dcfce7'};border-radius:14px;margin-bottom:10px;background:${general?'#eff6ff':'#f0fdf4'};color:${general?'#1d4ed8':'#166534'};text-decoration:none;font-weight:900"><div style="display:flex;justify-content:space-between;gap:10px"><span>${title}</span><span>فتح ↗</span></div><div style="font-size:.78rem;margin-top:6px;opacity:.8">${desc}</div></a>`;
+            }).join('')||'<div style="text-align:center;padding:25px;color:#64748b;font-weight:700">لا توجد مجموعات لهذا المستوى حالياً.</div>';
+        }
+        function closeWhatsAppGroups(){document.getElementById('whatsapp-groups-overlay')?.classList.add('hidden');}
+        async function renderPermissionsAdmin(){
+            const c=document.getElementById('admin-dashboard-page-content'); c.innerHTML='<div class="admin-page-box"><h3>🔐 صلاحيات المشرفين</h3><p>أدخل بريد المشرف ثم حدد ما يظهر له في لوحة الإدارة.</p><div class="wa-admin-row"><input id="perm-email" type="email" placeholder="email@example.com"><button class="wa-save" onclick="loadSupervisorPermission()">تحميل</button></div><div id="perm-box"></div></div>';
+        }
+        async function loadSupervisorPermission(){
+            const email=document.getElementById('perm-email').value.trim().toLowerCase();if(!email)return;const box=document.getElementById('perm-box');
+            const {data}=await supabaseClient.from('supervisor_permissions').select('*').eq('email',email).maybeSingle();
+            box.innerHTML='<div style="display:grid;gap:10px;margin-top:15px">'+ADMIN_PERMISSIONS.map(([k,label])=>`<label style="display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:11px"><input type="checkbox" id="perm-${k}" ${data&&data[k]?'checked':''}> ${label}</label>`).join('')+'<button class="btn-submit" onclick="saveSupervisorPermission()" style="margin-top:10px">حفظ الصلاحيات</button></div>';
+        }
+        async function saveSupervisorPermission(){const email=document.getElementById('perm-email').value.trim().toLowerCase();if(!email)return;const row={email};ADMIN_PERMISSIONS.forEach(([k])=>row[k]=!!document.getElementById('perm-'+k)?.checked);const {error}=await supabaseClient.from('supervisor_permissions').upsert(row,{onConflict:'email'});alert(error?'❌ '+error.message:'✅ تم حفظ صلاحيات المشرف.');}
+
+        function setAdminSectionVisibility(section){
+            const overlay=document.getElementById('upload-modal-overlay'); if(!overlay)return;
+
+            // كل قسم يعتمد على الصلاحية الفعلية، وليس على كون الحساب Super Admin فقط.
+            // الاستثناء الوحيد هو أدوات فحص Cloudinary والإحصائيات الموجودة داخل
+            // نموذج الرفع: تظهر الإحصائيات حسب view_analytics، بينما فحص Cloudinary
+            // يبقى للمشرف الرئيسي فقط.
+            let allowed=[];
+            if(section==='upload'){
+                allowed = ['upload-form'];
+                if(isAdmin()) allowed.push('admin-only-analytics');
+            } else if(section==='types'){
+                if(hasPermission('manage_document_types')) allowed = ['types-admin-section'];
+            } else if(section==='announcements'){
+                if(hasPermission('manage_announcements')) allowed = ['ann-admin-section'];
+            } else if(section==='notifications'){
+                if(hasPermission('send_notifications')) allowed = ['push-admin-section'];
+            }
+
+            const title=overlay.querySelector('[data-i18n="upload_title"]');
+            if(title) title.textContent =
+                section==='upload' ? 'لوحة رفع الملفات' :
+                section==='types' ? 'إدارة أنواع الملفات' :
+                section==='announcements' ? 'إدارة الإعلانات' : 'إدارة الإشعارات';
+
+            ['admin-only-analytics','upload-form','types-admin-section','ann-admin-section','push-admin-section'].forEach(id=>{
+                const el=document.getElementById(id);
+                if(el) el.style.display=allowed.includes(id)?'':'none';
+            });
+
+            // أدوات التشخيص الخاصة بالمشرف الرئيسي لا تظهر أبداً في صفحة الرفع للمشرف العادي.
+            if(!isAdmin()){
+                const audit=document.getElementById('cloudinary-audit-result');
+                if(audit){ audit.innerHTML=''; audit.style.display='none'; }
+            }
+        }
+
+        function openUploadModal(section='upload') {
+            if (!canUpload()) {
+                document.getElementById('admin-login-overlay').classList.remove('hidden');
+                return;
+            }
+
+            const required={
+                upload:'upload_files',
+                types:'manage_document_types',
+                announcements:'manage_announcements',
+                notifications:'send_notifications'
+            }[section]||'upload_files';
+
+            if (!hasPermission(required)) {
+                alert('❌ ليست لديك الصلاحية لهذا القسم.');
+                return;
+            }
+
             applyRoleUI();
+            setAdminSectionVisibility(section);
             document.getElementById('upload-modal-overlay').classList.remove('hidden');
-            resetUploadSelectors();
-            loadDynamicRegistries();
-            if (isAdmin()) loadAnnouncementsAdmin();
-            if (isAdmin()) loadPushHistoryAdmin();
+
+            if(section==='upload'){
+                resetUploadSelectors();
+                loadDynamicRegistries();
+            }
+            if(section==='announcements') loadAnnouncementsAdmin();
+            if(section==='notifications') loadPushHistoryAdmin();
         }
         function closeUploadModal() {
             document.getElementById('upload-modal-overlay').classList.add('hidden');
@@ -3818,6 +4143,7 @@ function closeAnalyticsDashboard() {
             resetUploadSelectors();
             uploadQueue = [];
             renderUploadQueue();
+            setAdminSectionVisibility('upload');
         }
 
         /* =====================================================================
