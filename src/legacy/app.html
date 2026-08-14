@@ -441,7 +441,10 @@
         .up-item.failed { border-color:rgba(239,68,68,0.5); }
         .cloud-badge { font-size:0.65rem; font-weight:800; color:var(--secondary-color); border:1px solid var(--secondary-color); border-radius:6px; padding:1px 5px; margin-inline-start:6px; }
     
-.admin-dash-card{border:1px solid #e2e8f0;background:#fff;border-radius:18px;padding:20px;text-align:right;cursor:pointer;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 18px rgba(15,23,42,.06);transition:.2s}.admin-dash-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(15,23,42,.1);border-color:#93c5fd}.admin-dash-card b{font-size:1rem;color:#0f172a}.admin-dash-card span{font-size:.82rem;color:#64748b;font-weight:600;line-height:1.5}.admin-page-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:18px}.wa-admin-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px;margin-bottom:10px}.wa-admin-row input,.wa-admin-row select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px}.wa-actions{display:flex;gap:6px;flex-wrap:wrap}.wa-actions button{border:0;border-radius:9px;padding:8px 11px;font-weight:800;cursor:pointer}.wa-save{background:#25D366;color:#fff}.wa-del{background:#fee2e2;color:#991b1b}
+.admin-dash-card{border:1px solid #e2e8f0;background:#fff;border-radius:18px;padding:20px;text-align:right;cursor:pointer;display:flex;flex-direction:column;gap:8px;box-shadow:0 6px 18px rgba(15,23,42,.06);transition:.2s}.admin-dash-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(15,23,42,.1);border-color:#93c5fd}.admin-dash-card b{font-size:1rem;color:#0f172a}.admin-dash-card span{font-size:.82rem;color:#64748b;font-weight:600;line-height:1.5}/* زر إدارة ثابت للمشرفين: يسمح بالتجوال في المنصة والعودة للإدارة دون تسجيل الخروج */
+#admin-quick-access{position:fixed;right:16px;bottom:78px;z-index:12000;display:none;align-items:center;gap:8px;border:0;border-radius:999px;padding:12px 16px;background:linear-gradient(135deg,#0f5132,#16a34a);color:#fff;font-family:inherit;font-weight:900;font-size:.88rem;box-shadow:0 10px 28px rgba(15,81,50,.32);cursor:pointer;transition:transform .2s,box-shadow .2s}#admin-quick-access:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(15,81,50,.4)}#admin-quick-access.visible{display:inline-flex}@media(max-width:600px){#admin-quick-access{right:12px;bottom:72px;padding:10px 13px;font-size:.8rem}}
+.admin-session-note{margin:0 22px 18px;padding:10px 12px;border-radius:12px;background:#ecfdf5;border:1px solid #bbf7d0;color:#166534;font-size:.78rem;font-weight:800;text-align:center}
+.admin-page-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:18px}.wa-admin-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:12px;margin-bottom:10px}.wa-admin-row input,.wa-admin-row select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:10px}.wa-actions{display:flex;gap:6px;flex-wrap:wrap}.wa-actions button{border:0;border-radius:9px;padding:8px 11px;font-weight:800;cursor:pointer}.wa-save{background:#25D366;color:#fff}.wa-del{background:#fee2e2;color:#991b1b}
 </style>
 </head>
 <body>
@@ -666,6 +669,9 @@
         </div>
     </div>
 
+    <!-- وصول سريع للمشرف: يبقى ظاهراً أثناء تصفح المنصة ولا يسجل الخروج -->
+    <button id="admin-quick-access" type="button" onclick="openAdminDashboard()" aria-label="فتح لوحة الإدارة">⚙️ الإدارة</button>
+
     <!-- نافذة الإدارة -->
     <div id="admin-login-overlay" class="modal-overlay hidden">
         <div class="modal-content" style="max-width:350px;">
@@ -686,6 +692,7 @@
           <div><div class="admin-dashboard-title" style="font-size:1.35rem;font-weight:900">لوحة المشرف</div><div class="admin-dashboard-subtitle" style="opacity:.8;font-size:.85rem;margin-top:4px">الأقسام المسموح لك بإدارتها</div></div>
           <button onclick="closeAdminDashboard()" style="background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:800">✕</button>
         </div>
+        <div class="admin-session-note">🔐 أنت مسجل الدخول كمسؤول/مشرف. يمكنك إغلاق لوحة الإدارة والتجول في المنصة، ثم الضغط على زر «⚙️ الإدارة» للعودة دون تسجيل الخروج.</div>
         <div id="admin-dashboard-home" style="padding:22px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;">
           <button class="admin-dash-card" onclick="adminDashOpen('upload')"><b>📚 إدارة الملفات</b><span>رفع وتحديث ملفات المواد</span></button>
           <button class="admin-dash-card" onclick="adminDashOpen('whatsapp')"><b>🟢 مجموعات WhatsApp</b><span>المجموعات العامة للمستوى والمجموعات الخاصة بالتخصص</span></button>
@@ -1302,6 +1309,13 @@
         const isAdmin    = () => currentUserRole === 'admin';
         const canUpload  = () => currentUserRole === 'admin' || currentUserRole === 'uploader';
 
+        /** زر إدارة ثابت: لا يظهر للعامة، ويبقى متاحاً للمشرف أثناء التجوال في الموقع. */
+        function syncAdminQuickAccess(){
+            const btn=document.getElementById('admin-quick-access');
+            if(!btn) return;
+            btn.classList.toggle('visible', canUpload());
+        }
+
         async function getAccessToken() {
             if (!supabaseClient) return null;
             const { data } = await supabaseClient.auth.getSession();
@@ -1311,6 +1325,7 @@
         /** يقرأ الدور الحقيقي من قاعدة البيانات (RPC محمي بـ RLS) */
         async function refreshUserRole() {
             currentUserRole = 'user'; currentUserId = null; isAdminLoggedIn = false;
+            syncAdminQuickAccess();
             if (!supabaseClient) return 'user';
             const { data: sessionData } = await supabaseClient.auth.getSession();
             const session = sessionData ? sessionData.session : null;
@@ -1323,6 +1338,7 @@
             }
             currentUserRole = (data === 'admin' || data === 'uploader') ? data : 'user';
             isAdminLoggedIn = canUpload();
+            syncAdminQuickAccess();
             await loadMyPermissions();
             return currentUserRole;
         }
@@ -1350,6 +1366,22 @@
             } catch (e) { console.error(e); }
             try { await loadDynamicRegistries(); } catch (e) { console.error(e); }
         })();
+
+        // مزامنة مستمرة مع Supabase Auth: تسجيل الدخول/الخروج ينعكس فوراً على زر الإدارة.
+        if (supabaseClient) {
+            supabaseClient.auth.onAuthStateChange((event) => {
+                if(event === 'SIGNED_OUT') {
+                    currentUserRole='user'; currentUserId=null; isAdminLoggedIn=false; myPermissions={};
+                    syncAdminQuickAccess();
+                    return;
+                }
+                if(event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                    setTimeout(async()=>{
+                        try { await refreshUserRole(); applyRoleUI(); } catch(e) { console.error('auth sync',e); }
+                    },0);
+                }
+            });
+        }
 
         const subjectsData = {
             "BA": { "S1":["Principe de gestion", "Comptabilité financière I", "Statistique descriptive I", "Mathématique", "Anglais I", "Méthodologie du travail universitaire", "MS office", "Introduction à l’économie", "Introduction au droit", "Technique de communication", "Archive S1"], "S2":["Comptabilité financière II", "Micro-finance", "Economie d’entreprise", "Statistique descriptive II", "Mathématiques financières", "Anglais II", "Aptitudes en TIC", "Développement personnel", "Microéconomie", "Droit des affaires", "Archive S2"], "S3":["Technique Bancaire", "Système financier mauritanien", "Gestion Financière", "Comptabilité des Sociétés", "Anglais des affaires", "Logiciels Bancaire", "Marketing", "Droit administrative", "Macroéconomie", "Méthodes d’aide à la décision", "Archive S3"], "S4":["Comptabilité des Société assurance", "Assurances des biens", "Comptabilité Bancaire", "Comptabilité de Gestion", "Finance des marchés", "Analyse Financière", "Gestion de la trésorerie", "GRH", "Droit des assurances", "Commerce international", "Archive S4"], "S5":["Gestion de portefeuille", "Comptabilité bancaire II", "Gestion des risques", "Finance islamique", "Stratégie d’entreprise", "Gestion de patrimoine", "Fiscalité", "Politiques et choix d’investissement", "Droit bancaire et financier", "Rapport de stage de la 2ème année", "Archive S5"], "S6":["Méthodologie de recherche", "Séminaire sur l'entrepreneuriat", "Mémoire de fin d'études", "Archive S6"] },
@@ -2032,6 +2064,8 @@ function closeAnalyticsDashboard() {
             try { if (supabaseClient) await supabaseClient.auth.signOut(); }
             catch (e) { console.error(e); }
             currentUserRole = 'user'; currentUserId = null; isAdminLoggedIn = false;
+            myPermissions = {};
+            syncAdminQuickAccess();
             applyRoleUI();
             closeUploadModal();
             closeAdminDashboard();
