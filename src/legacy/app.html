@@ -963,15 +963,30 @@
         <span><i class="fas fa-sync-alt" style="color: var(--accent-color); margin-inline-end: 8px;"></i> <span data-i18n="update_msg">يتوفر تحديث جديد!</span></span>
         <button id="update-btn" data-i18n="update_btn">تحديث الآن</button>
     </div>
-    <!-- إشعار تثبيت التطبيق -->
+    <!-- إشعار تثبيت التطبيق — يظهر للمستخدم الجديد حتى يثبت أو يؤجل -->
     <div id="install-toast">
         <div class="install-info">
             <div class="install-icon"><i class="fas fa-mobile-alt"></i></div>
-            <p class="install-text" data-i18n="install_msg">أضف المنصة لشاشة هاتفك لتجربة أسرع وأفضل!</p>
+            <p class="install-text" data-i18n="install_msg">ثبّت منصة UNEM ISCAE على هاتفك لتجربة أسرع وأفضل!</p>
         </div>
         <div class="install-btns">
             <button id="install-app-btn" class="btn-install" data-i18n="btn_install">تثبيت</button>
-            <button id="close-install-btn" class="btn-close-install"><i class="fas fa-times"></i></button>
+            <button id="close-install-btn" class="btn-close-install" data-i18n="btn_install_later">لاحقاً</button>
+        </div>
+    </div>
+
+    <!-- طلب تفعيل الإشعارات — لا يحتوي على خيار لاحقاً -->
+    <div id="push-onboarding-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width:380px; text-align:center;">
+            <div style="font-size:3rem; margin-bottom:8px;">🔔</div>
+            <h2 data-i18n="push_onboarding_title">فعّل إشعارات UNEM ISCAE</h2>
+            <p data-i18n="push_onboarding_desc" style="font-size:0.95rem; line-height:1.7; margin-bottom:20px;">
+                فعّل الإشعارات ليصلك كل جديد من المنصة، حتى عندما لا يكون الموقع مفتوحاً.
+            </p>
+            <button id="push-onboarding-btn" class="btn-install" style="width:100%; min-height:48px;" data-i18n="push_onboarding_btn">
+                تفعيل الإشعارات
+            </button>
+            <p id="push-onboarding-status" style="font-size:0.8rem; margin-top:12px; color:var(--text-secondary);"></p>
         </div>
     </div>
 
@@ -4162,53 +4177,167 @@ function closeAnalyticsDashboard() {
             documentsCache = {};
             if (success > 0) { try { await refreshCurrentSubjectFiles(); } catch (e) { console.error(e); } }
         });
-       // ================== نظام التثبيت الذكي (المحدث والآمن) ==================
-        window.addEventListener('DOMContentLoaded', (event) => {
-            let deferredPrompt;
+       // ================== تجربة المستخدم الجديد: التثبيت ثم الإشعارات ==================
+        window.addEventListener('DOMContentLoaded', () => {
+            let deferredPrompt = null;
+
             const installToast = document.getElementById('install-toast');
             const installBtn = document.getElementById('install-app-btn');
-            const closeInstallBtn = document.getElementById('close-install-btn');
+            const laterInstallBtn = document.getElementById('close-install-btn');
             const iosModal = document.getElementById('ios-install-modal');
-            
-            if (!installToast || !installBtn || !closeInstallBtn) return;
 
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-            const hasDismissedInstall = localStorage.getItem('unem_install_dismissed') === 'true';
+            const pushModal = document.getElementById('push-onboarding-modal');
+            const pushOnboardingBtn = document.getElementById('push-onboarding-btn');
+            const pushOnboardingStatus = document.getElementById('push-onboarding-status');
 
-            // 1. نظام الـ Android والكمبيوتر
+            if (!installToast || !installBtn || !laterInstallBtn) return;
+
+            const isStandalone = () =>
+                window.matchMedia('(display-mode: standalone)').matches ||
+                window.matchMedia('(display-mode: fullscreen)').matches ||
+                navigator.standalone === true;
+
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const getInstallState = () => localStorage.getItem('unem_install_state') || 'new';
+            const setInstallState = (state) => localStorage.setItem('unem_install_state', state);
+
+            const showPushOnboarding = () => {
+                if (!pushModal || !pushSupported()) return;
+                if (Notification.permission === 'granted') {
+                    localStorage.setItem('unem_push_onboarding_done', '1');
+                    return;
+                }
+                if (Notification.permission === 'denied') return;
+                if (localStorage.getItem('unem_push_onboarding_done') === '1') return;
+                pushModal.classList.remove('hidden');
+            };
+
+            const finishPushOnboarding = () => {
+                localStorage.setItem('unem_push_onboarding_done', '1');
+                if (pushModal) pushModal.classList.add('hidden');
+            };
+
+            // Android/Chrome/desktop: نحفظ طلب التثبيت الأصلي.
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                if (!hasDismissedInstall && !isStandalone) {
-                    setTimeout(() => { installToast.classList.add('show'); }, 3000);
+
+                if (isStandalone()) {
+                    setInstallState('installed');
+                    setTimeout(showPushOnboarding, 500);
+                    return;
                 }
+
+                // إذا كان التثبيت قد تم سابقاً، لا نعرض نافذة التثبيت مرة أخرى.
+                // ننتقل مباشرة إلى طلب تفعيل الإشعارات.
+                if (getInstallState() === 'installed' || localStorage.getItem('unem_pwa_installed') === 'true') {
+                    setTimeout(showPushOnboarding, 500);
+                    return;
+                }
+
+                // المستخدم الجديد أو من اختار "لاحقاً" يرى نافذة التثبيت في الدخول القادم.
+                setTimeout(() => installToast.classList.add('show'), 1200);
             });
 
-            // 2. نظام الـ iOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            if (isIOS && !isStandalone && !hasDismissedInstall) {
-                setTimeout(() => { installToast.classList.add('show'); }, 3000);
+            // إذا كان التطبيق مثبتاً بالفعل، لا نعرض نافذة التثبيت.
+            // ننتقل مباشرة إلى تفعيل الإشعارات إذا لم تكن مفعلة.
+            if (isStandalone()) {
+                setInstallState('installed');
+                setTimeout(showPushOnboarding, 700);
+            } else if (getInstallState() === 'installed' || localStorage.getItem('unem_pwa_installed') === 'true') {
+                // حالة مهمة: التطبيق تم تثبيته سابقاً لكن الصفحة فُتحت من المتصفح.
+                // لا نطلب التثبيت مرة أخرى؛ نعرض طلب الإشعارات مباشرة.
+                setTimeout(showPushOnboarding, 700);
+            }
+
+            // iPhone/iPad: لا يوجد beforeinstallprompt، لذلك نعرض تعليمات Safari
+            // فقط للمستخدم الذي لم يثبت التطبيق بعد.
+            if (isIOS && !isStandalone() &&
+                getInstallState() !== 'installed' &&
+                localStorage.getItem('unem_pwa_installed') !== 'true') {
+                setTimeout(() => installToast.classList.add('show'), 1200);
             }
 
             installBtn.addEventListener('click', async () => {
                 installToast.classList.remove('show');
+
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        localStorage.setItem('unem_install_dismissed', 'true');
-                        localStorage.setItem('unem_pwa_installed', 'true');
-                    }
                     deferredPrompt = null;
-                } else if (isIOS && iosModal) {
-                    iosModal.classList.remove('hidden');
+
+                    if (outcome === 'accepted') {
+                        setInstallState('installed');
+                        localStorage.setItem('unem_pwa_installed', 'true');
+                        // بعد قبول التثبيت مباشرة نطلب تفعيل الإشعارات.
+                        setTimeout(showPushOnboarding, 500);
+                    } else {
+                        // رفض المستخدم التثبيت: نعرض تفعيل الإشعارات مباشرة.
+                        // التثبيت والإشعارات مستقلان؛ رفض التثبيت لا يمنع الإشعارات.
+                        setInstallState('deferred');
+                        setTimeout(showPushOnboarding, 300);
+                    }
+                    return;
                 }
+
+                // iOS: نعرض تعليمات الإضافة إلى الشاشة الرئيسية.
+                if (isIOS && iosModal) {
+                    iosModal.classList.remove('hidden');
+                    return;
+                }
+
+                setInstallState('deferred');
             });
 
-            closeInstallBtn.addEventListener('click', () => {
+            // "لاحقاً" يؤجل التثبيت للدخول القادم، ثم نعرض تفعيل الإشعارات مباشرة.
+            laterInstallBtn.addEventListener('click', () => {
                 installToast.classList.remove('show');
-                localStorage.setItem('unem_install_dismissed', 'true');
+                setInstallState('deferred');
+                setTimeout(showPushOnboarding, 300);
             });
+
+            // بعد رجوع مستخدم iOS من عملية الإضافة إلى الشاشة الرئيسية،
+            // يتحول الموقع إلى standalone، وعندها فقط نعرض طلب الإشعارات.
+            const checkInstalledAfterIOS = () => {
+                if (isStandalone()) {
+                    setInstallState('installed');
+                    localStorage.setItem('unem_pwa_installed', 'true');
+                    if (iosModal) iosModal.classList.add('hidden');
+                    setTimeout(showPushOnboarding, 500);
+                }
+            };
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') checkInstalledAfterIOS();
+            });
+
+            // زر تفعيل الإشعارات — لا يوجد "لاحقاً".
+            if (pushOnboardingBtn) {
+                pushOnboardingBtn.addEventListener('click', async () => {
+                    pushOnboardingBtn.disabled = true;
+                    if (pushOnboardingStatus) pushOnboardingStatus.textContent = '⏳ جاري تفعيل الإشعارات...';
+
+                    try {
+                        const ok = await subscribeToPush();
+                        if (ok) {
+                            finishPushOnboarding();
+                            setPushIcon(true);
+                            alert('🔔 تم تفعيل الإشعارات بنجاح! ستصلك التنبيهات الجديدة حتى خارج الموقع.');
+                        } else if (pushOnboardingStatus) {
+                            pushOnboardingStatus.textContent =
+                                Notification.permission === 'denied'
+                                    ? '🔕 الإشعارات محظورة من إعدادات المتصفح. فعّلها من إعدادات الموقع.'
+                                    : 'تعذر تفعيل الإشعارات، يرجى المحاولة مرة أخرى.';
+                        }
+                    } catch (e) {
+                        console.error('Push onboarding error:', e);
+                        if (pushOnboardingStatus) {
+                            pushOnboardingStatus.textContent = '❌ تعذر تفعيل الإشعارات: ' + (e.message || e);
+                        }
+                    } finally {
+                        pushOnboardingBtn.disabled = false;
+                    }
+                });
+            }
         });
 
         // ================== بانر "افتح في التطبيق" ==================
