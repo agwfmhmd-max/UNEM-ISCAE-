@@ -708,6 +708,7 @@
           <button class="admin-dash-card" onclick="adminDashOpen('whatsapp')"><b>🟢 مجموعات WhatsApp</b><span>المجموعات العامة للمستوى والمجموعات الخاصة بالتخصص</span></button>
           <button class="admin-dash-card" onclick="adminDashOpen('permissions')"><b>🔐 صلاحيات المشرفين</b><span>حدد ما يظهر لكل مشرف</span></button>
           <button class="admin-dash-card" onclick="adminDashOpen('analytics')"><b>📊 الإحصائيات</b><span>متابعة زوار المنصة</span></button>
+          <button class="admin-dash-card" onclick="adminDashOpen('top-files')"><b>📁 أكثر الملفات تفاعلاً</b><span>التحميلات وعمليات فتح الملفات بالتفصيل</span></button>
           <button class="admin-dash-card" onclick="adminDashOpen('announcements')"><b>📢 الإعلانات</b><span>إدارة شريط الإعلانات</span></button>
           <button class="admin-dash-card" onclick="adminDashOpen('notifications')"><b>🔔 الإشعارات</b><span>إرسال ومراجعة الإشعارات</span></button>
           <button class="admin-dash-card" onclick="adminDashOpen('types')"><b>🗂️ أنواع الملفات</b><span>تنظيم أنواع ملفات المواد</span></button>
@@ -869,6 +870,18 @@
             <div id="push-admin-section">
                 <h3>&#128276; إرسال إشعار حقيقي للمستخدمين</h3>
                 <p style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:center;margin:-6px 0 12px;">يصل الإشعار للمشتركين حتى لو لم يكونوا داخل الموقع حالياً.</p>
+
+                <!-- العدد الحقيقي للاشتراكات الموجودة في push_subscriptions -->
+                <div id="push-device-count-card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;margin:0 0 16px;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc);">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#dbeafe;color:#1d4ed8;font-size:1.25rem;">&#128241;</div>
+                        <div>
+                            <div style="font-weight:900;color:#0f172a;">الأجهزة المفعّل عليها الإشعارات</div>
+                            <div style="font-size:.76rem;color:#64748b;font-weight:700;margin-top:3px;">العدد الحالي للاشتراكات المسجلة</div>
+                        </div>
+                    </div>
+                    <div id="push-active-device-count" style="font-size:2rem;font-weight:900;color:#1d4ed8;min-width:64px;text-align:center;">—</div>
+                </div>
                 <div class="form-group" style="margin-bottom:10px;">
                     <label style="font-weight:800;font-size:0.9rem;display:block;margin-bottom:5px;">عنوان الإشعار</label>
                     <input type="text" id="push-input-title" maxlength="120" placeholder="مثال: نتائج S4 متاحة الآن 🎓" style="width:100%;padding:10px;border:2px solid var(--border-color);border-radius:10px;font-family:inherit;font-weight:600;font-size:0.92rem;color:var(--text-primary);background:var(--bg-color);box-sizing:border-box;">
@@ -890,6 +903,51 @@
 
             <button onclick="adminLogout()" class="btn-submit" style="margin-top: 14px; background:#ef4444;"><i class="fas fa-right-from-bracket"></i> تسجيل الخروج</button>
             <button onclick="closeUploadModal()" class="btn-submit btn-cancel" style="margin-top: 8px;" data-i18n="btn_close">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- صفحة مستقلة: أكثر الملفات تفاعلاً (للمشرف الرئيسي فقط) -->
+    <div id="top-files-overlay" class="modal-overlay hidden" style="background:var(--bg-color);">
+        <div class="modal-content" style="max-width:1100px;width:96%;height:92vh;margin:auto;padding:0;overflow:hidden;background:var(--card-bg);">
+            <div style="padding:20px 22px;background:linear-gradient(135deg,#0f5132,#15803d);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <button onclick="closeTopFilesPage()" style="background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;">← لوحة المشرف</button>
+                <div style="text-align:right;flex:1;">
+                    <div style="font-size:1.35rem;font-weight:900;">📁 أكثر الملفات تفاعلاً</div>
+                    <div style="opacity:.86;font-size:.82rem;margin-top:4px;">ترتيب دقيق حسب عمليات فتح وتحميل الملفات المسجلة</div>
+                </div>
+            </div>
+            <div style="height:calc(100% - 82px);overflow:auto;padding:20px;box-sizing:border-box;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;background:var(--bg-color);padding:15px;border-radius:15px;border:1px solid var(--border-color);margin-bottom:18px;">
+                    <div style="flex:1;min-width:145px;">
+                        <label style="display:block;font-weight:800;font-size:.88rem;margin-bottom:5px;">من تاريخ</label>
+                        <input type="date" id="top-files-start-date" style="width:100%;padding:10px;border:2px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:var(--text-primary);font-family:inherit;box-sizing:border-box;">
+                    </div>
+                    <div style="flex:1;min-width:145px;">
+                        <label style="display:block;font-weight:800;font-size:.88rem;margin-bottom:5px;">إلى تاريخ</label>
+                        <input type="date" id="top-files-end-date" style="width:100%;padding:10px;border:2px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:var(--text-primary);font-family:inherit;box-sizing:border-box;">
+                    </div>
+                    <button onclick="loadTopFilesPage()" class="btn-submit" style="width:auto;margin:0;padding:11px 20px;">🔄 تحديث</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;">
+                    <div style="padding:16px;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;text-align:center;"><div id="top-files-total-events" style="font-size:1.8rem;font-weight:900;color:#1d4ed8;">—</div><div style="font-weight:800;color:#475569;font-size:.85rem;">إجمالي التفاعلات</div></div>
+                    <div style="padding:16px;border-radius:14px;background:#ecfdf5;border:1px solid #bbf7d0;text-align:center;"><div id="top-files-open-events" style="font-size:1.8rem;font-weight:900;color:#15803d;">—</div><div style="font-weight:800;color:#475569;font-size:.85rem;">عمليات فتح</div></div>
+                    <div style="padding:16px;border-radius:14px;background:#fff7ed;border:1px solid #fed7aa;text-align:center;"><div id="top-files-download-events" style="font-size:1.8rem;font-weight:900;color:#c2410c;">—</div><div style="font-weight:800;color:#475569;font-size:.85rem;">عمليات تحميل</div></div>
+                    <div style="padding:16px;border-radius:14px;background:#f5f3ff;border:1px solid #ddd6fe;text-align:center;"><div id="top-files-unique-count" style="font-size:1.8rem;font-weight:900;color:#7c3aed;">—</div><div style="font-weight:800;color:#475569;font-size:.85rem;">ملفات تفاعَل معها الزوار</div></div>
+                </div>
+                <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;overflow:auto;box-shadow:var(--shadow-sm);">
+                    <table style="width:100%;min-width:650px;border-collapse:collapse;text-align:start;font-size:.9rem;">
+                        <thead><tr style="background:rgba(15,81,50,.07);">
+                            <th style="padding:12px;text-align:center;font-weight:900;width:55px;">#</th>
+                            <th style="padding:12px;text-align:start;font-weight:900;">اسم الملف</th>
+                            <th style="padding:12px;text-align:center;font-weight:900;">فتح</th>
+                            <th style="padding:12px;text-align:center;font-weight:900;">تحميل</th>
+                            <th style="padding:12px;text-align:center;font-weight:900;">الإجمالي</th>
+                        </tr></thead>
+                        <tbody id="top-files-page-body"><tr><td colspan="5" style="padding:20px;text-align:center;color:var(--text-secondary);font-weight:700;">اضغط تحديث لتحميل البيانات</td></tr></tbody>
+                    </table>
+                </div>
+                <div id="top-files-page-error" class="status-msg error hidden" style="margin-top:15px;"></div>
+            </div>
         </div>
     </div>
 
@@ -988,23 +1046,6 @@
                 </div>
             </div>
 
-            <!-- أكثر الملفات تفاعلاً -->
-            <div style="background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 30px; overflow-x: auto;">
-                <h4 style="margin-top: 0; text-align: center; color: var(--text-primary); font-size: 1.2rem; font-weight: 800; margin-bottom: 18px;">أكثر الملفات تفاعلاً (تحميل / فتح)</h4>
-                <table style="width: 100%; border-collapse: collapse; text-align: start; font-size: 0.9rem;">
-                    <thead>
-                        <tr style="background: rgba(15,81,50,0.06);">
-                            <th style="padding: 10px 12px; text-align: start; font-weight: 900; width: 60px;">#</th>
-                            <th style="padding: 10px 12px; text-align: start; font-weight: 900;">اسم الملف</th>
-                            <th style="padding: 10px 12px; text-align: center; font-weight: 900; width: 110px;">عدد المرات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="top-files-body">
-                        <tr><td colspan="3" style="padding:14px; text-align:center; color:var(--text-secondary); font-weight:700;">—</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            
             <div id="analytics-error" class="status-msg error hidden" style="margin-top: 20px;"></div>
         </div>
     </div>
@@ -1524,7 +1565,12 @@
                     }
                 }
 
-                let finalActionType = isFirstTime ? actionType : actionType + ' (متكرر)';
+                // أحداث الملفات يجب أن تُسجّل دائمًا بنفس النوع حتى يمكن عدّ كل فتح/تحميل بدقة.
+                // لا نضع عليها لاحقة "(متكرر)" لأن كل عملية فتح أو تحميل هي تفاعل مستقل.
+                const isFileInteraction = actionType === 'فتح ملف' || actionType === 'تحميل ملف';
+                let finalActionType = isFileInteraction
+                    ? actionType
+                    : (isFirstTime ? actionType : actionType + ' (متكرر)');
 
                 await insertAnalyticsRow(supabaseClient, { action_type: finalActionType, action_detail: actionDetail });
             } catch (e) {}
@@ -1786,6 +1832,62 @@
                     } : {} 
                 }
             });
+        }
+
+        async function openTopFilesPage() {
+            if (!isAdmin()) { alert('❌ هذه الصفحة للمشرف الرئيسي فقط.'); return; }
+            document.getElementById('top-files-overlay')?.classList.remove('hidden');
+            const err=document.getElementById('top-files-page-error');
+            if(err) err.classList.add('hidden');
+            await loadTopFilesPage();
+        }
+
+        function closeTopFilesPage() {
+            document.getElementById('top-files-overlay')?.classList.add('hidden');
+            document.getElementById('admin-dashboard-overlay')?.classList.remove('hidden');
+            adminDashHome();
+        }
+
+        async function loadTopFilesPage() {
+            if (!supabaseClient) return;
+            const body=document.getElementById('top-files-page-body');
+            const err=document.getElementById('top-files-page-error');
+            if(err) err.classList.add('hidden');
+            if(body) body.innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;font-weight:800;">⏳ جاري تحميل البيانات...</td></tr>';
+            try {
+                const start=document.getElementById('top-files-start-date')?.value || '';
+                const end=document.getElementById('top-files-end-date')?.value || '';
+                let all=[]; let from=0; const batch=1000;
+                while(true){
+                    // دعم السجلات القديمة التي أضيفت لها لاحقة "(متكرر)"، مع السجلات الجديدة.
+                    let q=supabaseClient.from('analytics').select('action_type,action_detail,created_at').in('action_type',['تحميل ملف','فتح ملف','تحميل ملف (متكرر)','فتح ملف (متكرر)']).order('created_at',{ascending:false}).range(from,from+batch-1);
+                    if(start) q=q.gte('created_at',start+'T00:00:00.000Z');
+                    if(end) q=q.lte('created_at',end+'T23:59:59.999Z');
+                    const {data,error}=await q; if(error) throw error;
+                    all=all.concat(data||[]);
+                    if(!data || data.length<batch) break;
+                    from+=batch;
+                }
+                const map={}; let opens=0,downloads=0;
+                all.forEach(r=>{
+                    const name=String(r.action_detail||'ملف غير معروف').trim()||'ملف غير معروف';
+                    if(!map[name]) map[name]={name,open:0,download:0,total:0};
+                    if(String(r.action_type||'').startsWith('فتح ملف')){map[name].open++;opens++;}
+                    if(String(r.action_type||'').startsWith('تحميل ملف')){map[name].download++;downloads++;}
+                    map[name].total++;
+                });
+                const rows=Object.values(map).sort((a,b)=>b.total-a.total||b.download-a.download||b.open-a.open).slice(0,50);
+                document.getElementById('top-files-total-events').textContent=all.length.toLocaleString('en-US');
+                document.getElementById('top-files-open-events').textContent=opens.toLocaleString('en-US');
+                document.getElementById('top-files-download-events').textContent=downloads.toLocaleString('en-US');
+                document.getElementById('top-files-unique-count').textContent=Object.keys(map).length.toLocaleString('en-US');
+                if(!rows.length){body.innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--text-secondary);font-weight:700;">لا توجد تفاعلات مسجلة في هذه الفترة.</td></tr>';return;}
+                body.innerHTML=rows.map((r,i)=>'<tr><td style="padding:11px;text-align:center;border-bottom:1px solid var(--border-color);font-weight:900;color:var(--primary-color);">'+(i+1)+'</td><td style="padding:11px;border-bottom:1px solid var(--border-color);font-weight:800;word-break:break-word;">'+String(r.name).replace(/[<>&]/g,'')+'</td><td style="padding:11px;text-align:center;border-bottom:1px solid var(--border-color);font-weight:800;color:#15803d;">'+r.open+'</td><td style="padding:11px;text-align:center;border-bottom:1px solid var(--border-color);font-weight:800;color:#c2410c;">'+r.download+'</td><td style="padding:11px;text-align:center;border-bottom:1px solid var(--border-color);font-weight:900;">'+r.total+'</td></tr>').join('');
+            } catch(e) {
+                console.error('top files analytics',e);
+                if(body) body.innerHTML='<tr><td colspan="5" style="padding:20px;text-align:center;color:#b91c1c;font-weight:800;">تعذر تحميل البيانات.</td></tr>';
+                if(err){err.textContent='❌ تعذر قراءة تحليلات الملفات من قاعدة البيانات.';err.classList.remove('hidden');}
+            }
         }
 
         function closeAnalyticsDashboard() {
@@ -2421,10 +2523,32 @@ function closeAnalyticsDashboard() {
                 status.className = 'status-msg success';
                 titleEl.value = ''; bodyEl.value = ''; urlEl.value = '';
                 loadPushHistoryAdmin();
+                loadPushActiveDeviceCount();
             } catch (e) {
                 status.textContent = '❌ خطأ: ' + (e.message || e);
                 status.className = 'status-msg error';
             } finally { btn.disabled = false; }
+        }
+
+        /**
+         * العدد الدقيق للاشتراكات المسجلة حالياً في push_subscriptions.
+         * لا ننشئ جدولاً جديداً ولا نغيّر نظام الإشعارات؛ نقرأ العدد فقط.
+         */
+        async function loadPushActiveDeviceCount() {
+            const el = document.getElementById('push-active-device-count');
+            if (!el || !supabaseClient || !isAdmin()) return;
+            el.textContent = '…';
+            try {
+                const { count, error } = await supabaseClient
+                    .from('push_subscriptions')
+                    .select('id', { count: 'exact', head: true });
+
+                if (error) throw error;
+                el.textContent = Number.isFinite(count) ? String(count) : '0';
+            } catch (e) {
+                console.error('loadPushActiveDeviceCount', e);
+                el.textContent = '—';
+            }
         }
 
         async function loadPushHistoryAdmin() {
@@ -4056,7 +4180,8 @@ function escapeHtml(value){
                 analytics:'view_analytics',
                 announcements:'manage_announcements',
                 notifications:'send_notifications',
-                types:'manage_document_types'
+                types:'manage_document_types',
+                'top-files':'__admin_only__'
             };
             document.querySelectorAll('#admin-dashboard-home .admin-dash-card').forEach(b=>{
                 const onclick=b.getAttribute('onclick')||'';
@@ -4077,9 +4202,10 @@ function escapeHtml(value){
                 types:'manage_document_types',
                 analytics:'view_analytics'
             }[page];
-            if(page==='permissions'&&!isAdmin()) return alert('❌ هذه الصفحة للمشرف الرئيسي فقط.');
+            if((page==='permissions'||page==='top-files')&&!isAdmin()) return alert('❌ هذه الصفحة للمشرف الرئيسي فقط.');
             if(required && !hasPermission(required)) return alert('❌ ليست لديك الصلاحية لهذا القسم.');
             currentAdminDashPage=page;
+            if(page==='top-files'){ closeAdminDashboard(); openTopFilesPage(); return; }
             if(page==='analytics'){ closeAdminDashboard(); openAnalyticsDashboard(); return; }
             if(page==='upload'||page==='announcements'||page==='notifications'||page==='types'){
                 closeAdminDashboard();
@@ -4261,7 +4387,10 @@ function escapeHtml(value){
                 loadDynamicRegistries();
             }
             if(section==='announcements') loadAnnouncementsAdmin();
-            if(section==='notifications') loadPushHistoryAdmin();
+            if(section==='notifications') {
+                loadPushHistoryAdmin();
+                loadPushActiveDeviceCount();
+            }
         }
         function closeUploadModal() {
             document.getElementById('upload-modal-overlay').classList.add('hidden');
