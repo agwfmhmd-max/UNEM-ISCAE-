@@ -532,26 +532,36 @@
                 <button class="back-btn" onclick="goBackToMainMenu()" data-i18n="btn_home">الرئيسية</button>
                 <h2 class="section-title" data-i18n="section_specs">اختر التخصص</h2>
             </div>
-            <div class="semesters-grid">
-                <div class="semester-card" onclick="selectSpecialization('ba')"><div class="icon-box"><i class="fas fa-university"></i></div><h3>BA</h3><p>Banques et Assurances</p></div>
-                <div class="semester-card" onclick="selectSpecialization('fc')"><div class="icon-box"><i class="fas fa-calculator"></i></div><h3>FC</h3><p>Finance et Comptabilité</p></div>
-                <div class="semester-card" onclick="selectSpecialization('tcm')"><div class="icon-box"><i class="fas fa-bullhorn"></i></div><h3>TCM</h3><p>Techniques Commerciales et Marketing</p></div>
-                <div class="semester-card" onclick="selectSpecialization('grh')"><div class="icon-box"><i class="fas fa-users-cog"></i></div><h3>GRH</h3><p>Gestion des Ressources Humaines</p></div>
-                <div class="semester-card" onclick="selectSpecialization('sae')"><div class="icon-box"><i class="fas fa-chart-pie"></i></div><h3>SAE</h3><p>Statistique Appliquée à l'Economie</p></div>
-                <div class="semester-card" onclick="selectSpecialization('ig')">
+            <div class="semesters-grid" id="specialization-cards">
+                <div class="semester-card specialization-card" data-specialization="ba" role="button" tabindex="0">
+                    <div class="icon-box"><i class="fas fa-university"></i></div><h3>BA</h3><p data-i18n="spec_ba">البنوك والتأمين</p>
+                </div>
+                <div class="semester-card specialization-card" data-specialization="fc" role="button" tabindex="0">
+                    <div class="icon-box"><i class="fas fa-calculator"></i></div><h3>FC</h3><p data-i18n="spec_fc">المالية والمحاسبة</p>
+                </div>
+                <div class="semester-card specialization-card" data-specialization="tcm" role="button" tabindex="0">
+                    <div class="icon-box"><i class="fas fa-bullhorn"></i></div><h3>TCM</h3><p data-i18n="spec_tcm">تقنيات المبيعات والتسويق</p>
+                </div>
+                <div class="semester-card specialization-card" data-specialization="grh" role="button" tabindex="0">
+                    <div class="icon-box"><i class="fas fa-users-cog"></i></div><h3>GRH</h3><p data-i18n="spec_grh">إدارة الموارد البشرية</p>
+                </div>
+                <div class="semester-card specialization-card" data-specialization="sae" role="button" tabindex="0">
+                    <div class="icon-box"><i class="fas fa-chart-pie"></i></div><h3>SAE</h3><p data-i18n="spec_sae">الإحصاء التطبيقي في الاقتصاد</p>
+                </div>
+                <div class="semester-card specialization-card" data-specialization="ig" role="button" tabindex="0">
                     <div class="icon-box">
                         <span class="fa-stack" style="font-size: 0.6em;">
                             <i class="fas fa-shield-halved fa-stack-2x"></i>
                             <i class="fas fa-chart-line fa-stack-1x fa-inverse" style="transform: scale(0.9) translateX(1px);"></i>
                         </span>
                     </div>
-                    <h3>IG</h3>
-                    <p>Informatique de Gestion</p>
+                    <h3>IG</h3><p data-i18n="spec_ig">المعلوماتية المطبقة على التسيير</p>
                 </div>
             </div>
         </div>
 
-        <div id="level-selection" class="section-box hidden">
+
+<div id="level-selection" class="section-box hidden">
             <div class="header-with-back">
                 <button class="back-btn" onclick="goBackToSpecialization()" data-i18n="btn_specs">التخصصات</button>
                 <h2 class="section-title" data-i18n="section_levels">المستوى الدراسي</h2>
@@ -670,7 +680,7 @@
     </div>
 
     <!-- وصول سريع للمشرف: يبقى ظاهراً أثناء تصفح المنصة ولا يسجل الخروج -->
-    <button id="admin-quick-access" type="button" onclick="openAdminDashboard()" aria-label="فتح لوحة الإدارة">⚙️ الإدارة</button>
+    <button id="admin-quick-access" type="button" onclick="openAdminDashboard()" aria-label="فتح لوحة الإدارة" data-i18n="admin_quick_access">⚙️ الإدارة</button>
 
     <!-- نافذة الإدارة -->
     <div id="admin-login-overlay" class="modal-overlay hidden">
@@ -712,7 +722,7 @@
     <!-- مجموعات WhatsApp للطلاب -->
     <div id="whatsapp-groups-overlay" class="modal-overlay hidden">
       <div class="modal-content" style="max-width:650px;width:94%;">
-        <div class="header-with-back"><button class="back-btn" onclick="closeWhatsAppGroups()">إغلاق</button><h2 class="section-title">🟢 مجموعات WhatsApp</h2></div>
+        <div class="header-with-back"><button class="back-btn" onclick="closeWhatsAppGroups()" data-i18n="btn_close">إغلاق</button><h2 class="section-title" data-i18n="whatsapp_groups">🟢 مجموعات WhatsApp</h2></div>
         <p id="whatsapp-groups-scope" style="text-align:center;font-weight:800;color:var(--text-secondary);margin:8px 0 18px"></p>
         <div id="whatsapp-groups-list"><div style="text-align:center;padding:25px">⏳ جاري التحميل...</div></div>
       </div>
@@ -1074,6 +1084,24 @@
                 card_about_desc: "نبذة تعريفية وتاريخية",
                 btn_home: "الرئيسية",
                 section_specs: "اختر التخصص",
+                spec_ba: "البنوك والتأمين",
+                spec_fc: "المالية والمحاسبة",
+                spec_tcm: "تقنيات المبيعات والتسويق",
+                spec_grh: "إدارة الموارد البشرية",
+                spec_sae: "الإحصاء التطبيقي في الاقتصاد",
+                spec_ig: "المعلوماتية المطبقة على التسيير",
+                admin_quick_access: "⚙️ الإدارة",
+                whatsapp_groups: "🟢 مجموعات WhatsApp",
+                whatsapp_groups_for_level: "مجموعات WhatsApp لـ",
+                whatsapp_general: "🌐 مجموعة عامة للمستوى",
+                whatsapp_specialization: "🎓 مجموعة خاصة بتخصص",
+                whatsapp_general_desc: "متاحة لجميع تخصصات",
+                whatsapp_specialization_desc: "خاصة بتخصص",
+                whatsapp_open: "فتح ↗",
+                whatsapp_scope_all: "جميع المجموعات المتاحة",
+                whatsapp_loading: "⏳ جاري التحميل...",
+                whatsapp_none: "لا توجد مجموعات لهذا المستوى حالياً.",
+                whatsapp_load_error: "تعذر تحميل المجموعات.",
                 btn_specs: "التخصصات",
                 section_levels: "المستوى الدراسي",
                 level_1: "السنة الأولى",
@@ -1153,6 +1181,24 @@
                 card_about_desc: "Aperçu historique et présentation",
                 btn_home: "Accueil",
                 section_specs: "Choisir la filière",
+                spec_ba: "Banques et Assurances",
+                spec_fc: "Finance et Comptabilité",
+                spec_tcm: "Techniques Commerciales et Marketing",
+                spec_grh: "Gestion des Ressources Humaines",
+                spec_sae: "Statistique Appliquée à l'Economie",
+                spec_ig: "Informatique de Gestion",
+                admin_quick_access: "⚙️ Administration",
+                whatsapp_groups: "🟢 Groupes WhatsApp",
+                whatsapp_groups_for_level: "Groupes WhatsApp pour",
+                whatsapp_general: "🌐 Groupe général du niveau",
+                whatsapp_specialization: "🎓 Groupe spécifique à la filière",
+                whatsapp_general_desc: "Disponible pour toutes les filières de",
+                whatsapp_specialization_desc: "Spécifique à la filière",
+                whatsapp_open: "Ouvrir ↗",
+                whatsapp_scope_all: "tous les groupes disponibles",
+                whatsapp_loading: "⏳ Chargement...",
+                whatsapp_none: "Aucun groupe pour ce niveau actuellement.",
+                whatsapp_load_error: "Impossible de charger les groupes.",
                 btn_specs: "Filières",
                 section_levels: "Niveau d'étude",
                 level_1: "Première Année",
@@ -1231,6 +1277,15 @@
                 }
             });
             
+            const waLevelButton = document.querySelector('#semesters-grid-view .btn-submit[style*="25D366"]');
+            if (waLevelButton && typeof currentLevel !== 'undefined' && currentLevel) {
+                waLevelButton.innerHTML = '<i class="fab fa-whatsapp"></i> ' + (i18n[lang]?.whatsapp_groups_for_level || 'مجموعات WhatsApp لـ ') + String(currentLevel).toUpperCase();
+            }
+            const waTitle = document.querySelector('#whatsapp-groups-overlay [data-i18n="whatsapp_groups"]');
+            if (waTitle) waTitle.innerHTML = i18n[lang]?.whatsapp_groups || '🟢 مجموعات WhatsApp';
+            const waClose = document.querySelector('#whatsapp-groups-overlay [data-i18n="btn_close"]');
+            if (waClose) waClose.innerHTML = i18n[lang]?.btn_close || 'إغلاق';
+
             const langToggleBtn = document.getElementById('lang-toggle');
             if (langToggleBtn) {
                 langToggleBtn.textContent = lang === 'ar' ? 'FR' : 'AR';
@@ -2422,6 +2477,34 @@ function closeAnalyticsDashboard() {
             currentSpecialization = spec; currentBranch = branchMap[spec] || 'main'; allFiles =[]; hideAll(); document.getElementById('level-selection').classList.remove('hidden'); fetchFilesFromGitHub(currentBranch); 
         }
         
+        // ربط أزرار التخصصات بشكل صريح بالإضافة إلى onclick الموجود في HTML.
+        // هذا يمنع تعطل التنقل إذا تغيّر سياق الصفحة أو تعامل المتصفح مع inline handlers بشكل مختلف.
+        window.unemSelectSpecialization = function(spec) {
+            try {
+                if (typeof selectSpecialization === 'function') {
+                    return selectSpecialization(String(spec || '').toLowerCase());
+                }
+            } catch (error) {
+                console.error('UNEM specialization navigation error:', error);
+                alert('❌ تعذر فتح التخصص. يرجى إعادة المحاولة.');
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('#specialization-cards .specialization-card').forEach(card => {
+                const spec = card.getAttribute('data-specialization');
+                if (!spec) return;
+                const open = (event) => {
+                    if (event) event.preventDefault();
+                    window.unemSelectSpecialization(spec);
+                };
+                card.addEventListener('click', open);
+                card.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') open(event);
+                });
+            });
+        });
+
         function showSemesters(level) {
             logSupabaseAnalytics('دخول مستوى', level.toUpperCase());
             currentLevel = level; hideAll(); document.getElementById('semesters-container').classList.remove('hidden');
@@ -2432,7 +2515,7 @@ function closeAnalyticsDashboard() {
                 div.innerHTML = `<div class="icon-box"><i class="fas fa-layer-group"></i></div><h3>Semestre ${sem.replace('s','')}</h3>`;
                 div.onclick = () => showSubjects(sem); grid.appendChild(div);
             });
-            const wa = document.createElement('button'); wa.type='button'; wa.className='btn-submit'; wa.style.cssText='grid-column:1/-1;background:#25D366;color:#fff;max-width:360px;margin:4px auto 0;border:0;'; wa.innerHTML='<i class="fab fa-whatsapp"></i> مجموعات WhatsApp لـ '+String(level).toUpperCase(); wa.onclick=()=>openWhatsAppGroups(currentSpecialization,String(level).toUpperCase()); grid.appendChild(wa);
+            const wa = document.createElement('button'); wa.type='button'; wa.className='btn-submit'; wa.style.cssText='grid-column:1/-1;background:#25D366;color:#fff;max-width:360px;margin:4px auto 0;border:0;'; wa.innerHTML='<i class="fab fa-whatsapp"></i> '+(i18n[currentLang]?.whatsapp_groups_for_level||'مجموعات WhatsApp لـ ') + String(level).toUpperCase(); wa.onclick=()=>openWhatsAppGroups(currentSpecialization,String(level).toUpperCase()); grid.appendChild(wa);
         }
         
 
@@ -3945,7 +4028,7 @@ function escapeHtml(value){
                     const title=overlay.querySelector('.admin-dashboard-title');
                     const subtitle=overlay.querySelector('.admin-dashboard-subtitle');
                     if(title) title.textContent='لوحة المشرف';
-                    if(subtitle) subtitle.textContent='لوحة المشرف';
+                    if(subtitle) subtitle.textContent='الأقسام التي منحك المشرف الرئيسي صلاحية الوصول إليها';
                     return;
                 }
 
@@ -4057,6 +4140,7 @@ function escapeHtml(value){
 
                 const {error:insertError}=await supabaseClient.from('whatsapp_groups').insert({
                     name:type==='general'?'مجموعة WhatsApp عامة':'مجموعة WhatsApp للتخصص',
+                    academic_year:null,
                     specialization:type==='general'?null:spec,
                     level:level,
                     group_type:type,
@@ -4072,27 +4156,36 @@ function escapeHtml(value){
         }
         async function deleteWhatsAppGroup(id){if(!confirm('حذف رابط مجموعة WhatsApp؟'))return;const {error}=await supabaseClient.from('whatsapp_groups').delete().eq('id',id);if(error)alert('❌ '+error.message);else loadWhatsAppAdminList();}
         async function openWhatsAppGroups(spec, level){
-            const ov=document.getElementById('whatsapp-groups-overlay'); const list=document.getElementById('whatsapp-groups-list'); if(!ov||!list)return;
+            const ov=document.getElementById('whatsapp-groups-overlay');
+            const list=document.getElementById('whatsapp-groups-list');
+            if(!ov||!list)return;
             ov.classList.remove('hidden');
-            const upperSpec=(spec||'').toUpperCase(), upperLevel=String(level||'').toUpperCase();
-            document.getElementById('whatsapp-groups-scope').textContent=upperLevel?'L'+upperLevel.replace(/^L/,'')+' · جميع المجموعات المتاحة':'مجموعات WhatsApp';
-            list.innerHTML='⏳ جاري التحميل...';
+            const upperSpec=(spec||'').toUpperCase();
+            const upperLevel=String(level||'').toUpperCase();
+            const t=(key,fallback)=>((i18n[currentLang]&&i18n[currentLang][key])||fallback);
+            const scopeEl=document.getElementById('whatsapp-groups-scope');
+            if(scopeEl) scopeEl.textContent=upperLevel ? ('L'+upperLevel.replace(/^L/,'')+' · '+t('whatsapp_scope_all','جميع المجموعات المتاحة')) : t('whatsapp_groups','مجموعات WhatsApp');
+            list.innerHTML='<div style="text-align:center;padding:25px">'+t('whatsapp_loading','⏳ جاري التحميل...')+'</div>';
             if(!supabaseClient)return;
-            // عند اختيار مستوى من تخصص: اعرض المجموعة العامة للمستوى + المجموعة الخاصة بالتخصص إن وجدت.
-            let q=supabaseClient.from('whatsapp_groups').select('*').eq('is_active',true).eq('level',upperLevel);
-            const {data,error}=await q.order('group_type').order('specialization');
-            if(error){list.innerHTML='<div class="status-msg error">تعذر تحميل المجموعات.</div>';return;}
+            const {data,error}=await supabaseClient.from('whatsapp_groups')
+                .select('*').eq('is_active',true).eq('level',upperLevel)
+                .order('group_type').order('specialization');
+            if(error){
+                list.innerHTML='<div class="status-msg error">'+escapeHtml(t('whatsapp_load_error','تعذر تحميل المجموعات.'))+'</div>';
+                return;
+            }
             const groups=(data||[]).filter(x=>{
                 const type=x.group_type||'specialization';
                 return type==='general'||(type==='specialization'&&String(x.specialization||'').toUpperCase()===upperSpec);
             });
             list.innerHTML=groups.map(x=>{
                 const general=(x.group_type||'specialization')==='general';
-                const title=general?'🌐 مجموعة عامة للمستوى':'🎓 مجموعة خاصة بتخصص '+escapeHtml(x.specialization||upperSpec);
-                const desc=general?'متاحة لجميع تخصصات '+escapeHtml(upperLevel):'خاصة بتخصص '+escapeHtml(x.specialization||upperSpec)+' · '+escapeHtml(upperLevel);
-                return `<a href="${escapeHtml(x.url)}" target="_blank" rel="noopener" style="display:block;padding:15px;border:1px solid ${general?'#dbeafe':'#dcfce7'};border-radius:14px;margin-bottom:10px;background:${general?'#eff6ff':'#f0fdf4'};color:${general?'#1d4ed8':'#166534'};text-decoration:none;font-weight:900"><div style="display:flex;justify-content:space-between;gap:10px"><span>${title}</span><span>فتح ↗</span></div><div style="font-size:.78rem;margin-top:6px;opacity:.8">${desc}</div></a>`;
-            }).join('')||'<div style="text-align:center;padding:25px;color:#64748b;font-weight:700">لا توجد مجموعات لهذا المستوى حالياً.</div>';
+                const title=general ? t('whatsapp_general','🌐 مجموعة عامة للمستوى') : t('whatsapp_specialization','🎓 مجموعة خاصة بتخصص')+' '+escapeHtml(x.specialization||upperSpec);
+                const desc=general ? t('whatsapp_general_desc','متاحة لجميع تخصصات')+' '+escapeHtml(upperLevel) : t('whatsapp_specialization_desc','خاصة بتخصص')+' '+escapeHtml(x.specialization||upperSpec)+' · '+escapeHtml(upperLevel);
+                return `<a href="${escapeHtml(x.url)}" target="_blank" rel="noopener" style="display:block;padding:15px;border:1px solid ${general?'#dbeafe':'#dcfce7'};border-radius:14px;margin-bottom:10px;background:${general?'#eff6ff':'#f0fdf4'};color:${general?'#1d4ed8':'#166534'};text-decoration:none;font-weight:900"><div style="display:flex;justify-content:space-between;gap:10px"><span>${title}</span><span>${t('whatsapp_open','فتح ↗')}</span></div><div style="font-size:.78rem;margin-top:6px;opacity:.8">${desc}</div></a>`;
+            }).join('')||'<div style="text-align:center;padding:25px;color:#64748b;font-weight:700">'+t('whatsapp_none','لا توجد مجموعات لهذا المستوى حالياً.')+'</div>';
         }
+
         function closeWhatsAppGroups(){document.getElementById('whatsapp-groups-overlay')?.classList.add('hidden');}
         async function renderPermissionsAdmin(){
             const c=document.getElementById('admin-dashboard-page-content'); c.innerHTML='<div class="admin-page-box"><h3>🔐 صلاحيات المشرفين</h3><p>أدخل بريد المشرف ثم حدد ما يظهر له في لوحة الإدارة.</p><div class="wa-admin-row"><input id="perm-email" type="email" placeholder="email@example.com"><button class="wa-save" onclick="loadSupervisorPermission()">تحميل</button></div><div id="perm-box"></div></div>';
