@@ -195,6 +195,49 @@
         .semesters-grid > *:nth-child(6n+5) { --theme-color: #5c6bc0; --theme-light: rgba(92, 107, 192, 0.2); background-color: rgba(92, 107, 192, 0.04); }
         .semesters-grid > *:nth-child(6n+6) { --theme-color: #29b6f6; --theme-light: rgba(41, 182, 246, 0.2); background-color: rgba(41, 182, 246, 0.04); }
 
+        /* بطاقة النتائج — هوية وردية مطابقة للتصميم المرجعي، دون تغيير أي وظيفة */
+        .semester-card.result-card {
+            --theme-color: #e83e8c;
+            --theme-light: rgba(232, 62, 140, 0.18);
+            background: linear-gradient(135deg, #fff8fb 0%, #fff 72%) !important;
+            border-color: #f2d4e2;
+            border-bottom-color: #e83e8c;
+            border-inline-end-color: #e83e8c;
+            box-shadow: 0 8px 22px rgba(232, 62, 140, 0.10);
+        }
+        .semester-card.result-card .icon-box {
+            background: #fde7f1;
+            color: #e83e8c;
+        }
+        .semester-card.result-card h3 {
+            color: #172033;
+        }
+        .semester-card.result-card p {
+            color: #64748b;
+        }
+        .semester-card.result-card:hover {
+            border-color: #e83e8c;
+            box-shadow: 0 12px 28px rgba(232, 62, 140, 0.16);
+            background: linear-gradient(135deg, #fff4f9 0%, #fff 72%) !important;
+        }
+        body.dark-mode .semester-card.result-card {
+            background: linear-gradient(135deg, #2a1d26 0%, var(--card-bg) 72%) !important;
+            border-color: #6b3b55;
+            border-bottom-color: #e83e8c;
+            border-inline-end-color: #e83e8c;
+            box-shadow: 0 8px 22px rgba(232, 62, 140, 0.12);
+        }
+        body.dark-mode .semester-card.result-card .icon-box {
+            background: rgba(232, 62, 140, 0.18);
+            color: #f472b6;
+        }
+        body.dark-mode .semester-card.result-card h3 {
+            color: #f8fafc;
+        }
+        body.dark-mode .semester-card.result-card p {
+            color: #cbd5e1;
+        }
+
         body.dark-mode .semester-card, body.dark-mode .category-card { background-color: var(--card-bg); }
 
         .buttons-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
@@ -578,7 +621,7 @@
                 </div>
 
                 <!-- تم التعديل هنا ليوجه لـ /resultats مباشرة -->
-                <div class="semester-card wide-card" onclick="(async()=>{ try{ await logSupabaseAnalytics('دخول قسم', 'النتائج'); }catch(e){} window.location.href='/resultats'; })()">
+                <div class="semester-card wide-card result-card" onclick="(async()=>{ try{ await logSupabaseAnalytics('دخول قسم', 'النتائج'); }catch(e){} window.location.href='/resultats'; })()">
                     <div class="icon-box"><i class="fas fa-graduation-cap"></i></div>
                     <h3 data-i18n="card_results">نتائج المعهد</h3>
                     <p data-i18n="card_results_desc">الاستعلام عن النتائج</p>
