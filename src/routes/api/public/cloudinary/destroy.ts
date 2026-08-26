@@ -4,6 +4,7 @@ import {
   bearerToken,
   deleteDocumentRow,
   fetchDocumentRow,
+  corsOptions,
   json,
   readCloudinaryEnv,
   signCloudinaryParams,
@@ -38,6 +39,7 @@ async function destroyCloudinaryAsset(
 export const Route = createFileRoute("/api/public/cloudinary/destroy")({
   server: {
     handlers: {
+      OPTIONS: () => corsOptions(),
       POST: async ({ request }) => {
         const auth = await authenticateCaller(request);
         if ("error" in auth) return auth.error;

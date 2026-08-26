@@ -5,6 +5,7 @@ import {
   fetchActiveCommonSubjects,
   fetchSubjectDocumentTypes,
   isDocumentTypeAllowedForSubject,
+  corsOptions,
   json,
   normalizeSubjectCode,
   readCloudinaryEnv,
@@ -22,6 +23,7 @@ const MAX_SIZE = 60 * 1024 * 1024; // 60 MB
 export const Route = createFileRoute("/api/public/cloudinary/sign")({
   server: {
     handlers: {
+      OPTIONS: () => corsOptions(),
       POST: async ({ request }) => {
         const auth = await authenticateCaller(request);
         if ("error" in auth) return auth.error;
