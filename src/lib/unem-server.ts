@@ -57,7 +57,27 @@ export async function authenticateCaller(
 export function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8" },
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      // APIs use Bearer authentication rather than cookies, so wildcard CORS is safe here
+      // and also allows controlled local content:// testing of the admin upload UI.
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET,POST,OPTIONS",
+      "access-control-allow-headers": "Content-Type, Authorization",
+      "access-control-max-age": "86400",
+    },
+  });
+}
+
+export function corsOptions(): Response {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET,POST,OPTIONS",
+      "access-control-allow-headers": "Content-Type, Authorization",
+      "access-control-max-age": "86400",
+    },
   });
 }
 
