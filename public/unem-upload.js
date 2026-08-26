@@ -1,5 +1,5 @@
 /* =====================================================================
-   UNEM ISCAE — طبقة الرفع الموحّدة (متصفح)
+   UNEM ISCAE — طبقة الرفع الموحّدة (متصفح / WebView / content://)
    ---------------------------------------------------------------------
    اختيار الملف → معالجة → توقيع UNEM (PDF / Word .docx / PowerPoint .pptx)
    → ضغط ذكي عند الحاجة → رفع مباشر إلى Cloudinary بتوقيع من الخادم
@@ -513,12 +513,44 @@
     return { blob: best, mime: "image/jpeg", ext: "jpg" };
   }
 
+  /** تحويل صورة إلى PDF بحجم صفحة مناسب ثم إعادة استخدامها في مسار توقيع PDF. */
+  async function imageToPdfBlob(blob, mime) {
+    var PDFLibRef = await loadPdfLib();
+    var PDFDocument = PDFLibRef.PDFDocument;
+    var pdfDoc = await PDFDocument.create();
+    var imageBytes = new Uint8Array(await blob.arrayBuffer());
+    var image = String(mime || '').toLowerCase() === 'image/png'
+      ? await pdfDoc.embedPng(imageBytes)
+      : await pdfDoc.embedJpg(imageBytes);
+
+    // A4 بالنقاط مع الحفاظ الكامل على نسبة الصورة وعدم قصها.
+    var pageW = 595.28;
+    var pageH = 841.89;
+    var page = pdfDoc.addPage([pageW, pageH]);
+    var margin = 24;
+    var maxW = pageW - margin * 2;
+    var maxH = pageH - margin * 2;
+    var dims = image.scale(1);
+    var scale = Math.min(maxW / dims.width, maxH / dims.height);
+    var w = dims.width * scale;
+    var h = dims.height * scale;
+    page.drawImage(image, {
+      x: (pageW - w) / 2,
+      y: (pageH - h) / 2,
+      width: w,
+      height: h,
+    });
+
+    var bytes = await pdfDoc.save({ useObjectStreams: true });
+    return new Blob([bytes], { type: 'application/pdf' });
+  }
+
   /**
    * معالجة ملف قبل الرفع.
-   * PDF              → توقيع UNEM (اختياري) + تحسين الحجم عند الحاجة.
-   * Word (.docx)      → توقيع UNEM (اختياري) كعلامة مائية في رأس الصفحة.
-   * PowerPoint (.pptx) → توقيع UNEM (اختياري) كعلامة مائية خلف كل شريحة.
-   * صورة              → ضغط عند الحاجة فقط.
+   * PDF              → توقيع UNEM + تحسين الحجم عند الحاجة.
+   * Word (.docx)      → توقيع UNEM كعلامة مائية في رأس الصفحة.
+   * PowerPoint (.pptx) → توقيع UNEM كعلامة مائية خلف كل شريحة.
+   * صورة              → ضغط اختياري → تحويل إلى PDF → توقيع UNEM.
    * Excel و صيغ Office القديمة (.doc/.ppt) → تُترك كما هي دون أي تعديل.
    */
   async function prepareFile(file, options) {
@@ -552,10 +584,23 @@
       result.mime = "application/pdf";
     } else if (info.kind === "image") {
       var compressed = await compressImage(file);
-      result.blob = compressed.blob;
-      result.mime = compressed.mime;
-      result.ext = compressed.ext;
-      result.resourceType = "image";
+      var imagePdf = await imageToPdfBlob(compressed.blob, compressed.mime);
+      result.blob = imagePdf;
+      result.mime = "application/pdf";
+      result.ext = "pdf";
+      result.resourceType = "raw";
+      if (opts.sign !== false) {
+        try {
+          result.blob = await signPdfBlob(imagePdf);
+          result.signed = true;
+        } catch (err) {
+          console.warn("[UNEMUpload] تعذر توقيع PDF الناتج من الصورة، سيتم رفعه بدون العلامة:", err && err.message);
+          result.blob = imagePdf;
+        }
+      }
+      if (result.blob.size > PDF_COMPRESS_THRESHOLD) {
+        result.blob = await optimizePdfBlob(result.blob);
+      }
     } else if (info.kind === "word" && result.ext === "docx") {
       if (opts.sign !== false) {
         try {
