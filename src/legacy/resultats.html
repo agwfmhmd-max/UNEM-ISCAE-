@@ -7322,10 +7322,26 @@ body.fp-open{ overflow:hidden !important; }
         });
 
         const pdfBytes = await pdfDoc.save();
+        const fileName = `Releve_${studentId}.pdf`;
+
+        // Android WebView لا يمرّر رابط Blob إلى DownloadListener reliably.
+        // نرسل PDF المولّد مباشرة إلى DownloadManager عبر الجسر الأصلي.
+        if (window.AndroidFileDownload && typeof window.AndroidFileDownload.savePdfBase64 === 'function') {
+            let binary = '';
+            const CHUNK_SIZE = 0x8000;
+            for (let offset = 0; offset < pdfBytes.length; offset += CHUNK_SIZE) {
+                const chunk = pdfBytes.subarray(offset, Math.min(offset + CHUNK_SIZE, pdfBytes.length));
+                binary += String.fromCharCode.apply(null, chunk);
+            }
+            window.AndroidFileDownload.savePdfBase64(fileName, btoa(binary));
+            return;
+        }
+
+        // المتصفحات العادية تستمر باستخدام رابط Blob كما كان.
         const blob     = new Blob([pdfBytes], { type: 'application/pdf' });
         const url      = URL.createObjectURL(blob);
         const a        = document.createElement('a');
-        a.href = url; a.download = `Releve_${studentId}.pdf`;
+        a.href = url; a.download = fileName;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
