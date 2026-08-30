@@ -1759,16 +1759,15 @@
                 <h3>&#128276; إرسال إشعار حقيقي للمستخدمين</h3>
                 <p style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:center;margin:-6px 0 12px;">يصل الإشعار للمشتركين حتى لو لم يكونوا داخل الموقع حالياً.</p>
 
-                <!-- العدد الحقيقي للاشتراكات الموجودة في push_subscriptions -->
+                <!-- إحصاءا الاشتراكات: Web Push للمتصفحات وFCM لتطبيق Android -->
                 <div id="push-device-count-card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;margin:0 0 16px;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc);">
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#dbeafe;color:#1d4ed8;font-size:1.25rem;">&#128241;</div>
+                    <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+                        <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#dbeafe;color:#1d4ed8;font-size:1.25rem;flex:0 0 auto;">&#128241;</div>
                         <div>
                             <div style="font-weight:900;color:#0f172a;">الأجهزة المفعّل عليها الإشعارات</div>
-                            <div style="font-size:.76rem;color:#64748b;font-weight:700;margin-top:3px;">العدد الحالي للاشتراكات المسجلة</div>
+                            <div style="font-size:.76rem;color:#64748b;font-weight:700;margin-top:3px;">Web Push: <span id="push-active-device-count">—</span> &nbsp;|&nbsp; Android/FCM: <span id="push-active-fcm-count">—</span></div>
                         </div>
                     </div>
-                    <div id="push-active-device-count" style="font-size:2rem;font-weight:900;color:#1d4ed8;min-width:64px;text-align:center;">—</div>
                 </div>
                 <div class="form-group" style="margin-bottom:10px;">
                     <label style="font-weight:800;font-size:0.9rem;display:block;margin-bottom:5px;">عنوان الإشعار</label>
@@ -3273,8 +3272,34 @@ function closeAnalyticsDashboard() {
             return output;
         }
 
-        function pushSupported() {
+        // Android WebView لا يوفّر Push API أو Notifications API حتى عند توفر Service Worker.
+        // نُبقي Web Push الأصلي للمتصفحات المدعومة، ونستخدم الجسر الأصلي لفتح Chrome
+        // من داخل تطبيق Android بدل إظهار رسالة دعم غير صحيحة للمستخدم.
+        function isAndroidWebView() {
+            const ua = navigator.userAgent || '';
+            return /Android/i.test(ua) &&
+                (/[; ]wv\)/i.test(ua) || /AndroidWebView/i.test(ua) || /UNEMISCAE-Android/i.test(ua));
+        }
+
+        function webPushSupported() {
             return 'serviceWorker' in navigator && 'PushManager' in window && typeof Notification !== 'undefined';
+        }
+
+        function nativeFcmSupported() {
+            return isAndroidWebView() && window.AndroidNotifications &&
+                typeof window.AndroidNotifications.requestNotificationPermission === 'function' &&
+                typeof window.AndroidNotifications.isNotificationPermissionGranted === 'function';
+        }
+
+        function pushSupported() {
+            return webPushSupported() || nativeFcmSupported();
+        }
+
+        function openPushInSupportedBrowser() {
+            if (!isAndroidWebView() || !window.AndroidNotifications ||
+                typeof window.AndroidNotifications.openPushInBrowser !== 'function') return false;
+            window.AndroidNotifications.openPushInBrowser();
+            return true;
         }
 
         function setPushIcon(active) {
@@ -3287,7 +3312,12 @@ function closeAnalyticsDashboard() {
 
         /** يعكس حالة الاشتراك الفعلية في الأيقونة عند تحميل الصفحة */
         async function initPushUI() {
-            if (!pushSupported()) { const btn = document.getElementById('push-toggle-btn'); if (btn) btn.style.display = 'none'; return; }
+            const btn = document.getElementById('push-toggle-btn');
+            if (!webPushSupported()) {
+                // داخل تطبيق Android لا نعرض زر Web Push؛ FCM الأصلي يعمل من النظام.
+                if (btn) btn.style.display = 'none';
+                return;
+            }
             try {
                 const reg = await navigator.serviceWorker.ready;
                 const sub = await reg.pushManager.getSubscription();
@@ -3302,6 +3332,7 @@ function closeAnalyticsDashboard() {
         }
 
         async function subscribeToPush() {
+            if (!webPushSupported()) return false;
             const res = await fetch(unemApi('/api/public/push/vapid-key'));
             const data = await res.json().catch(() => ({}));
             if (!data || !data.publicKey) {
@@ -3400,7 +3431,8 @@ function closeAnalyticsDashboard() {
         }
 
         async function togglePushNotifications() {
-            if (!pushSupported()) { alert('❌ متصفحك لا يدعم الإشعارات.'); return; }
+            // لا يُستخدم هذا الزر داخل Android WebView؛ إشعارات التطبيق تُدار عبر FCM الأصلي.
+            if (!webPushSupported()) return;
             const btn = document.getElementById('push-toggle-btn');
             if (btn) btn.disabled = true;
             try {
@@ -3456,7 +3488,7 @@ function closeAnalyticsDashboard() {
                 const out = await res.json().catch(() => null);
                 if (!res.ok) throw new Error((out && out.error) || 'فشل إرسال الإشعار.');
 
-                status.textContent = `✅ تم الإرسال: ${out.delivered || 0} نجح / ${out.total || 0} إجمالي المشتركين.`;
+                status.textContent = `✅ تم الإرسال: ${out.delivered || 0} نجح من ${out.total || 0} (ويب: ${out.web_delivered || 0}، Android/FCM: ${out.fcm_delivered || 0}).`;
                 status.className = 'status-msg success';
                 titleEl.value = ''; bodyEl.value = ''; urlEl.value = '';
                 loadPushHistoryAdmin();
@@ -3468,23 +3500,38 @@ function closeAnalyticsDashboard() {
         }
 
         /**
-         * العدد الدقيق للاشتراكات المسجلة حالياً في push_subscriptions.
-         * لا ننشئ جدولاً جديداً ولا نغيّر نظام الإشعارات؛ نقرأ العدد فقط.
+         * يعرض أعداد اشتراكات Web Push وFCM الأصلية المسجلة حالياً.
+         * لا يغيّر هذا القسم نظام الإشعارات؛ يقرأ العددين فقط للمشرف.
          */
         async function loadPushActiveDeviceCount() {
-            const el = document.getElementById('push-active-device-count');
-            if (!el || !supabaseClient || !isAdmin()) return;
-            el.textContent = '…';
+            const webEl = document.getElementById('push-active-device-count');
+            const fcmEl = document.getElementById('push-active-fcm-count');
+            if ((!webEl && !fcmEl) || !supabaseClient || !isAdmin()) return;
+            if (webEl) webEl.textContent = '…';
+            if (fcmEl) fcmEl.textContent = '…';
+
             try {
                 const { count, error } = await supabaseClient
                     .from('push_subscriptions')
                     .select('id', { count: 'exact', head: true });
-
                 if (error) throw error;
-                el.textContent = Number.isFinite(count) ? String(count) : '0';
+                if (webEl) webEl.textContent = Number.isFinite(count) ? String(count) : '0';
             } catch (e) {
-                console.error('loadPushActiveDeviceCount', e);
-                el.textContent = '—';
+                console.error('loadPushActiveDeviceCount:web', e);
+                if (webEl) webEl.textContent = '—';
+            }
+
+            try {
+                const { count, error } = await supabaseClient
+                    .from('fcm_tokens')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('platform', 'android')
+                    .eq('app_id', 'mr.unem.iscae');
+                if (error) throw error;
+                if (fcmEl) fcmEl.textContent = Number.isFinite(count) ? String(count) : '0';
+            } catch (e) {
+                console.error('loadPushActiveDeviceCount:fcm', e);
+                if (fcmEl) fcmEl.textContent = '—';
             }
         }
 
@@ -4602,6 +4649,17 @@ function closeAnalyticsDashboard() {
             if (!downloadUrl) {
                 logDocumentError('triggerDownload: رابط غير متوفر', fileObj);
                 alert('❌ تعذر تحديد رابط تحميل هذا الملف.');
+                return;
+            }
+
+            // Android يتعامل مع التنزيلات عبر طبقة أصلية تفحص محتوى الملف
+            // وتصحح الامتداد الحقيقي (PDF/ZIP/Office/صور) بدل الاعتماد على امتداد الرابط.
+            if (window.AndroidFileDownload && typeof window.AndroidFileDownload.downloadUrl === 'function') {
+                window.AndroidFileDownload.downloadUrl(
+                    downloadUrl,
+                    safeName,
+                    String(fileObj.mime_type || fileObj.mimeType || '')
+                );
                 return;
             }
 
@@ -6044,7 +6102,8 @@ function escapeHtml(value){
             const setInstallState = (state) => localStorage.setItem('unem_install_state', state);
 
             const showPushOnboarding = () => {
-                if (!pushModal || !pushSupported()) return;
+                // نافذة الطلب تعتمد على Web Push الحقيقي؛ لا تُعرض داخل Android WebView.
+                if (!pushModal || !webPushSupported()) return;
                 if (Notification.permission === 'granted') {
                     localStorage.setItem('unem_push_onboarding_done', '1');
                     return;
