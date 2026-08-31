@@ -3488,7 +3488,7 @@ function closeAnalyticsDashboard() {
                 const out = await res.json().catch(() => null);
                 if (!res.ok) throw new Error((out && out.error) || 'فشل إرسال الإشعار.');
 
-                status.textContent = `✅ تم الإرسال: ${out.delivered || 0} نجح من ${out.total || 0} (ويب: ${out.web_delivered || 0}، Android/FCM: ${out.fcm_delivered || 0}).`;
+                status.textContent = `✅ النتيجة: ${out.delivered || 0} نجح، ${out.expired || 0} اشتراك منتهٍ/محذوف، ${out.failed || 0} فشل تقني من أصل ${out.total || 0} (ويب: ${out.web_delivered || 0} ناجح، ${out.web_expired || 0} منتهٍ؛ Android/FCM: ${out.fcm_delivered || 0} ناجح، ${out.fcm_expired || 0} منتهٍ).`;
                 status.className = 'status-msg success';
                 titleEl.value = ''; bodyEl.value = ''; urlEl.value = '';
                 loadPushHistoryAdmin();
@@ -3557,9 +3557,10 @@ function closeAnalyticsDashboard() {
                         <div class="push-body">${n.body}</div>
                         <div class="push-meta">
                             <span>${d}</span>
-                            <span class="ok">✔ ${n.delivered}</span>
-                            <span class="fail">✖ ${n.failed}</span>
-                            <span>من أصل ${n.recipients}</span>
+                            <span class="ok">✔ ${n.delivered || 0} ناجح</span>
+                            <span style="color:#b7791f">⚠ ${n.expired || 0} منتهٍ</span>
+                            <span class="fail">✖ ${n.failed || 0} فشل تقني</span>
+                            <span>من أصل ${n.recipients || 0}</span>
                         </div>
                     </div>`;
                 }).join('');
