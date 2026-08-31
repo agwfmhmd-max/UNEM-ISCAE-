@@ -1,11 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authenticateCaller, bearerToken, json } from "@/lib/unem-server";
 import { readVapidEnv, sendPushNotification, type StoredPushSubscription } from "@/lib/unem-push";
+import { isFcmConfigured, sendFcmNotification, type FcmTokenRow } from "@/lib/unem-fcm";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/unem-config";
 
 const MAX_TITLE = 120;
 const MAX_BODY = 500;
 const CONCURRENCY = 25;
+const ANDROID_APP_ID = "mr.unem.iscae";
+
+type PushPayload = { title: string; body: string; url?: string };
+type DeliveryResult = { delivered: number; failed: number; goneIds: string[] };
 
 async function fetchAllSubscriptions(token: string): Promise<StoredPushSubscription[]> {
   const res = await fetch(
@@ -16,17 +21,53 @@ async function fetchAllSubscriptions(token: string): Promise<StoredPushSubscript
   return (await res.json()) as StoredPushSubscription[];
 }
 
+async function fetchAllFcmTokens(token: string): Promise<FcmTokenRow[]> {
+  const query =
+    `${SUPABASE_URL}/rest/v1/fcm_tokens?select=id,token` +
+    `&platform=eq.android&app_id=eq.${encodeURIComponent(ANDROID_APP_ID)}`;
+  const res = await fetch(query, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return [];
+  return (await res.json()) as FcmTokenRow[];
+}
+
 async function deleteSubscriptions(ids: string[], token: string): Promise<void> {
   if (ids.length === 0) return;
   const filter = ids.map((id) => `"${id}"`).join(",");
   await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?id=in.(${filter})`, {
     method: "DELETE",
-    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}`, Prefer: "return=minimal" },
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${token}`,
+      Prefer: "return=minimal",
+    },
+  }).catch(() => null);
+}
+
+async function deleteFcmTokens(ids: string[], token: string): Promise<void> {
+  if (ids.length === 0) return;
+  const filter = ids.map((id) => `"${id}"`).join(",");
+  await fetch(`${SUPABASE_URL}/rest/v1/fcm_tokens?id=in.(${filter})`, {
+    method: "DELETE",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${token}`,
+      Prefer: "return=minimal",
+    },
   }).catch(() => null);
 }
 
 async function logNotification(
-  row: { title: string; body: string; link_url: string | null; sent_by: string; recipients: number; delivered: number; failed: number },
+  row: {
+    title: string;
+    body: string;
+    link_url: string | null;
+    sent_by: string;
+    recipients: number;
+    delivered: number;
+    failed: number;
+  },
   token: string,
 ): Promise<void> {
   await fetch(`${SUPABASE_URL}/rest/v1/push_notifications_log`, {
@@ -41,12 +82,12 @@ async function logNotification(
   }).catch(() => null);
 }
 
-/** يرسل الدفعات على مجموعات صغيرة لتفادي إغراق الشبكة بعدد كبير من الطلبات المتوازية دفعة واحدة */
-async function sendInBatches(
+/** يرسل Web Push على مجموعات صغيرة لتفادي إغراق الشبكة بعدد كبير من الطلبات المتوازية. */
+async function sendWebPushInBatches(
   subs: StoredPushSubscription[],
-  payload: { title: string; body: string; url?: string },
+  payload: PushPayload,
   vapid: NonNullable<ReturnType<typeof readVapidEnv>>,
-): Promise<{ delivered: number; failed: number; goneIds: string[] }> {
+): Promise<DeliveryResult> {
   let delivered = 0;
   let failed = 0;
   const goneIds: string[] = [];
@@ -59,6 +100,30 @@ async function sendInBatches(
     for (const { sub, outcome } of results) {
       if (outcome === "ok") delivered += 1;
       else if (outcome === "gone") goneIds.push(sub.id);
+      else failed += 1;
+    }
+  }
+
+  return { delivered, failed, goneIds };
+}
+
+/** يرسل رسائل FCM إلى أجهزة Android المسجلة، ويحذف الرموز التي أبلغت Firebase أنها انتهت. */
+async function sendFcmInBatches(
+  tokens: FcmTokenRow[],
+  payload: PushPayload,
+): Promise<DeliveryResult> {
+  let delivered = 0;
+  let failed = 0;
+  const goneIds: string[] = [];
+
+  for (let i = 0; i < tokens.length; i += CONCURRENCY) {
+    const batch = tokens.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      batch.map(async (row) => ({ row, outcome: await sendFcmNotification(row.token, payload) })),
+    );
+    for (const { row, outcome } of results) {
+      if (outcome === "ok") delivered += 1;
+      else if (outcome === "gone") goneIds.push(row.id);
       else failed += 1;
     }
   }
@@ -82,9 +147,13 @@ export const Route = createFileRoute("/api/public/push/send")({
         if (!token) return json({ error: "❌ جلسة غير صالحة." }, 401);
 
         const vapid = readVapidEnv();
-        if (!vapid) {
+        const fcmConfigured = isFcmConfigured();
+        if (!vapid && !fcmConfigured) {
           return json(
-            { error: "❌ إعدادات الإشعارات (VAPID) غير مكتملة على الخادم." },
+            {
+              error:
+                "❌ إعدادات الإشعارات غير مكتملة: أضف VAPID أو إعدادات Firebase FCM على الخادم.",
+            },
             500,
           );
         }
@@ -96,8 +165,12 @@ export const Route = createFileRoute("/api/public/push/send")({
           return json({ error: "❌ طلب غير صالح." }, 400);
         }
 
-        const title = String(body["title"] ?? "").trim().slice(0, MAX_TITLE);
-        const message = String(body["body"] ?? "").trim().slice(0, MAX_BODY);
+        const title = String(body["title"] ?? "")
+          .trim()
+          .slice(0, MAX_TITLE);
+        const message = String(body["body"] ?? "")
+          .trim()
+          .slice(0, MAX_BODY);
         const rawUrl = String(body["url"] ?? "").trim();
 
         if (!title) return json({ error: "❌ عنوان الإشعار مطلوب." }, 400);
@@ -106,39 +179,71 @@ export const Route = createFileRoute("/api/public/push/send")({
           return json({ error: "❌ الرابط غير صالح (يجب أن يبدأ بـ https://)." }, 400);
         }
         const url = rawUrl || undefined;
+        const payload = { title, body: message, ...(url ? { url } : {}) };
 
-        const subs = await fetchAllSubscriptions(token);
-        if (subs.length === 0) {
+        const subs = vapid ? await fetchAllSubscriptions(token) : [];
+        const fcmTokens = fcmConfigured ? await fetchAllFcmTokens(token) : [];
+        if (subs.length === 0 && fcmTokens.length === 0) {
           await logNotification(
-            { title, body: message, link_url: url ?? null, sent_by: caller.userId, recipients: 0, delivered: 0, failed: 0 },
+            {
+              title,
+              body: message,
+              link_url: url ?? null,
+              sent_by: caller.userId,
+              recipients: 0,
+              delivered: 0,
+              failed: 0,
+            },
             token,
           );
-          return json({ success: true, total: 0, delivered: 0, failed: 0, message: "لا يوجد مشتركون في الإشعارات حالياً." });
+          return json({
+            success: true,
+            total: 0,
+            delivered: 0,
+            failed: 0,
+            web_delivered: 0,
+            fcm_delivered: 0,
+            fcm_configured: fcmConfigured,
+            message: "لا يوجد مشتركون في الإشعارات حالياً.",
+          });
         }
 
-        const { delivered, failed, goneIds } = await sendInBatches(
-          subs,
-          { title, body: message, ...(url ? { url } : {}) },
-          vapid,
-        );
+        const webResult = vapid
+          ? await sendWebPushInBatches(subs, payload, vapid)
+          : { delivered: 0, failed: 0, goneIds: [] };
+        const fcmResult = fcmConfigured
+          ? await sendFcmInBatches(fcmTokens, payload)
+          : { delivered: 0, failed: 0, goneIds: [] };
 
-        // تنظيف الاشتراكات المنتهية (المستخدم عطّل الإذن أو أزال المتصفح) — لا يُحسب فشلاً
-        await deleteSubscriptions(goneIds, token);
+        await deleteSubscriptions(webResult.goneIds, token);
+        await deleteFcmTokens(fcmResult.goneIds, token);
 
+        const delivered = webResult.delivered + fcmResult.delivered;
+        const failed = webResult.failed + fcmResult.failed;
+        const total = subs.length + fcmTokens.length;
         await logNotification(
           {
             title,
             body: message,
             link_url: url ?? null,
             sent_by: caller.userId,
-            recipients: subs.length,
+            recipients: total,
             delivered,
             failed,
           },
           token,
         );
 
-        return json({ success: true, total: subs.length, delivered, failed, cleaned: goneIds.length });
+        return json({
+          success: true,
+          total,
+          delivered,
+          failed,
+          web_delivered: webResult.delivered,
+          fcm_delivered: fcmResult.delivered,
+          fcm_configured: fcmConfigured,
+          cleaned: webResult.goneIds.length + fcmResult.goneIds.length,
+        });
       },
     },
   },
