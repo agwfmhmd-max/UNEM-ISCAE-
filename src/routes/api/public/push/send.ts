@@ -67,6 +67,7 @@ async function logNotification(
     recipients: number;
     delivered: number;
     failed: number;
+    expired: number;
   },
   token: string,
 ): Promise<void> {
@@ -193,6 +194,7 @@ export const Route = createFileRoute("/api/public/push/send")({
               recipients: 0,
               delivered: 0,
               failed: 0,
+              expired: 0,
             },
             token,
           );
@@ -220,6 +222,7 @@ export const Route = createFileRoute("/api/public/push/send")({
 
         const delivered = webResult.delivered + fcmResult.delivered;
         const failed = webResult.failed + fcmResult.failed;
+        const expired = webResult.goneIds.length + fcmResult.goneIds.length;
         const total = subs.length + fcmTokens.length;
         await logNotification(
           {
@@ -230,6 +233,7 @@ export const Route = createFileRoute("/api/public/push/send")({
             recipients: total,
             delivered,
             failed,
+            expired,
           },
           token,
         );
@@ -239,6 +243,9 @@ export const Route = createFileRoute("/api/public/push/send")({
           total,
           delivered,
           failed,
+          expired,
+          web_expired: webResult.goneIds.length,
+          fcm_expired: fcmResult.goneIds.length,
           web_delivered: webResult.delivered,
           fcm_delivered: fcmResult.delivered,
           fcm_configured: fcmConfigured,
