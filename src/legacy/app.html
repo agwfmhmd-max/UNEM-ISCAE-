@@ -5815,17 +5815,42 @@ function escapeHtml(value){
         // ترتيب الملفات يتم الآن مباشرة من قائمة الملفات بواسطة زري ↑ و ↓ للمشرف الرئيسي فقط.
 
         // ===================== Online Presence =====================
+        // عدّاد لحظي يعتمد على Supabase Realtime Presence، وليس على قيمة ثابتة أو cache.
         let unemPresenceChannel = null;
         let unemPresenceCount = 0;
         let publicOnlineSetting = false;
         let presenceBound = false;
+        let presenceHeartbeat = null;
+        let presenceRetryTimer = null;
+        let presenceKey = null;
 
         function getPresenceKey() {
+            // sessionStorage يجعل كل تبويب جلسة مستقلة؛ localStorage كان يدمج التبويبات
+            // في هوية واحدة، لذلك كان فتح الموقع أكثر من مرة لا يغيّر العداد.
             try {
-                let id = localStorage.getItem('unem_presence_id');
-                if (!id) { id = 'u_' + crypto.randomUUID(); localStorage.setItem('unem_presence_id', id); }
+                let id = sessionStorage.getItem('unem_presence_id');
+                if (!id) {
+                    id = 'tab_' + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+                    sessionStorage.setItem('unem_presence_id', id);
+                }
                 return id;
-            } catch (_) { return 'u_' + Math.random().toString(36).slice(2); }
+            } catch (_) {
+                return 'tab_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            }
+        }
+
+        function getPresenceCount() {
+            if (!unemPresenceChannel || typeof unemPresenceChannel.presenceState !== 'function') return 0;
+            const state = unemPresenceChannel.presenceState() || {};
+            // Presence state قد يحتوي على أكثر من metadata لنفس المفتاح؛ نعدّ الجلسات
+            // الفعلية فقط، حتى لا يتضخم الرقم بسبب إعادة الاتصال.
+            return Object.values(state).reduce((count, metas) => {
+                return count + (Array.isArray(metas) && metas.length > 0 ? 1 : 0);
+            }, 0);
+        }
+
+        function refreshOnlineCount() {
+            updateOnlineCountUI(getPresenceCount());
         }
 
         function updateOnlineCountUI(count) {
@@ -5870,36 +5895,93 @@ function escapeHtml(value){
             }
         }
 
+        function stopPresenceHeartbeat() {
+            if (presenceHeartbeat) {
+                clearInterval(presenceHeartbeat);
+                presenceHeartbeat = null;
+            }
+        }
+
+        async function trackCurrentPresence() {
+            if (!unemPresenceChannel || document.visibilityState === 'hidden') return;
+            try {
+                await unemPresenceChannel.track({
+                    online_at: new Date().toISOString(),
+                    last_seen_at: new Date().toISOString(),
+                    user_id: currentUserId || null
+                });
+                refreshOnlineCount();
+            } catch (e) {
+                console.warn('online presence heartbeat', e);
+            }
+        }
+
+        function schedulePresenceReconnect() {
+            if (presenceRetryTimer || !supabaseClient) return;
+            presenceRetryTimer = setTimeout(() => {
+                presenceRetryTimer = null;
+                presenceBound = false;
+                initOnlinePresence();
+            }, 4000);
+        }
+
         async function initOnlinePresence() {
             if (!supabaseClient || presenceBound) return;
             presenceBound = true;
             await loadPublicOnlineSetting();
             try {
-                const key = getPresenceKey();
-                unemPresenceChannel = supabaseClient.channel('unem-iscae-online', { config: { presence: { key } } });
-                unemPresenceChannel.on('presence', { event: 'sync' }, () => {
-                    const state = unemPresenceChannel.presenceState();
-                    updateOnlineCountUI(Object.keys(state || {}).length);
+                presenceKey = getPresenceKey();
+                const channel = supabaseClient.channel('unem-iscae-online', {
+                    config: { presence: { key: presenceKey } }
                 });
-                unemPresenceChannel.on('presence', { event: 'join' }, () => {
-                    const state = unemPresenceChannel.presenceState();
-                    updateOnlineCountUI(Object.keys(state || {}).length);
-                });
-                unemPresenceChannel.on('presence', { event: 'leave' }, () => {
-                    const state = unemPresenceChannel.presenceState();
-                    updateOnlineCountUI(Object.keys(state || {}).length);
-                });
-                await unemPresenceChannel.subscribe(async status => {
+                unemPresenceChannel = channel;
+
+                const refreshFromEvent = () => refreshOnlineCount();
+                channel.on('presence', { event: 'sync' }, refreshFromEvent);
+                channel.on('presence', { event: 'join' }, refreshFromEvent);
+                channel.on('presence', { event: 'leave' }, refreshFromEvent);
+
+                await channel.subscribe(async status => {
                     if (status === 'SUBSCRIBED') {
-                        await unemPresenceChannel.track({ online_at: new Date().toISOString(), user_id: currentUserId || null });
+                        stopPresenceHeartbeat();
+                        await trackCurrentPresence();
+                        // إعادة النبضة تمنع بقاء جلسة قديمة وتُبقي الرقم متزامناً
+                        // حتى مع الأجهزة المحمولة والشبكات غير المستقرة.
+                        presenceHeartbeat = setInterval(trackCurrentPresence, 20000);
+                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                        stopPresenceHeartbeat();
+                        if (unemPresenceChannel === channel) unemPresenceChannel = null;
+                        presenceBound = false;
+                        updateOnlineCountUI(0);
+                        schedulePresenceReconnect();
                     }
                 });
             } catch (e) {
+                presenceBound = false;
+                unemPresenceChannel = null;
+                updateOnlineCountUI(0);
                 console.warn('online presence unavailable', e);
+                schedulePresenceReconnect();
             }
         }
 
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                trackCurrentPresence();
+            } else {
+                stopPresenceHeartbeat();
+                try { if (unemPresenceChannel) unemPresenceChannel.untrack(); } catch (_) {}
+                setTimeout(refreshOnlineCount, 250);
+            }
+        });
+
+        window.addEventListener('pagehide', () => {
+            stopPresenceHeartbeat();
+            try { if (unemPresenceChannel) unemPresenceChannel.untrack(); } catch (_) {}
+        });
+
         window.addEventListener('beforeunload', () => {
+            stopPresenceHeartbeat();
             try { if (unemPresenceChannel) unemPresenceChannel.untrack(); } catch (_) {}
         });
 
