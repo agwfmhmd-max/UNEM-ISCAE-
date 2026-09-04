@@ -818,6 +818,10 @@
 
         body > * { position: relative; z-index: 1; }
         
+        .upload-progress-panel { margin-top:12px; padding:10px 12px; border:1px solid #dbeafe; border-radius:10px; background:#f8fbff; text-align:right; direction:rtl; }
+        .upload-progress-track { height:14px; background:#e2e8f0; border-radius:999px; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.08); }
+        .upload-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,#0284c7,#22c55e); transition:width .2s ease; }
+        .upload-progress-meta { display:flex; justify-content:space-between; gap:8px; margin-top:6px; color:#475569; font-size:.78rem; }
         .loader { 
             display: none; 
             text-align: center; 
@@ -2021,6 +2025,7 @@ body.fp-open{ overflow:hidden !important; }
 
                         <button class="admin-btn" style="margin-top:20px; background:var(--primary); color:white;" onclick="uploadFiles()">دمج، استخراج البيانات والرفع</button>
                         <div id="upload-status" style="margin-top:15px; font-weight:bold; font-size:0.9rem; text-align:center;"></div>
+                        <div id="upload-progress" class="upload-progress-panel" style="display:none;" aria-live="polite"></div>
                     </div>
 
                     <div class="as-card" style="margin-top:18px;">
@@ -2063,6 +2068,7 @@ body.fp-open{ overflow:hidden !important; }
                         </div>
                         <button class="admin-btn" style="margin-top:20px; background:#7c3aed; color:white;" onclick="uploadAnnualFiles()">دمج، استخراج البيانات والرفع (سنوي)</button>
                         <div id="upload-annual-status" style="margin-top:15px; font-weight:bold; font-size:0.9rem; text-align:center;"></div>
+                        <div id="upload-annual-progress" class="upload-progress-panel" style="display:none;" aria-live="polite"></div>
                     </div>
                 </div>
             </div>
@@ -2716,7 +2722,7 @@ body.fp-open{ overflow:hidden !important; }
      * to Cloudinary individually. Saves a manifest JSON (list of part URLs)
      * to Cloudinary and returns its URL.
      */
-    async function uploadLargePdfInChunks(blob, publicId) {
+    async function uploadLargePdfInChunks(blob, publicId, onProgress) {
         const { PDFDocument } = PDFLib;
         const CHUNK_LIMIT = 9 * 1024 * 1024; // 9 MB — safe margin under 10 MB
 
@@ -2763,15 +2769,26 @@ body.fp-open{ overflow:hidden !important; }
         }
 
         // ⚡ Parallelize chunk building — each range is independent, huge speed win
-        const builtGroups = await Promise.all(ranges.map(r => buildChunk(r)));
+        // Building every chunk in parallel duplicates the source PDF and can
+        // exhaust phone memory. Build sequentially on mobile, in small batches
+        // on desktop; the resulting page ranges and manifest stay identical.
+        const buildConcurrency = IS_MOBILE_DEVICE ? 1 : 3;
         const chunks = [];
-        for (const built of builtGroups) for (const c of built) chunks.push(c);
+        for (let i = 0; i < ranges.length; i += buildConcurrency) {
+            const group = ranges.slice(i, i + buildConcurrency);
+            const builtGroups = await Promise.all(group.map(r => buildChunk(r)));
+            for (const built of builtGroups) for (const c of built) chunks.push(c);
+            if (IS_MOBILE_DEVICE) await new Promise(r => setTimeout(r, 0));
+        }
 
         // ⚡ [Speed fix] Upload chunks in parallel (3 at a time) instead of
         // strictly one-by-one. Order in the manifest is preserved by index.
         // ⚡ Higher parallelism = faster uploads on both mobile and desktop.
         // Cloudinary handles bursty concurrent PUTs well; 8 is a safe ceiling.
-        const CONCURRENCY = 32;
+        // Cloudinary upload concurrency is deliberately conservative on phones:
+        // too many multipart requests can make Safari/Chrome kill the tab.
+        // Desktop remains parallel for high throughput.
+        const CONCURRENCY = IS_MOBILE_DEVICE ? 2 : 8;
         const chunkUrls   = new Array(chunks.length);
         let cursor = 0;
         async function uploadWorker() {
@@ -2788,10 +2805,12 @@ body.fp-open{ overflow:hidden !important; }
             }
         }
         await Promise.all(Array.from({ length: Math.min(CONCURRENCY, chunks.length) }, () => uploadWorker()));
+        if (typeof onProgress === 'function') onProgress(92);
 
         const manifest     = { type: 'pdf_chunks', totalPages, parts: chunkUrls };
         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
         const manifestUrl  = await _uploadSingleToCloudinary(manifestBlob, publicId + '_manifest', 'raw', 'json');
+        if (typeof onProgress === 'function') onProgress(100);
         console.log(`[ChunkUpload] complete — ${chunkUrls.length} parts, manifest: ${manifestUrl}`);
         return manifestUrl;
     }
@@ -2805,9 +2824,14 @@ body.fp-open{ overflow:hidden !important; }
     async function prepareResultsBlob(blob, ext) {
         try {
             if (!window.UNEMUpload || !blob) return blob;
+            if (__preparedResultsBlobs && __preparedResultsBlobs.has(blob)) return blob;
             const type = (blob.type || '').toLowerCase();
             const isPdf = ext === 'pdf' || type.includes('pdf');
-            if (isPdf) return await UNEMUpload.signPdfBlob(blob);
+            if (isPdf) {
+                const signed = await UNEMUpload.signPdfBlob(blob);
+                markPreparedResultsBlob(signed);
+                return signed;
+            }
             if (type.startsWith('image/') && blob.size > 1.5 * 1024 * 1024) {
                 const out = await UNEMUpload.compressImage(new File([blob], 'image.' + (ext || 'jpg'), { type }));
                 return out.blob;
@@ -2826,26 +2850,15 @@ body.fp-open{ overflow:hidden !important; }
      * @param {'image'|'raw'|'auto'} resourceType
      * @returns {Promise<string>}   public URL of the uploaded file.
      */
-    async function uploadToCloudinary(blob, publicId, resourceType = 'auto', ext = '') {
+    async function uploadToCloudinary(blob, publicId, resourceType = 'auto', ext = '', onProgress) {
         // ── توقيع UNEM للـ PDF + ضغط ذكي للصور (Office يبقى كما هو) ──
         blob = await prepareResultsBlob(blob, ext);
 
-        // ── Large PDF: split into chunks and upload all parts to Cloudinary ──
-        if (blob && typeof blob.size === 'number' && blob.size > CLOUDINARY_MAX_SIZE
-                && (ext === 'pdf' || (blob.type || '').includes('pdf'))) {
-            console.log('[Upload] PDF > 10MB — splitting into chunks for Cloudinary', { size: blob.size });
-            return uploadLargePdfInChunks(blob, publicId);
-        }
-
-        // ── Other large files: fall back to Supabase Storage as last resort ──
-        if (blob && typeof blob.size === 'number' && blob.size > CLOUDINARY_MAX_SIZE) {
-            console.log('[Upload] non-PDF file > 10MB — falling back to Supabase Storage', { size: blob.size });
-            const blobToUpload = (ext === 'pdf' || (blob.type || '').includes('pdf'))
-                ? await compressPdfBlob(blob) : blob;
-            return uploadToSupabaseStorage(blobToUpload, publicId, ext);
-        }
-
-        // ── Normal upload (file ≤ 10 MB) ─────────────────────────────────────
+        // ── Cloudinary-only upload path ─────────────────────────────────────
+        // Direct upload is attempted first for speed. If Cloudinary rejects a
+        // large PDF because of its request-size limit, the error handler below
+        // retries through Cloudinary chunk upload only.
+        // ────────────────────────────────────────────────────────────────────
         const fd = new FormData();
         const fname = (publicId || 'file') + (ext ? ('.' + ext.replace(/^\./, '')) : '');
         fd.append('file', blob, fname);
@@ -2857,21 +2870,34 @@ body.fp-open{ overflow:hidden !important; }
         }
         const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
         console.log('[Cloudinary] uploading', { endpoint, publicId, resourceType, ext, size: blob && blob.size });
-        const res = await fetch(endpoint, { method: 'POST', body: fd });
-        if (!res.ok) {
-            let msg = 'Cloudinary upload failed';
-            try { const j = await res.json(); if (j && j.error && j.error.message) msg = j.error.message; } catch(_) {}
+        const res = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', endpoint, true);
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable && typeof onProgress === 'function') onProgress(Math.round(e.loaded / e.total * 100));
+            };
+            xhr.onload = () => resolve(xhr);
+            xhr.onerror = () => reject(new Error('Cloudinary upload failed: network error'));
+            xhr.onabort = () => reject(new Error('تم إلغاء الرفع.'));
+            xhr.send(fd);
+        });
+        let data = null;
+        try { data = JSON.parse(res.responseText || '{}'); } catch (_) {}
+        if (res.status < 200 || res.status >= 300) {
+            let msg = (data && data.error && data.error.message) || 'Cloudinary upload failed';
             if (/file size|too large|maximum|limit/i.test(msg)) {
-                console.warn('[Cloudinary] size-related rejection, compressing and falling back to Supabase Storage:', msg);
-                const blobToUpload = (ext === 'pdf' || (blob.type || '').includes('pdf'))
-                    ? await compressPdfBlob(blob) : blob;
-                return uploadToSupabaseStorage(blobToUpload, publicId, ext);
+                if (ext === 'pdf' || (blob.type || '').includes('pdf')) {
+                    console.warn('[Cloudinary] direct size rejection; retrying via Cloudinary chunks:', msg);
+                    if (typeof onProgress === 'function') onProgress(20);
+                    return uploadLargePdfInChunks(blob, publicId, onProgress);
+                }
+                throw new Error(msg);
             }
             console.error('[Cloudinary] upload failed', msg);
             throw new Error(msg);
         }
-        const data = await res.json();
-        if (!data.secure_url) throw new Error('Cloudinary returned no URL');
+        if (!data || !data.secure_url) throw new Error('Cloudinary returned no URL');
+        if (typeof onProgress === 'function') onProgress(100);
         console.log('[Cloudinary] uploaded ->', data.secure_url);
         return data.secure_url;
     }
@@ -3150,10 +3176,12 @@ body.fp-open{ overflow:hidden !important; }
         // a smaller pool to keep peak memory bounded.
         const total = pdf.numPages;
         const pages = new Array(total);
-        const CONCURRENCY = Math.max(4, Math.min(
-            IS_MOBILE_DEVICE ? 2 : 12,
-            (navigator.hardwareConcurrency || 4) * 2
-        ));
+        // Keep only one rendered page alive on phones; mobile browsers often
+        // terminate the tab when several full-size PDF canvases are rasterized
+        // at once. Desktop keeps the faster bounded worker pool.
+        const CONCURRENCY = IS_MOBILE_DEVICE
+            ? 1
+            : Math.min(12, Math.max(2, (navigator.hardwareConcurrency || 4) * 2));
         let cursor = 0;
         let done = 0;
         async function renderOne(i) {
@@ -3376,10 +3404,11 @@ body.fp-open{ overflow:hidden !important; }
         // batches. `toBlob('image/jpeg')` runs off the main thread in modern
         // browsers, so batching gives a large real-world speedup while
         // keeping the sequential PDF-embed step (pdf-lib is not thread-safe).
-        const BATCH = Math.max(3, Math.min(
-            IS_MOBILE_DEVICE ? 2 : 10,
-            (navigator.hardwareConcurrency || 4) * 2
-        ));
+        // JPEG encoding also creates a second large raster buffer. Serialize it
+        // on phones to prevent memory spikes; retain parallel encoding on desktop.
+        const BATCH = IS_MOBILE_DEVICE
+            ? 1
+            : Math.min(10, Math.max(3, (navigator.hardwareConcurrency || 4) * 2));
 
         for (let s0 = 0; s0 < segments.length; s0 += BATCH) {
             const batch = segments.slice(s0, s0 + BATCH);
@@ -3439,6 +3468,16 @@ body.fp-open{ overflow:hidden !important; }
             await new Promise(r => setTimeout(r, 0));
         }
 
+        // Release raster canvases and the pdf.js document before returning. This
+        // is the critical point before the network upload and prevents mobile
+        // Safari/Chrome from terminating the tab under peak memory pressure.
+        for (const pg of pages) {
+            if (pg && pg.canvas && pg.canvas.width > 0) {
+                try { pg.canvas.width = 0; pg.canvas.height = 0; } catch (_) {}
+            }
+        }
+        try { await pdf.cleanup(); } catch (_) {}
+        try { await pdf.destroy(); } catch (_) {}
         const pdfBytes = await newPdf.save();
         return { pdfBytes, pageMap, canvasMap, detailsMap };
     }
@@ -3663,6 +3702,8 @@ body.fp-open{ overflow:hidden !important; }
             siteDisplaySettings.yearScope      = yearScope;
             siteDisplaySettings.singleYear     = yearScope === 'single' ? singleYear : '';
             siteDisplaySettings.searchPriority = searchPriority;
+            __publicTop10Cache = null;
+            __publicTop10CacheYear = '';
 
             // Re-apply immediately so the admin sees the effect without reloading.
             globalFilesCache = null;
@@ -4022,6 +4063,23 @@ body.fp-open{ overflow:hidden !important; }
         document.getElementById('admin-upload-step').style.display = 'none';
     }
 
+    // Detailed, low-overhead progress UI shared by individual and annual uploads.
+    function setUploadProgress(panelId, percent, phase, detail) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        const pct = Math.max(0, Math.min(100, Math.round(percent || 0)));
+        panel.style.display = 'block';
+        panel.innerHTML = `<div style="font-size:.9rem;margin-bottom:6px;">${phase || ''}</div>` +
+            `<div class="upload-progress-track"><div class="upload-progress-fill" style="width:${pct}%"></div></div>` +
+            `<div class="upload-progress-meta"><span>${detail || ''}</span><b>${pct}%</b></div>`;
+    }
+
+    // A split PDF is already signed by the splitter pipeline. Marking it avoids
+    // loading and rewriting the entire PDF a second time during upload (a major
+    // mobile memory spike).
+    const __preparedResultsBlobs = typeof WeakSet !== 'undefined' ? new WeakSet() : null;
+    function markPreparedResultsBlob(blob) { if (__preparedResultsBlobs && blob && typeof blob === 'object') __preparedResultsBlobs.add(blob); return blob; }
+
     async function uploadFiles() {
         const statusDiv = document.getElementById('upload-status');
         const academicYear = (document.getElementById('up-year').value || '').trim(); if (!/^\d{4}-\d{4}$/.test(academicYear)) { alert('⚠️ يرجى كتابة السنة الجامعية بصيغة صحيحة مثل 2024-2025'); return; } 
@@ -4042,23 +4100,40 @@ body.fp-open{ overflow:hidden !important; }
 
             if (selectedFiles.length === 1) {
                 statusDiv.innerHTML = '⏳ جاري تهيئة الملف وقراءته...';
+                setUploadProgress('upload-progress', 4, 'المرحلة 1/5: قراءة الملف', 'جاري تحميل البيانات من الجهاز');
                 finalPdfBytes = await selectedFiles[0].arrayBuffer();
                 finalPdfBlob = selectedFiles[0]; 
             } else {
                 statusDiv.innerHTML = `⏳ جاري دمج ${selectedFiles.length} ملفات تلقائياً...`;
+                setUploadProgress('upload-progress', 4, 'المرحلة 1/5: دمج الملفات', `0 من ${selectedFiles.length} ملف`);
                 const { PDFDocument } = PDFLib;
                 const mergedPdf = await PDFDocument.create();
 
                 const sortedFiles = Array.from(selectedFiles).sort((a, b) => a.name.localeCompare(b.name));
 
-                // ⚡ Read + parse source PDFs in parallel; add pages sequentially to preserve order
-                const _srcDocs = await Promise.all(sortedFiles.map(async file => {
-                    const arrayBuffer = await file.arrayBuffer();
-                    return await PDFDocument.load(arrayBuffer);
-                }));
-                for (const pdfDoc of _srcDocs) {
-                    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                if (IS_MOBILE_DEVICE) {
+                    // One source at a time keeps only one input ArrayBuffer and
+                    // parsed source document alive on phone browsers.
+                    for (let i = 0; i < sortedFiles.length; i++) {
+                        statusDiv.innerHTML = `⏳ جاري دمج الملفات... (${i + 1}/${sortedFiles.length})`;
+                        setUploadProgress('upload-progress', 4 + ((i + 1) / sortedFiles.length) * 21, 'المرحلة 1/5: دمج الملفات', `${i + 1} من ${sortedFiles.length}`);
+                        let sourceBytes = await sortedFiles[i].arrayBuffer();
+                        const pdfDoc = await PDFDocument.load(sourceBytes);
+                        sourceBytes = null;
+                        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                        copiedPages.forEach((page) => mergedPdf.addPage(page));
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                } else {
+                    // Desktop: retain parallel input parsing for throughput.
+                    const _srcDocs = await Promise.all(sortedFiles.map(async file => {
+                        const arrayBuffer = await file.arrayBuffer();
+                        return await PDFDocument.load(arrayBuffer);
+                    }));
+                    for (const pdfDoc of _srcDocs) {
+                        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                        copiedPages.forEach((page) => mergedPdf.addPage(page));
+                    }
                 }
                 
                 finalPdfBytes = await mergedPdf.save();
@@ -4066,14 +4141,28 @@ body.fp-open{ overflow:hidden !important; }
             }
 
             statusDiv.innerHTML = '⏳ جاري استخراج البيانات والترتيب بذكاء...';
+            setUploadProgress('upload-progress', 27, 'المرحلة 2/5: استخراج البيانات', 'جاري قراءة صفحات PDF');
             
             const pdf = await pdfjsLib.getDocument({ data: finalPdfBytes }).promise;
-            // ⚡ Extract text from all pages in parallel (was sequential)
-            const _pageTexts = await Promise.all(
-                Array.from({ length: pdf.numPages }, (_, k) =>
-                    pdf.getPage(k + 1).then(pg => pg.getTextContent())
-                       .then(tc => tc.items.map(it => it.str).join(" ")))
-            );
+            let _pageTexts;
+            if (IS_MOBILE_DEVICE) {
+                _pageTexts = [];
+                for (let k = 1; k <= pdf.numPages; k++) {
+                    const pg = await pdf.getPage(k);
+                    const tc = await pg.getTextContent();
+                    _pageTexts.push(tc.items.map(it => it.str).join(" "));
+                    try { pg.cleanup(); } catch (_) {}
+                    if (k % 10 === 0) await new Promise(r => setTimeout(r, 0));
+                }
+                try { await pdf.cleanup(); } catch (_) {}
+                try { await pdf.destroy(); } catch (_) {}
+            } else {
+                _pageTexts = await Promise.all(
+                    Array.from({ length: pdf.numPages }, (_, k) =>
+                        pdf.getPage(k + 1).then(pg => pg.getTextContent())
+                           .then(tc => tc.items.map(it => it.str).join(" ")))
+                );
+            }
             let fullText = _pageTexts.join(" ");
             
             fullText = fullText.replace(/\s+/g, " ");
@@ -4136,9 +4225,13 @@ body.fp-open{ overflow:hidden !important; }
             // The output PDF replaces the one we upload, and we record the
             // page number for every student so retrieval is instant later.
             statusDiv.innerHTML = '⏳ جاري إعادة تنظيم الملف (طالب لكل صفحة)...';
+            setUploadProgress('upload-progress', 48, 'المرحلة 3/5: إعادة تنظيم النتائج', 'جاري إنشاء صفحة مستقلة لكل طالب');
             try {
                 const splitResult = await splitPdfByStudent(finalPdfBytes, (msg) => {
                     statusDiv.innerHTML = '⏳ ' + msg;
+                    const m = String(msg || '').match(/(\d+)\s+من\s+(\d+)/);
+                    const pct = m ? 48 + (parseInt(m[1], 10) / Math.max(1, parseInt(m[2], 10))) * 30 : 52;
+                    setUploadProgress('upload-progress', pct, 'المرحلة 3/5: إعادة تنظيم النتائج', msg);
                 });
                 // Free the original merged buffer — splitResult.pdfBytes
                 // replaces it as the upload payload. Critical on mobile to
@@ -4161,7 +4254,7 @@ body.fp-open{ overflow:hidden !important; }
                     }
                 });
                 // Replace the upload payload with the reorganized PDF.
-                finalPdfBlob = new Blob([splitResult.pdfBytes], { type: 'application/pdf' });
+                finalPdfBlob = markPreparedResultsBlob(new Blob([splitResult.pdfBytes], { type: 'application/pdf' }));
 
                 // ── Per-student JPEG thumbnails (Cloudinary) ──
                 // Cloudinary delivers compressed JPEGs (f_auto,q_auto) so each
@@ -4191,6 +4284,7 @@ body.fp-open{ overflow:hidden !important; }
             studentsArray.forEach((student, index) => { student.rank = index + 1; });
 
             statusDiv.innerHTML = '⏳ جاري رفع الملفات إلى Cloudinary وتحديث البيانات...';
+            setUploadProgress('upload-progress', 78, 'المرحلة 4/5: رفع الملفات', 'بدء الرفع...');
 
 
             const ts          = Date.now();
@@ -4199,8 +4293,8 @@ body.fp-open{ overflow:hidden !important; }
             const jsonBlob    = new Blob([JSON.stringify(studentsArray)], { type: 'application/json' });
             // Upload PDF + JSON in parallel for faster total upload time.
             const [detailsUrl, rankingUrl] = await Promise.all([
-                uploadToCloudinary(finalPdfBlob, detailsId, 'raw', 'pdf'),
-                uploadToCloudinary(jsonBlob,     rankingId, 'raw', 'json')
+                uploadToCloudinary(finalPdfBlob, detailsId, 'raw', 'pdf', p => setUploadProgress('upload-progress', 78 + p * 0.16, 'المرحلة 4/5: رفع ملف PDF', `${p}% من ملف PDF`)),
+                uploadToCloudinary(jsonBlob,     rankingId, 'raw', 'json', p => setUploadProgress('upload-progress', 78 + p * 0.16, 'المرحلة 4/5: رفع بيانات النتائج', `${p}% من ملف البيانات`))
             ]);
             console.log('[Upload] saved URLs', { detailsUrl, rankingUrl });
 
@@ -4222,6 +4316,7 @@ body.fp-open{ overflow:hidden !important; }
             globalFilesCache = null;
             currentDisplayMode = 'semester';
             applyDisplayMode();
+            setUploadProgress('upload-progress', 100, 'اكتملت العملية بنجاح', `${studentsArray.length} طالب — تم الحفظ والتحديث`);
             statusDiv.innerHTML = `<span style="color:green">✅ تم المعالجة والرفع وتحديث قاعدة البيانات بنجاح! (${studentsArray.length} طالب)</span>`;
             document.getElementById('file-details').value = "";
         } catch (err) { 
@@ -4495,6 +4590,20 @@ body.fp-open{ overflow:hidden !important; }
                 foundResults = rawResults.filter(res => res !== null);
             }
 
+            // Keep only the newest academic year for each student + major + level.
+            // All semesters within that newest year remain available; older years
+            // are hidden only when the same specialization and level are repeated.
+            const latestYearByTrack = new Map();
+            for (const result of foundResults) {
+                const key = `${result.file.major || ''}|${result.file.level || ''}`;
+                const year = String(result.file.academic_year || '');
+                if (!latestYearByTrack.has(key) || year > latestYearByTrack.get(key)) latestYearByTrack.set(key, year);
+            }
+            foundResults = foundResults.filter(result => {
+                const key = `${result.file.major || ''}|${result.file.level || ''}`;
+                return String(result.file.academic_year || '') === latestYearByTrack.get(key);
+            });
+
             // 5) Sort: higher level first (L3>L2>L1), then ANNUEL/semester desc, then year desc
             // [إعدادات المشرف] searchPriority يتحكم بأي نتيجة تظهر أعلى القائمة:
             //   'auto' / 'annual_first' (الافتراضي، كالسابق تماماً) → السنوي أولاً
@@ -4711,6 +4820,35 @@ body.fp-open{ overflow:hidden !important; }
     }
 
     function showError(msg) { const errEl = document.getElementById('error-msg'); errEl.innerText = msg; errEl.style.display = 'block'; }
+    // Public year policy is controlled by the admin display settings.
+    // 'single' exposes only the selected year; 'multi' exposes all years;
+    // 'auto' preserves the existing calendar-based behavior.
+    function isPublicAcademicYearAllowed(year) {
+        const y = String(year || '');
+        if (siteDisplaySettings.yearScope === 'multi') return true;
+        if (siteDisplaySettings.yearScope === 'single') return y === String(siteDisplaySettings.singleYear || '');
+        return y === getCurrentAcademicYear();
+    }
+
+    async function loadPublicAcademicYears() {
+        if (siteDisplaySettings.yearScope !== 'multi') return [getCurrentAcademicYear()];
+        try {
+            const { data, error } = await _supabase.from('results_metadata').select('academic_year').order('academic_year', { ascending: false });
+            if (error) throw error;
+            return Array.from(new Set((data || []).map(x => x.academic_year).filter(Boolean))).sort().reverse();
+        } catch (_) { return [getCurrentAcademicYear()]; }
+    }
+
+    async function syncTop20YearSelectAsync(selectId) {
+        const el = document.getElementById(selectId);
+        if (!el) return;
+        const years = await loadPublicAcademicYears();
+        if (!years.length) return;
+        el.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+        const preferred = getCurrentAcademicYear();
+        el.value = years.includes(preferred) ? preferred : years[0];
+    }
+
     // 🛡️ Ensure the public Top-20 modals reflect the academic year currently
     // displayed by the site (which honors the admin's "displayed year" setting
     // in سنة العرض / yearScope=single). Rebuild the <select> at open-time so
@@ -4725,16 +4863,18 @@ body.fp-open{ overflow:hidden !important; }
             el.value = y;
         } catch (_) {}
     }
-    function openTop20Modal() { _syncTop20YearSelect('t20-year'); document.getElementById('top20-modal').style.display = 'flex'; }
+    function openTop20Modal() { _syncTop20YearSelect('t20-year'); document.getElementById('top20-modal').style.display = 'flex'; syncTop20YearSelectAsync('t20-year'); }
     function closeTop20Modal() { document.getElementById('top20-modal').style.display = 'none'; }
-    function openAnnualTop20Modal() { _syncTop20YearSelect('t20-annual-year'); document.getElementById('top20-annual-modal').style.display = 'flex'; }
+    function openAnnualTop20Modal() { _syncTop20YearSelect('t20-annual-year'); document.getElementById('top20-annual-modal').style.display = 'flex'; syncTop20YearSelectAsync('t20-annual-year'); }
     function closeAnnualTop20Modal() { document.getElementById('top20-annual-modal').style.display = 'none'; }
 
     async function fetchAndShowTop20() {
         closeTop20Modal(); resetView();
         const loader = document.getElementById('loader'); loader.style.display = 'block';
         try {
-            const { data } = await _supabase.from('results_metadata').select('*').eq('academic_year', document.getElementById('t20-year').value).eq('major', document.getElementById('t20-major').value).eq('level', document.getElementById('t20-level').value).eq('semester', document.getElementById('t20-semester').value).order('created_at', { ascending: false }).limit(1);
+            const requestedYear = document.getElementById('t20-year').value;
+            if (!isPublicAcademicYearAllowed(requestedYear)) { loader.style.display = 'none'; showError('هذه السنة غير متاحة للعرض العام حسب إعدادات المشرف.'); return; }
+            const { data } = await _supabase.from('results_metadata').select('*').eq('academic_year', requestedYear).eq('major', document.getElementById('t20-major').value).eq('level', document.getElementById('t20-level').value).eq('semester', document.getElementById('t20-semester').value).order('created_at', { ascending: false }).limit(1);
             if (!data[0]) { loader.style.display = 'none'; showError("لا توجد بيانات متاحة لهذا الفصل."); return; }
             const students = await fetchRankingData(data[0].ranking_url);
             loader.style.display = 'none';
@@ -4845,6 +4985,7 @@ body.fp-open{ overflow:hidden !important; }
             // --- Merge if multiple PDFs were selected -------------------------
             if (selectedFiles.length === 1) {
                 statusDiv.innerHTML = '⏳ جاري تهيئة الملف وقراءته...';
+                setUploadProgress('upload-annual-progress', 4, 'المرحلة 1/5: قراءة الملف', 'جاري تحميل البيانات من الجهاز');
                 finalPdfBytes = await selectedFiles[0].arrayBuffer();
                 finalPdfBlob  = selectedFiles[0];
             } else {
@@ -4853,14 +4994,28 @@ body.fp-open{ overflow:hidden !important; }
                 const mergedPdf = await PDFDocument.create();
 
                 const sortedFiles = Array.from(selectedFiles).sort((a, b) => a.name.localeCompare(b.name));
-                // ⚡ Read + parse source PDFs in parallel; add pages sequentially to preserve order
-                const _srcDocs = await Promise.all(sortedFiles.map(async file => {
-                    const arrayBuffer = await file.arrayBuffer();
-                    return await PDFDocument.load(arrayBuffer);
-                }));
-                for (const pdfDoc of _srcDocs) {
-                    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                if (IS_MOBILE_DEVICE) {
+                    // One source at a time keeps only one input ArrayBuffer and
+                    // parsed source document alive on phone browsers.
+                    for (let i = 0; i < sortedFiles.length; i++) {
+                        statusDiv.innerHTML = `⏳ جاري دمج الملفات... (${i + 1}/${sortedFiles.length})`;
+                        let sourceBytes = await sortedFiles[i].arrayBuffer();
+                        const pdfDoc = await PDFDocument.load(sourceBytes);
+                        sourceBytes = null;
+                        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                        copiedPages.forEach((page) => mergedPdf.addPage(page));
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                } else {
+                    // Desktop: retain parallel input parsing for throughput.
+                    const _srcDocs = await Promise.all(sortedFiles.map(async file => {
+                        const arrayBuffer = await file.arrayBuffer();
+                        return await PDFDocument.load(arrayBuffer);
+                    }));
+                    for (const pdfDoc of _srcDocs) {
+                        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                        copiedPages.forEach((page) => mergedPdf.addPage(page));
+                    }
                 }
 
                 finalPdfBytes = await mergedPdf.save();
@@ -4869,13 +5024,27 @@ body.fp-open{ overflow:hidden !important; }
 
             // --- Extract text & parse annual records --------------------------
             statusDiv.innerHTML = '⏳ جاري استخراج البيانات السنوية...';
+            setUploadProgress('upload-annual-progress', 27, 'المرحلة 2/5: استخراج البيانات', 'جاري قراءة صفحات PDF');
             const pdf = await pdfjsLib.getDocument({ data: finalPdfBytes }).promise;
-            // ⚡ Extract text from all pages in parallel (was sequential)
-            const _pageTexts = await Promise.all(
-                Array.from({ length: pdf.numPages }, (_, k) =>
-                    pdf.getPage(k + 1).then(pg => pg.getTextContent())
-                       .then(tc => tc.items.map(it => it.str).join(" ")))
-            );
+            let _pageTexts;
+            if (IS_MOBILE_DEVICE) {
+                _pageTexts = [];
+                for (let k = 1; k <= pdf.numPages; k++) {
+                    const pg = await pdf.getPage(k);
+                    const tc = await pg.getTextContent();
+                    _pageTexts.push(tc.items.map(it => it.str).join(" "));
+                    try { pg.cleanup(); } catch (_) {}
+                    if (k % 10 === 0) await new Promise(r => setTimeout(r, 0));
+                }
+                try { await pdf.cleanup(); } catch (_) {}
+                try { await pdf.destroy(); } catch (_) {}
+            } else {
+                _pageTexts = await Promise.all(
+                    Array.from({ length: pdf.numPages }, (_, k) =>
+                        pdf.getPage(k + 1).then(pg => pg.getTextContent())
+                           .then(tc => tc.items.map(it => it.str).join(" ")))
+                );
+            }
             let fullText = _pageTexts.join(" ");
             fullText = fullText.replace(/\s+/g, " ");
 
@@ -4887,9 +5056,13 @@ body.fp-open{ overflow:hidden !important; }
 
             // --- Reorganize PDF: one student per page (same engine as semester)
             statusDiv.innerHTML = '⏳ جاري إعادة تنظيم الملف (طالب لكل صفحة)...';
+            setUploadProgress('upload-annual-progress', 48, 'المرحلة 3/5: إعادة تنظيم النتائج', 'جاري إنشاء صفحة مستقلة لكل طالب');
             try {
                 const splitResult = await splitPdfByStudent(finalPdfBytes, (msg) => {
                     statusDiv.innerHTML = '⏳ ' + msg;
+                    const m = String(msg || '').match(/(\d+)\s+من\s+(\d+)/);
+                    const pct = m ? 48 + (parseInt(m[1], 10) / Math.max(1, parseInt(m[2], 10))) * 30 : 52;
+                    setUploadProgress('upload-annual-progress', pct, 'المرحلة 3/5: إعادة تنظيم النتائج', msg);
                 });
                 // Free the original merged buffer to keep mobile memory low.
                 finalPdfBytes = null;
@@ -4908,7 +5081,7 @@ body.fp-open{ overflow:hidden !important; }
                         s.pageIndex = splitResult.pageMap[s.id];
                     }
                 });
-                finalPdfBlob = new Blob([splitResult.pdfBytes], { type: 'application/pdf' });
+                finalPdfBlob = markPreparedResultsBlob(new Blob([splitResult.pdfBytes], { type: 'application/pdf' }));
 
                 // ── Per-student JPEG thumbnails (Cloudinary) ──
                 if (splitResult.detailsMap) {
@@ -4933,6 +5106,7 @@ body.fp-open{ overflow:hidden !important; }
 
             // --- Upload PDF + ranking JSON, refresh metadata row --------------
             statusDiv.innerHTML = '⏳ جاري رفع الملفات إلى Cloudinary وتحديث البيانات...';
+            setUploadProgress('upload-annual-progress', 78, 'المرحلة 4/5: رفع الملفات', 'بدء الرفع...');
 
             const ts          = Date.now();
             const detailsId   = cldId(`DETAILS_${major}_${level}_${semester}_${academicYear}_${ts}`);
@@ -4940,8 +5114,8 @@ body.fp-open{ overflow:hidden !important; }
             const jsonBlob    = new Blob([JSON.stringify(studentsArray)], { type: 'application/json' });
             // Upload PDF + JSON in parallel for faster total upload time.
             const [detailsUrl, rankingUrl] = await Promise.all([
-                uploadToCloudinary(finalPdfBlob, detailsId, 'raw', 'pdf'),
-                uploadToCloudinary(jsonBlob,     rankingId, 'raw', 'json')
+                uploadToCloudinary(finalPdfBlob, detailsId, 'raw', 'pdf', p => setUploadProgress('upload-annual-progress', 78 + p * 0.16, 'المرحلة 4/5: رفع ملف PDF', `${p}% من ملف PDF`)),
+                uploadToCloudinary(jsonBlob,     rankingId, 'raw', 'json', p => setUploadProgress('upload-annual-progress', 78 + p * 0.16, 'المرحلة 4/5: رفع بيانات النتائج', `${p}% من ملف البيانات`))
             ]);
             console.log('[Upload] saved URLs', { detailsUrl, rankingUrl });
 
@@ -4962,6 +5136,7 @@ body.fp-open{ overflow:hidden !important; }
             globalFilesCache = null;
             currentDisplayMode = 'annual';
             applyDisplayMode();
+            setUploadProgress('upload-annual-progress', 100, 'اكتملت العملية بنجاح', `${studentsArray.length} طالب — تم الحفظ والتحديث`);
             statusDiv.innerHTML = `<span style="color:green">✅ تم رفع النتائج السنوية وتحديث قاعدة البيانات بنجاح! (${studentsArray.length} طالب)</span>`;
             document.getElementById('file-annual').value = "";
         } catch (err) {
@@ -5316,7 +5491,7 @@ body.fp-open{ overflow:hidden !important; }
                 }
 
                 studentsArray.forEach(s => { if (Object.prototype.hasOwnProperty.call(sr.pageMap, s.id)) s.pageIndex = sr.pageMap[s.id]; });
-                finalPdfBlob = new Blob([sr.pdfBytes], { type: 'application/pdf' });
+                finalPdfBlob = markPreparedResultsBlob(new Blob([sr.pdfBytes], { type: 'application/pdf' }));
                 if (sr.detailsMap) studentsArray.forEach(s => { if (sr.detailsMap[s.id]) s.details = sr.detailsMap[s.id]; });
             } catch (e) {
                 console.warn('Bulk splitter failed, uploading original PDF:', e);
@@ -5535,6 +5710,7 @@ body.fp-open{ overflow:hidden !important; }
         const loader = document.getElementById('loader'); loader.style.display = 'block';
         try {
             const academicYear = document.getElementById('t20-annual-year').value;
+            if (!isPublicAcademicYearAllowed(academicYear)) { loader.style.display = 'none'; showError('هذه السنة غير متاحة للعرض العام حسب إعدادات المشرف.'); return; }
             const major        = document.getElementById('t20-annual-major').value;
             const level        = document.getElementById('t20-annual-level').value;
 
@@ -5575,7 +5751,8 @@ body.fp-open{ overflow:hidden !important; }
        التخزين: ملف JSON واحد في Supabase Storage (لا يحتاج أي جدول جديد)
        ============================================================ */
     const GRAD_RANK_FILENAME = 'grad_rank_config.json';
-    const GRAD_RANK_URL = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${SUPABASE_FOLDER}/${GRAD_RANK_FILENAME}`;
+    const GRAD_RANK_PUBLIC_ID = `${CLOUDINARY_FOLDER}/grad_rank_config.json`;
+    const GRAD_RANK_URL = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/raw/upload/${GRAD_RANK_PUBLIC_ID}`;
     const GRAD_MAJOR_LABELS = {
         BA: 'Banque Assurance (BA)',
         FC: 'Finance Comptabilité (FC)',
@@ -5877,7 +6054,9 @@ body.fp-open{ overflow:hidden !important; }
 
     async function grUploadConfig(payload) {
         const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-        await uploadToSupabaseStorage(blob, 'grad_rank_config', 'json');
+        // All user-uploaded/public files use Cloudinary; Supabase remains only
+        // the metadata database, never the file-storage destination.
+        await uploadToCloudinary(blob, 'grad_rank_config', 'raw', 'json');
     }
 
     async function publishGradRank() {
@@ -5949,9 +6128,7 @@ body.fp-open{ overflow:hidden !important; }
         try {
             statusEl.innerHTML = '⏳ جاري الحذف...';
             try { await _supabase.auth.refreshSession(); } catch (_) {}
-            const { error } = await _supabase.storage.from(SUPABASE_BUCKET)
-                .remove([`${SUPABASE_FOLDER}/${GRAD_RANK_FILENAME}`]);
-            if (error) throw error;
+            await _cloudinaryDestroy(GRAD_RANK_URL);
             gradRankConfig = { enabled: false, year: '', majors: {}, updatedAt: null };
             applyGradRankVisibility();
             renderGradRankCurrent();
@@ -6011,9 +6188,19 @@ body.fp-open{ overflow:hidden !important; }
                 .order('created_at', { ascending: false });
             if (mErr) throw mErr;
             if (!meta || meta.length === 0) { statusEl.innerHTML = 'لا توجد بيانات متاحة بعد.'; return; }
+            // Institute Top-20 must always use exactly one year: the highest
+            // academic year that has actually been uploaded. This is deliberately
+            // independent of the optional public year-scope setting, because this
+            // card represents the current institute promotion and must never mix
+            // records from 2024-2025 with 2025-2026.
+            const uploadedYears = meta.map(f => String(f.academic_year || '').trim())
+                .filter(Boolean).sort((a, b) => b.localeCompare(a));
+            const highestUploadedYear = uploadedYears[0] || '';
+            const visibleMeta = meta.filter(f => String(f.academic_year || '').trim() === highestUploadedYear);
+            if (!visibleMeta.length) { statusEl.innerHTML = 'لا توجد نتائج للسنة الجامعية الأعلى المرفوعة.'; return; }
 
             const seen = new Map();
-            for (const f of meta) {
+            for (const f of visibleMeta) {
                 const k = `${f.academic_year}|${f.major}|${f.level}|${f.semester}`;
                 if (!seen.has(k)) seen.set(k, f);
             }
@@ -6050,8 +6237,10 @@ body.fp-open{ overflow:hidden !important; }
                 return;
             }
 
-            const yearsList = Array.from(new Set(top10.map(s => s.year).filter(Boolean))).sort();
-            __publicTop10CacheYear = yearsList.length ? ('السنة الجامعية: ' + yearsList.join(' / ')) : '';
+            // All records above were filtered to one year; keep the banner and
+            // cache label equally strict so an old multi-year result cannot remain
+            // visible after reopening the modal.
+            __publicTop10CacheYear = highestUploadedYear ? ('السنة الجامعية: ' + highestUploadedYear) : '';
             setYearBanner(__publicTop10CacheYear);
 
             const medals = ['🥇','🥈','🥉'];
