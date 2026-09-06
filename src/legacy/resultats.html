@@ -1192,6 +1192,22 @@
             box-shadow: 0 10px 22px rgba(37, 211, 102, 0.4);
         }
 
+        /* ── Semestre details presentation (scoped; annual is unchanged) ── */
+        .semester-details-root { width:100%; box-sizing:border-box; direction:ltr; font-family:'Cairo','Inter','Segoe UI',Arial,sans-serif; }
+        .semester-details-banner { margin:0 auto 14px; padding:16px 18px; border-radius:18px; background:linear-gradient(135deg,#063b24 0%,#087443 55%,#18a56b 100%); color:#fff; box-shadow:0 10px 24px rgba(0,92,41,.22); text-align:left; }
+        .semester-details-context { font-size:.78rem; opacity:.86; letter-spacing:.35px; margin-bottom:6px; font-weight:700; }
+        .semester-details-name { font-size:1.25rem; line-height:1.35; font-weight:900; overflow-wrap:anywhere; margin-bottom:12px; }
+        .semester-details-chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        .semester-details-chip { display:inline-flex; align-items:center; gap:5px; padding:7px 11px; border-radius:10px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.25); font-size:.84rem; font-weight:800; }
+        .semester-details-chip strong { font-size:1.02rem; }
+        .semester-details-decision-valid { background:#bbf7d0; color:#065f46; border-color:#86efac; }
+        .semester-details-decision-warning { background:#fef3c7; color:#92400e; border-color:#fcd34d; }
+        .semester-details-decision-excluded { background:#fecaca; color:#991b1b; border-color:#fca5a5; }
+        .semester-details-table-card { padding:10px; border-radius:18px; background:linear-gradient(180deg,#ffffff 0%,#f5fbf8 100%); border:1px solid #d7eee2; box-shadow:0 8px 22px rgba(15,92,55,.10); }
+        .semester-details-table-card > div { box-shadow:0 5px 16px rgba(15,23,42,.10) !important; border:1px solid #d9e8df; }
+        .semester-details-external-banner { margin:0 0 12px; }
+        @media (max-width:600px) { .semester-details-banner { padding:14px; border-radius:15px; } .semester-details-name { font-size:1.08rem; } .semester-details-chip { font-size:.76rem; padding:6px 9px; } }
+
         .details-canvas-container {
             margin-top: 0;
             display: block; /* visibility controlled by .details-panel-wrap */
@@ -2855,10 +2871,20 @@ body.fp-open{ overflow:hidden !important; }
         blob = await prepareResultsBlob(blob, ext);
 
         // ── Cloudinary-only upload path ─────────────────────────────────────
-        // Direct upload is attempted first for speed. If Cloudinary rejects a
-        // large PDF because of its request-size limit, the error handler below
-        // retries through Cloudinary chunk upload only.
+        // Large PDFs go directly to the Cloudinary chunk uploader. Do not first
+        // send the whole oversized multipart request: Cloudinary rejects it
+        // only after the phone has already spent time uploading the payload,
+        // which made the current version noticeably slower than the previous
+        // one. The chunk uploader remains Cloudinary-only and preserves the
+        // manifest/page-range behavior used by the viewer.
         // ────────────────────────────────────────────────────────────────────
+        if (blob && typeof blob.size === 'number' && blob.size > CLOUDINARY_MAX_SIZE
+                && (ext === 'pdf' || (blob.type || '').includes('pdf'))) {
+            console.log('[Upload] PDF over Cloudinary limit — direct chunk path', { size: blob.size });
+            if (typeof onProgress === 'function') onProgress(5);
+            return uploadLargePdfInChunks(blob, publicId, onProgress);
+        }
+
         const fd = new FormData();
         const fname = (publicId || 'file') + (ext ? ('.' + ext.replace(/^\./, '')) : '');
         fd.append('file', blob, fname);
@@ -7090,6 +7116,44 @@ body.fp-open{ overflow:hidden !important; }
         return `<div data-details-root class="atx-wrap">${css}${headHtml}<div class="atx-body">${bannerFixed}${infoHtml}${tableHtml}<div class="atx-footer-note">UNEM ISCAE - Document officiel généré automatiquement  |  Développé par MDA</div></div></div>`;
     }
 
+    function _semesterEsc(v) {
+        return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function buildSemesterDetailsBanner(summary, studentId) {
+        const sum = summary || {};
+        const decision = String(sum.decision || '—');
+        const valid = isValidDecision(decision);
+        const excluded = isExcluDecision(decision);
+        const decisionClass = excluded ? 'semester-details-chip semester-details-decision-excluded' : (valid ? 'semester-details-chip semester-details-decision-valid' : 'semester-details-chip semester-details-decision-warning');
+        const ctx = [sum.academicYear, sum.major, sum.level, sum.semester].filter(Boolean).join(' | ');
+        return `<div class="semester-details-banner">
+            <div class="semester-details-context">كشف النقاط التفصيلي · ${_semesterEsc(ctx || 'Semestre')}</div>
+            <div class="semester-details-name">${_semesterEsc(sum.name || 'الطالب')}</div>
+            <div class="semester-details-chips">
+                <span class="semester-details-chip">رقم التسجيل <strong>${_semesterEsc(studentId || sum.id || '—')}</strong></span>
+                <span class="semester-details-chip">المعدل <strong>${_semesterEsc(sum.avg || '—')}</strong> / 20</span>
+                <span class="${decisionClass}">القرار <strong>${_semesterEsc(decision)}</strong></span>
+            </div>
+        </div>`;
+    }
+
+    function _semesterSummaryFromCard(btnElement, studentId) {
+        const card = btnElement && btnElement.closest ? btnElement.closest('.result-card, .student-card, .card') : null;
+        const vals = card ? Array.from(card.querySelectorAll('.info-val')).map(x => x.textContent.trim()) : [];
+        const badge = card && card.querySelector('.semester-badge') ? card.querySelector('.semester-badge').textContent.trim() : '';
+        const name = card && card.querySelector('.student-name') ? card.querySelector('.student-name').textContent.trim() : '';
+        return { name, id: studentId, avg: vals[1] || '', decision: vals[3] || '', semester: badge };
+    }
+
+    function prependSemesterExternalBanner(container, btnElement, studentId) {
+        if (!container || container.querySelector('.semester-details-external-banner')) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'semester-details-external-banner';
+        wrap.innerHTML = buildSemesterDetailsBanner(_semesterSummaryFromCard(btnElement, studentId), studentId);
+        container.insertBefore(wrap, container.firstChild);
+    }
+
     function renderDetailsAsHtml(container, details, studentId) {
 
          details = removeOtherStudentsFromDetails(details, studentId);
@@ -7321,6 +7385,8 @@ body.fp-open{ overflow:hidden !important; }
                         </div>${creditsHtml}
                     </div>
                 </div>`;
+        } else if (details && details._summary) {
+            bannerHtml = buildSemesterDetailsBanner(details._summary, studentId);
         }
         // Wrap banner + grid as a SINGLE root child so html2canvas
         // (which snapshots container.firstElementChild) downloads the
@@ -7343,7 +7409,7 @@ body.fp-open{ overflow:hidden !important; }
                 }
             } catch (e) { console.warn('Annual structured render failed, using fallback grid', e); }
         }
-        container.innerHTML = `<div data-details-root style="display:inline-block;background:#fff;border-radius:12px;">${bannerHtml}${gridHtml}</div>`;
+        container.innerHTML = `<div data-details-root class="semester-details-root"><div class="semester-details-table-card">${bannerHtml}${gridHtml}</div></div>`;
 
     }
 
@@ -7819,7 +7885,8 @@ body.fp-open{ overflow:hidden !important; }
             // Deliver via Cloudinary auto-format + auto-quality (massive bandwidth saving).
             const deliveryUrl = cloudinaryDelivery(thumbUrl, 'f_auto,q_auto,w_1400,c_limit');
             const fullResUrl  = cloudinaryDelivery(thumbUrl, 'f_auto,q_auto');
-            container.innerHTML = `<img src="${deliveryUrl}"
+            if (!btnElement || btnElement.dataset.annual !== '1') prependSemesterExternalBanner(container, btnElement, studentId);
+            container.innerHTML += `<img src="${deliveryUrl}"
                 style="display:block;max-width:100%;width:auto;height:auto;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,0.12);"
                 loading="lazy" decoding="async" />`;
             appendDownloadPdfButton(container, () => imgUrlToCanvas(fullResUrl), studentId);
@@ -7860,6 +7927,7 @@ body.fp-open{ overflow:hidden !important; }
                 await withTimeout(renderPromise, 25000, 'PDF page rendering timed out');
                 const textContent = await textPromise;
                 container.innerHTML = '';
+                if (!btnElement || btnElement.dataset.annual !== '1') prependSemesterExternalBanner(container, btnElement, studentId);
                 // ── Annual credits banner (shown above the transcript canvas) ────
                 const isAnnualSlowPath = btnElement && btnElement.dataset && btnElement.dataset.annual === '1';
                 if (isAnnualSlowPath && textContent) {
@@ -7904,7 +7972,8 @@ body.fp-open{ overflow:hidden !important; }
             try {
                 const deliveryUrl = cloudinaryDelivery(thumbUrl, 'f_auto,q_auto,w_1400,c_limit');
                 const fullResUrl  = cloudinaryDelivery(thumbUrl, 'f_auto,q_auto');
-                container.innerHTML = `<img src="${deliveryUrl}"
+                if (!btnElement || btnElement.dataset.annual !== '1') prependSemesterExternalBanner(container, btnElement, studentId);
+                container.innerHTML += `<img src="${deliveryUrl}"
                     style="display:block;max-width:100%;width:auto;height:auto;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,0.12);"
                     loading="lazy" decoding="async" />`;
                 appendDownloadPdfButton(container, () => imgUrlToCanvas(fullResUrl), studentId);
