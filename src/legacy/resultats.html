@@ -820,7 +820,7 @@
         
         .upload-progress-panel { margin-top:12px; padding:10px 12px; border:1px solid #dbeafe; border-radius:10px; background:#f8fbff; text-align:right; direction:rtl; }
         .upload-progress-track { height:14px; background:#e2e8f0; border-radius:999px; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.08); }
-        .upload-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,#0284c7,#22c55e); transition:width .2s ease; }
+        .upload-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,#16a34a,#22c55e); transition:width .25s ease; box-shadow:0 0 10px rgba(34,197,94,.28); }
         .upload-progress-meta { display:flex; justify-content:space-between; gap:8px; margin-top:6px; color:#475569; font-size:.78rem; }
         .loader { 
             display: none; 
@@ -3126,8 +3126,10 @@ body.fp-open{ overflow:hidden !important; }
         } catch(_) {}
         return /Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile|webOS|BlackBerry/i.test(navigator.userAgent || '');
     })();
-    const SPLIT_SCALE        = IS_MOBILE_DEVICE ? 1.10 : 1.5;
-    const SPLIT_JPEG_QUALITY = IS_MOBILE_DEVICE ? 0.70 : 0.82;
+    const DEVICE_MEMORY_GB = Number((navigator && navigator.deviceMemory) || 4);
+    const IS_WEAK_DEVICE = IS_MOBILE_DEVICE && DEVICE_MEMORY_GB <= 2;
+    const SPLIT_SCALE        = IS_MOBILE_DEVICE ? (IS_WEAK_DEVICE ? 0.90 : 1.05) : 1.35;
+    const SPLIT_JPEG_QUALITY = IS_MOBILE_DEVICE ? (IS_WEAK_DEVICE ? 0.64 : 0.70) : 0.82;
     const STUDENT_ID_RE = /^I\d{4,7}$/;
 
     function normalizeStudentId(value) {
@@ -3207,7 +3209,7 @@ body.fp-open{ overflow:hidden !important; }
         // at once. Desktop keeps the faster bounded worker pool.
         const CONCURRENCY = IS_MOBILE_DEVICE
             ? 1
-            : Math.min(12, Math.max(2, (navigator.hardwareConcurrency || 4) * 2));
+            : Math.min(6, Math.max(2, Math.ceil((navigator.hardwareConcurrency || 4) / 2)));
         let cursor = 0;
         let done = 0;
         async function renderOne(i) {
@@ -3248,6 +3250,42 @@ body.fp-open{ overflow:hidden !important; }
         }
         await Promise.all(Array.from({ length: Math.min(CONCURRENCY, total) }, worker));
         return pages;
+    }
+
+    // Memory-bounded text extraction shared by semester, annual and bulk upload.
+    async function extractPdfTextBounded(data, onProgress) {
+        const loadingTask = pdfjsLib.getDocument({ data });
+        const pdf = await loadingTask.promise;
+        const total = pdf.numPages;
+        const parts = new Array(total);
+        const concurrency = IS_MOBILE_DEVICE ? 1 : Math.min(4, Math.max(2, Math.ceil((navigator.hardwareConcurrency || 4) / 2)));
+        let cursor = 0;
+        let done = 0;
+        async function worker() {
+            while (true) {
+                const index = cursor++;
+                if (index >= total) return;
+                let page = null;
+                try {
+                    page = await pdf.getPage(index + 1);
+                    const tc = await page.getTextContent({ normalizeWhitespace: false, disableCombineTextItems: false });
+                    parts[index] = tc.items.map(it => it.str).join(' ');
+                } finally {
+                    try { if (page) page.cleanup(); } catch (_) {}
+                    done++;
+                    if (onProgress && (done === total || done % (IS_MOBILE_DEVICE ? 5 : 10) === 0)) onProgress(done, total);
+                    if (IS_MOBILE_DEVICE && done % 8 === 0) await new Promise(r => setTimeout(r, 0));
+                }
+            }
+        }
+        try {
+            await Promise.all(Array.from({ length: Math.min(concurrency, total) }, worker));
+            return parts.join(' ').replace(/\s+/g, ' ');
+        } finally {
+            try { await pdf.cleanup(); } catch (_) {}
+            try { await pdf.destroy(); } catch (_) {}
+            try { if (loadingTask.destroy) await loadingTask.destroy(); } catch (_) {}
+        }
     }
 
     // Computes per-student segments (start page/Y → end page/Y) from rendered pages.
@@ -3434,7 +3472,7 @@ body.fp-open{ overflow:hidden !important; }
         // on phones to prevent memory spikes; retain parallel encoding on desktop.
         const BATCH = IS_MOBILE_DEVICE
             ? 1
-            : Math.min(10, Math.max(3, (navigator.hardwareConcurrency || 4) * 2));
+            : Math.min(6, Math.max(2, Math.ceil((navigator.hardwareConcurrency || 4) / 2)));
 
         for (let s0 = 0; s0 < segments.length; s0 += BATCH) {
             const batch = segments.slice(s0, s0 + BATCH);
@@ -4169,29 +4207,11 @@ body.fp-open{ overflow:hidden !important; }
             statusDiv.innerHTML = '⏳ جاري استخراج البيانات والترتيب بذكاء...';
             setUploadProgress('upload-progress', 27, 'المرحلة 2/5: استخراج البيانات', 'جاري قراءة صفحات PDF');
             
-            const pdf = await pdfjsLib.getDocument({ data: finalPdfBytes }).promise;
-            let _pageTexts;
-            if (IS_MOBILE_DEVICE) {
-                _pageTexts = [];
-                for (let k = 1; k <= pdf.numPages; k++) {
-                    const pg = await pdf.getPage(k);
-                    const tc = await pg.getTextContent();
-                    _pageTexts.push(tc.items.map(it => it.str).join(" "));
-                    try { pg.cleanup(); } catch (_) {}
-                    if (k % 10 === 0) await new Promise(r => setTimeout(r, 0));
+            const fullText = await extractPdfTextBounded(finalPdfBytes, (done, total) => {
+                if (done === total || done % (IS_MOBILE_DEVICE ? 5 : 10) === 0) {
+                    setUploadProgress('upload-progress', 27 + (done / Math.max(1, total)) * 18, 'المرحلة 2/5: استخراج البيانات', `${done} من ${total} صفحة`);
                 }
-                try { await pdf.cleanup(); } catch (_) {}
-                try { await pdf.destroy(); } catch (_) {}
-            } else {
-                _pageTexts = await Promise.all(
-                    Array.from({ length: pdf.numPages }, (_, k) =>
-                        pdf.getPage(k + 1).then(pg => pg.getTextContent())
-                           .then(tc => tc.items.map(it => it.str).join(" ")))
-                );
-            }
-            let fullText = _pageTexts.join(" ");
-            
-            fullText = fullText.replace(/\s+/g, " ");
+            });
             const segments = fullText.split(/(?=I\s*\d{4,6}\s)/i);
             let studentsMap = new Map();
 
@@ -5051,28 +5071,11 @@ body.fp-open{ overflow:hidden !important; }
             // --- Extract text & parse annual records --------------------------
             statusDiv.innerHTML = '⏳ جاري استخراج البيانات السنوية...';
             setUploadProgress('upload-annual-progress', 27, 'المرحلة 2/5: استخراج البيانات', 'جاري قراءة صفحات PDF');
-            const pdf = await pdfjsLib.getDocument({ data: finalPdfBytes }).promise;
-            let _pageTexts;
-            if (IS_MOBILE_DEVICE) {
-                _pageTexts = [];
-                for (let k = 1; k <= pdf.numPages; k++) {
-                    const pg = await pdf.getPage(k);
-                    const tc = await pg.getTextContent();
-                    _pageTexts.push(tc.items.map(it => it.str).join(" "));
-                    try { pg.cleanup(); } catch (_) {}
-                    if (k % 10 === 0) await new Promise(r => setTimeout(r, 0));
+            const fullText = await extractPdfTextBounded(finalPdfBytes, (done, total) => {
+                if (done === total || done % (IS_MOBILE_DEVICE ? 5 : 10) === 0) {
+                    setUploadProgress('upload-annual-progress', 27 + (done / Math.max(1, total)) * 18, 'المرحلة 2/5: استخراج البيانات', `${done} من ${total} صفحة`);
                 }
-                try { await pdf.cleanup(); } catch (_) {}
-                try { await pdf.destroy(); } catch (_) {}
-            } else {
-                _pageTexts = await Promise.all(
-                    Array.from({ length: pdf.numPages }, (_, k) =>
-                        pdf.getPage(k + 1).then(pg => pg.getTextContent())
-                           .then(tc => tc.items.map(it => it.str).join(" ")))
-                );
-            }
-            let fullText = _pageTexts.join(" ");
-            fullText = fullText.replace(/\s+/g, " ");
+            });
 
 
 
@@ -5438,33 +5441,9 @@ body.fp-open{ overflow:hidden !important; }
 
             // 2) Extract text
             onStatus && onStatus('استخراج النص...');
-            const pdf = await pdfjsLib.getDocument({ data: finalPdfBytes }).promise;
-            let _pageTexts;
-            if (IS_MOBILE_DEVICE) {
-                // 📱 [Mobile crash fix] Extract page text sequentially and free each
-                // page right away. Parallel extraction of a large merged PDF was a
-                // major source of out-of-memory tab crashes on phones.
-                _pageTexts = [];
-                for (let k = 1; k <= pdf.numPages; k++) {
-                    if (k % 10 === 0) onStatus && onStatus(`استخراج النص... (${k}/${pdf.numPages})`);
-                    const pg = await pdf.getPage(k);
-                    const tc = await pg.getTextContent();
-                    _pageTexts.push(tc.items.map(it => it.str).join(' '));
-                    try { pg.cleanup(); } catch (_) {}
-                    if (k % 15 === 0) await new Promise(r => setTimeout(r, 0));
-                }
-            } else {
-                // ⚡ Extract text from all pages in parallel
-                _pageTexts = await Promise.all(
-                    Array.from({ length: pdf.numPages }, (_, k) =>
-                        pdf.getPage(k + 1).then(pg => pg.getTextContent())
-                           .then(tc => tc.items.map(it => it.str).join(' ')))
-                );
-            }
-            try { await pdf.cleanup(); } catch (_) {}
-            try { await pdf.destroy(); } catch (_) {}
-            let fullText = _pageTexts.join(' ');
-            fullText = fullText.replace(/\s+/g, ' ');
+            const fullText = await extractPdfTextBounded(finalPdfBytes, (done, total) => {
+                if (done === total || done % (IS_MOBILE_DEVICE ? 5 : 10) === 0) onStatus && onStatus(`استخراج النص... (${done}/${total})`);
+            });
 
             // 3) Parse — semester vs annual use different parsers (mirrors existing code)
             let studentsArray = [];
@@ -5612,7 +5591,7 @@ body.fp-open{ overflow:hidden !important; }
                 <div style="text-align:right; direction:rtl;">
                     <div style="font-size:0.9rem; margin-bottom:6px; word-break:break-word;">${label || ''}</div>
                     <div style="background:#e2e8f0; border-radius:999px; height:14px; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,0.08);">
-                        <div style="width:${clampPct}%; height:100%; background:linear-gradient(90deg,#0ea5e9,#22c55e); transition:width .25s ease;"></div>
+                        <div style="width:${clampPct}%; height:100%; background:linear-gradient(90deg,#16a34a,#22c55e); box-shadow:0 0 10px rgba(34,197,94,0.30); transition:width .25s ease;"></div>
                     </div>
                     <div style="font-size:0.8rem; color:#475569; margin-top:6px;">${clampPct}% — ${subLabel || ''}</div>
                 </div>`;
@@ -6599,6 +6578,7 @@ body.fp-open{ overflow:hidden !important; }
         const filiere = grab(/Fili[èe]re\s*:?\s*([^\n]+?)\s*(?:Libell[ée]|$)/i)
             || (sum ? [sum.level, sum.major].filter(Boolean).join(' ') : '');
         const dateStr = new Date().toLocaleDateString('fr-FR');
+        const hidePersonal2024 = !!(sum && /2024\s*-\s*2025/.test(String(sum.academicYear || '')));
 
         // ── Identify module (body) rows ────────────────────────────────────
         const META_RE = /Nom et pr[ée]nom|\bNaissance\b|Num[ée]ro d['’ ]?inscription|\bFili[èe]re\s*:|\bNNI\b|\bINE\b|RELEVE\s+DE\s+NOTES|R[ée]publique|\bMinist[èé]re\b|\bInstitut\s+Sup|Libell[ée] de la Mati[èe]re|Contr[ôo]le\s+(?:Continu|Final)|\bSemestre\b|Ann[ée]e Universitaire|Nouakchott|Note\s+Rattrap|Note\s+Finale/i;
@@ -6986,6 +6966,10 @@ body.fp-open{ overflow:hidden !important; }
         void mismatchTooLarge;
         const jury = (sum && sum.decision) ? sum.decision
             : ((allText.match(/D[ée]cision du jury\s*:?\s*([^\n]+)/i) || [])[1] || '').trim();
+        // Decision de jury controls the footer colour.
+        const juryTone = isExcluDecision(jury) || /non\s*valid|ajourn|rattrapage/i.test(String(jury))
+            ? 'danger'
+            : (/avec\s+dette/i.test(String(jury)) ? 'warning' : (isValidDecision(jury) ? 'success' : 'neutral'));
 
         // ── Build HTML ─────────────────────────────────────────────────────
         const v = (x) => (x && String(x).trim() !== '') ? esc(x) : '-';
@@ -7019,11 +7003,16 @@ body.fp-open{ overflow:hidden !important; }
 
         const headHtml = `<div class="atx-head"><div><h2>Relevé de Notes - Transcript</h2><div class="mat">Matricule: ${esc(inscr)}</div></div><div class="date">${dateStr}</div></div>`;
 
-        const infoHtml = `<table class="atx-info">
-            <tr><td class="lbl" style="width:24%">Nom et prénom :</td><td colspan="3">${esc(nom)}</td></tr>
-            <tr><td class="lbl">Date et lieu de Naissance :</td><td style="width:28%">${esc(dob)}</td><td class="lbl" style="width:10%">A :</td><td>${esc(lieu)}</td></tr>
-            <tr><td class="lbl">Numéro d'inscription - Filière :</td><td>${esc(inscr)}${filiere ? ' | ' + esc(filiere) : ''}</td><td class="lbl">NNI :</td><td>${esc(nni)}</td></tr>
-        </table>`;
+        const infoHtml = hidePersonal2024
+            ? `<table class="atx-info">
+                <tr><td class="lbl" style="width:24%">Nom et prénom :</td><td colspan="3">${esc(nom)}</td></tr>
+                <tr><td class="lbl">Numéro d'inscription - Filière :</td><td colspan="3">${esc(inscr)}${filiere ? ' | ' + esc(filiere) : ''}</td></tr>
+              </table>`
+            : `<table class="atx-info">
+                <tr><td class="lbl" style="width:24%">Nom et prénom :</td><td colspan="3">${esc(nom)}</td></tr>
+                <tr><td class="lbl">Date et lieu de Naissance :</td><td style="width:28%">${esc(dob)}</td><td class="lbl" style="width:10%">A :</td><td>${esc(lieu)}</td></tr>
+                <tr><td class="lbl">Numéro d'inscription - Filière :</td><td>${esc(inscr)}${filiere ? ' | ' + esc(filiere) : ''}</td><td class="lbl">NNI :</td><td>${esc(nni)}</td></tr>
+              </table>`;
 
         // Show the "Note Rattrapage" column only for a semester that actually
         // has it in the original PDF. Many students have S2 (or both) with no
@@ -7107,7 +7096,7 @@ body.fp-open{ overflow:hidden !important; }
                 <td class="name" colspan="${sideColsL - 1}">Crédit /30 : ${v(foot.credL)}</td><td></td>
                 <td class="name" colspan="${sideColsR - 1}">Crédit /30 : ${v(foot.credR)}</td><td></td>
             </tr>${jury ? `
-            <tr class="atx-jury">
+            <tr class="atx-jury atx-jury-${juryTone}">
                 <td colspan="${grandCols}">Décision du jury : ${esc(jury)}</td>
             </tr>` : ''}`;
 
@@ -7125,7 +7114,11 @@ body.fp-open{ overflow:hidden !important; }
         const decision = String(sum.decision || '—');
         const valid = isValidDecision(decision);
         const excluded = isExcluDecision(decision);
-        const decisionClass = excluded ? 'semester-details-chip semester-details-decision-excluded' : (valid ? 'semester-details-chip semester-details-decision-valid' : 'semester-details-chip semester-details-decision-warning');
+        const hasDette = /avec\s+dette/i.test(decision);
+        const decisionClass = excluded
+            ? 'semester-details-chip semester-details-decision-excluded'
+            : (hasDette ? 'semester-details-chip semester-details-decision-warning'
+            : (valid ? 'semester-details-chip semester-details-decision-valid' : 'semester-details-chip semester-details-decision-fail'));
         const ctx = [sum.academicYear, sum.major, sum.level, sum.semester].filter(Boolean).join(' | ');
         return `<div class="semester-details-banner">
             <div class="semester-details-context">كشف النقاط التفصيلي · ${_semesterEsc(ctx || 'Semestre')}</div>
@@ -7157,6 +7150,18 @@ body.fp-open{ overflow:hidden !important; }
     function renderDetailsAsHtml(container, details, studentId) {
 
          details = removeOtherStudentsFromDetails(details, studentId);
+         // Privacy rule: 2024-2025 annual transcript views must not expose
+         // NNI, date of birth, or place of birth. Stored data and verification
+         // logic remain untouched; only the rendered detail copy is sanitized.
+         const _privacy2024 = !!(details && details._summary
+             && /2024\s*-\s*2025/.test(String(details._summary.academicYear || '')));
+         if (_privacy2024 && Array.isArray(details.rows)) {
+             const _privateMeta = /NNI|INE|Date\s+et\s+lieu|Date\s+de\s+naissance|Lieu\s+de\s+naissance|Naissance/i;
+             details = { ...details, rows: details.rows.filter(r => {
+                 const txt = (r.cells || []).map(c => String(c.s || '')).join(' ');
+                 return !_privateMeta.test(txt);
+             }) };
+         }
          // [FIX ANNUEL] Cluster near-equal Y's first so two-semester rows
          // (S1 + S2) collapse into one row with all their cells aligned.
          const isAnnualDetails = !!(details && details._summary && details._summary.isAnnual);
@@ -9586,6 +9591,153 @@ body.fp-open{ overflow:hidden !important; }
 
 
 </script>
+
+
+<style id="professional-results-design">
+/* =====================================================================
+   ISCAE Résultats — Professional presentation layer
+   Visual-only enhancement: no IDs, handlers, data flow or functionality changed.
+   ===================================================================== */
+:root {
+  --pro-ink: #102a25;
+  --pro-muted: #5c7069;
+  --pro-line: #dcebe4;
+  --pro-soft: #f4faf7;
+  --pro-green: #006b3c;
+  --pro-green-2: #0b8f5a;
+  --pro-gold: #d99b22;
+  --pro-blue: #3159b7;
+}
+
+/* Results search panel */
+.search-box {
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(245,252,248,.98));
+  border: 1px solid rgba(0,107,60,.14);
+  box-shadow: 0 22px 55px rgba(17, 73, 49, .13), 0 2px 6px rgba(17,73,49,.05);
+  padding: clamp(24px, 5vw, 38px) clamp(18px, 5vw, 34px);
+}
+.search-box h3 { font-size: clamp(1.35rem, 3vw, 1.75rem); letter-spacing: -.4px; }
+.search-box > p { max-width: 530px; margin-left: auto; margin-right: auto; color: var(--pro-muted) !important; }
+#matricule {
+  background: #fff !important;
+  border: 2px solid #cfe5d9 !important;
+  border-radius: 15px !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.03), 0 6px 16px rgba(0,92,41,.05);
+}
+#matricule:focus { border-color: var(--pro-green-2) !important; box-shadow: 0 0 0 5px rgba(11,143,90,.12), 0 8px 20px rgba(0,92,41,.08) !important; }
+.btn-group { gap: 12px; }
+.btn-search, .btn-top20 { min-height: 54px; border-radius: 15px !important; letter-spacing: .1px; }
+
+/* Result cards */
+#results-container { gap: 26px; }
+.result-card {
+  border: 1px solid rgba(0,107,60,.13);
+  border-radius: 22px;
+  padding: clamp(20px, 4vw, 32px);
+  box-shadow: 0 18px 44px rgba(16, 67, 45, .11), 0 2px 5px rgba(16,67,45,.04);
+}
+.result-card::before { height: 7px; background: linear-gradient(90deg, #005c29, #1ab574 52%, #d9a42b); }
+.card-header-custom { border-bottom: 0; padding-bottom: 18px; margin-bottom: 16px; position: relative; }
+.card-header-custom::after { content:''; display:block; width:72px; height:4px; margin:16px auto 0; border-radius:99px; background: linear-gradient(90deg,var(--pro-green-2),var(--pro-gold)); }
+.semester-badge { padding: 8px 18px; border-radius: 999px; box-shadow: 0 5px 14px rgba(0,92,41,.10); }
+.student-name { font-size: clamp(1.3rem, 4vw, 1.85rem); color: #075b38; }
+.info-row { min-height: 56px; padding: 12px 16px; border: 1px solid #e2f0e8; background: linear-gradient(90deg,#fbfefd,#f3faf6); border-radius: 14px; }
+.info-row > span:first-child { color: var(--pro-muted); }
+.info-val { color: var(--pro-ink); }
+.view-details-btn, .share-btn { min-height: 54px; border-radius: 15px; display:flex; align-items:center; justify-content:center; }
+.view-details-btn { background: linear-gradient(135deg,#122f28,#075b38); box-shadow: 0 9px 20px rgba(7,91,56,.22); }
+.share-btn { box-shadow: 0 9px 20px rgba(18,140,126,.20); }
+
+/* Details presentation */
+.semester-details-root { padding: 2px; }
+.semester-details-banner {
+  position: relative; overflow: hidden; padding: 22px 22px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 20px;
+  background: linear-gradient(135deg,#073923 0%,#087c4a 58%,#16a56a 100%);
+  box-shadow: 0 15px 32px rgba(0,92,41,.22);
+}
+.semester-details-banner::after { content:''; position:absolute; width:190px; height:190px; border-radius:50%; right:-75px; top:-90px; background:rgba(255,255,255,.10); pointer-events:none; }
+.semester-details-context { opacity:.9; font-size:.8rem; }
+.semester-details-name { position:relative; z-index:1; font-size:clamp(1.12rem,3vw,1.45rem); }
+.semester-details-chips { position:relative; z-index:1; gap:9px; }
+.semester-details-chip { border-radius:999px; padding:8px 13px; background:rgba(255,255,255,.15); backdrop-filter:blur(7px); }
+.semester-details-table-card { padding: 13px; border-radius: 20px; background: linear-gradient(145deg,#fff,#f2faf6); border:1px solid #cfe7d9; box-shadow: 0 14px 30px rgba(15,92,55,.12); }
+.semester-details-table-card > div { border-radius: 15px !important; overflow: hidden; }
+.details-canvas-container { padding: 10px; border-radius: 16px; background: #eef7f2; border-color: #d5e9de; }
+.details-zoom-bar-wrap { margin: 12px 0 !important; }
+.details-zoom-toolbar { border:1px solid #d6e9df !important; border-radius: 14px !important; box-shadow:0 6px 16px rgba(0,92,41,.08) !important; }
+.details-zoom-btn, .download-details-pdf-btn { border-radius: 10px !important; }
+
+/* Annual transcript HTML rendered inside details */
+.atx-wrap { border-radius: 18px; overflow: hidden; border: 1px solid #cfe5d9; box-shadow: 0 12px 30px rgba(15,92,55,.12); background:#fff; }
+.atx-head { background: linear-gradient(135deg,#063b24,#0b8050) !important; padding: 18px 20px !important; }
+.atx-body { padding: 16px !important; }
+.atx-info, .atx-tbl { border-radius: 12px; overflow:hidden; }
+.atx-info td { border-color:#dcebe4 !important; }
+.atx-info .lbl { background:#eff9f3 !important; color:#075b38 !important; }
+.atx-tbl th, .atx-tbl td { border-color:#d4e6dc !important; }
+.atx-tbl thead th { background:#eff7f2 !important; color:#164b37 !important; }
+.atx-tbl thead th.sem { background:linear-gradient(135deg,#006b3c,#0b8f5a) !important; color:#fff !important; }
+.atx-tbl tbody tr:nth-child(even) td { background:#f8fcfa !important; }
+.atx-tbl tr.atx-foot td { background:#e7f6ed !important; color:#075b38; }
+.atx-tbl tr.atx-jury td { background:#fff8e7 !important; color:#7a5510; }
+.atx-tbl tr.atx-grp td { background:#e4f7ec !important; }
+.atx-footer-note { color:#6d837a !important; }
+
+/* Top-20 result table */
+#top20-container { padding: 26px; background: linear-gradient(145deg,#fff,#f4faf7); }
+#top20-container h2 { font-size:clamp(1.3rem,3vw,1.75rem); margin:0 0 8px; }
+#top20-info { color:#557067 !important; background:#edf8f1; border:1px solid #d2eadb; border-radius:999px; padding:8px 14px; display:table; margin:0 auto 14px; }
+#top20-container > div { border:1px solid #dcebe4; border-radius:16px; overflow:hidden; }
+#top20-container table { margin-top:0; }
+#top20-container th { background:linear-gradient(135deg,#075b38,#0a8b58); color:#fff; border-bottom:0; padding:15px 13px; }
+#top20-container td { padding:14px 13px; border-color:#e1eee7; }
+#top20-container tbody tr:nth-child(1) td:first-child,
+#top20-container tbody tr:nth-child(2) td:first-child,
+#top20-container tbody tr:nth-child(3) td:first-child { color:#a46c00; font-weight:900; font-size:1.12rem; }
+#top20-container tbody tr:hover { background:#eaf8f0; }
+
+/* Public leaders modal and ranking modal */
+.modal-overlay.fullpage { padding: 14px; }
+.modal-overlay.fullpage .modal-content {
+  width:min(100%, 760px); max-width:none !important; border-radius:24px !important;
+  border:1px solid rgba(0,107,60,.18) !important; box-shadow:0 28px 80px rgba(8,55,36,.30) !important;
+}
+#public-top10-modal .modal-content > div:first-child { padding:20px 22px !important; }
+#public-top10-modal h2, #grad-rank-modal h2 { font-size:clamp(1.05rem,3vw,1.35rem) !important; }
+#public-top10-list, #gr-list { display:grid; gap:10px; }
+#public-top10-list > *, #gr-list > * { border-radius:15px !important; transition:transform .2s ease, box-shadow .2s ease; }
+#public-top10-list > *:hover, #gr-list > *:hover { transform:translateY(-2px); box-shadow:0 8px 18px rgba(15,92,55,.12); }
+#public-top10-year { font-weight:900; color:#075b38; }
+#gr-major-chips button { border-radius:999px !important; padding:8px 14px !important; }
+#gr-search { border:2px solid #d5dffb !important; background:#fff !important; }
+
+@media (max-width:600px) {
+  .modal-overlay.fullpage { padding:0; align-items:stretch; }
+  .modal-overlay.fullpage .modal-content { width:100%; max-height:100vh !important; border-radius:0 !important; }
+  .semester-details-table-card { padding:8px; }
+  .atx-body { padding:10px !important; }
+  #top20-container { padding:20px 14px; }
+  #top20-container th, #top20-container td { padding:11px 8px; font-size:.82rem; }
+  .semester-details-chips { align-items:stretch; }
+  .semester-details-chip { justify-content:center; }
+}
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+/* Decision-aware footer and semester badge: high contrast on mobile */
+.semester-details-decision-valid { background:#b7f7d0 !important; color:#064e3b !important; border-color:#34d399 !important; text-shadow:none; }
+.semester-details-decision-warning { background:#ffedb5 !important; color:#713f12 !important; border-color:#f59e0b !important; text-shadow:none; }
+.semester-details-decision-fail, .semester-details-decision-excluded { background:#ffd4d4 !important; color:#991b1b !important; border-color:#ef4444 !important; text-shadow:none; }
+.atx-tbl tr.atx-jury { font-size:13px; border-top:2px solid #d7e4dc; }
+.atx-tbl tr.atx-jury td { font-weight:900 !important; padding:12px !important; text-align:center !important; }
+.atx-tbl tr.atx-jury-success td { background:#b7f7d0 !important; color:#064e3b !important; border-color:#34d399 !important; }
+.atx-tbl tr.atx-jury-warning td { background:#ffedb5 !important; color:#713f12 !important; border-color:#f59e0b !important; }
+.atx-tbl tr.atx-jury-danger td { background:#ffd4d4 !important; color:#991b1b !important; border-color:#ef4444 !important; }
+.atx-tbl tr.atx-jury-neutral td { background:#e7eef0 !important; color:#334155 !important; border-color:#cbd5e1 !important; }
+.pro-card, .admin-sheet, .modal-overlay.fullpage .modal-content { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+</style>
 
 </body>
 </html>
