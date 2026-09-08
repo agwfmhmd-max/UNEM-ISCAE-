@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>UNEM ISCAE - المنصة</title>
     
     <link rel="manifest" href="manifest.json">
@@ -768,6 +768,8 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html { min-height: 100%; background: var(--bg-color, #f8fafc); }
+        body { min-height: 100%; padding-top: env(safe-area-inset-top); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); padding-left: env(safe-area-inset-left); }
         
         body { 
             font-family: 'Tajawal', sans-serif; margin: 0; padding: 0; 
@@ -797,10 +799,7 @@
         }
         .theme-btn { inset-inline-start: 15px; } .lang-btn { inset-inline-end: 15px; font-size: 0.95rem; }
         .theme-btn:hover, .lang-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
-        .refresh-btn { inset-inline-start: 62px; }
-        .refresh-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
-        .refresh-btn.spinning i { animation: spin 0.8s linear infinite; }
-        #push-toggle-btn { inset-inline-start: 109px; }
+        #push-toggle-btn { inset-inline-start: 62px; }
         #push-toggle-btn.active { background: var(--accent-color, #eab308); color: #1e293b; }
         #push-toggle-btn.active:hover { background: var(--accent-color, #eab308); }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -1294,7 +1293,6 @@
 
     <header class="main-header">
         <button id="theme-toggle" class="theme-btn" onclick="toggleTheme()"><i id="theme-icon" class="fas fa-moon"></i></button>
-        <button id="refresh-btn" class="theme-btn refresh-btn" onclick="hardRefresh()" title="تحديث"><i class="fas fa-sync-alt"></i></button>
         <button id="push-toggle-btn" class="theme-btn" onclick="togglePushNotifications()" title="الإشعارات"><i id="push-toggle-icon" class="fas fa-bell-slash"></i></button>
         <button id="lang-toggle" class="lang-btn">FR</button>
 
@@ -1760,7 +1758,7 @@
                 <p style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;text-align:center;margin:-6px 0 12px;">يصل الإشعار للمشتركين حتى لو لم يكونوا داخل الموقع حالياً.</p>
 
                 <!-- إحصاءا الاشتراكات: Web Push للمتصفحات وFCM لتطبيق Android -->
-                <div id="push-device-count-card" style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;margin:0 0 16px;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc);">
+                <div id="push-device-count-card" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 16px;margin:0 0 16px;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc);">
                     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
                         <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#dbeafe;color:#1d4ed8;font-size:1.25rem;flex:0 0 auto;">&#128241;</div>
                         <div>
@@ -1768,6 +1766,7 @@
                             <div style="font-size:.76rem;color:#64748b;font-weight:700;margin-top:3px;">Web Push: <span id="push-active-device-count">—</span> &nbsp;|&nbsp; Android/FCM: <span id="push-active-fcm-count">—</span></div>
                         </div>
                     </div>
+                    <button type="button" onclick="cleanupExpiredPushSubscriptions()" aria-label="تنظيف الاشتراكات المنتهية" title="تنظيف الاشتراكات غير النشطة" class="btn-submit" style="width:34px;height:34px;min-width:34px;margin:0;padding:0;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:9px;font-size:.95rem;">🧹</button>
                 </div>
                 <div class="form-group" style="margin-bottom:10px;">
                     <label style="font-weight:800;font-size:0.9rem;display:block;margin-bottom:5px;">عنوان الإشعار</label>
@@ -1813,7 +1812,6 @@
                         <label style="display:block;font-weight:800;font-size:.88rem;margin-bottom:5px;">إلى تاريخ</label>
                         <input type="date" id="top-files-end-date" style="width:100%;padding:10px;border:2px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:var(--text-primary);font-family:inherit;box-sizing:border-box;">
                     </div>
-                    <button onclick="loadTopFilesPage()" class="btn-submit" style="width:auto;margin:0;padding:11px 20px;">🔄 تحديث</button>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;">
                     <div style="padding:16px;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;text-align:center;"><div id="top-files-total-events" style="font-size:1.8rem;font-weight:900;color:#1d4ed8;">—</div><div style="font-weight:800;color:#475569;font-size:.85rem;">إجمالي التفاعلات</div></div>
@@ -2269,31 +2267,6 @@
                 langToggle.addEventListener('click', () => setLanguage(currentLang === 'ar' ? 'fr' : 'ar'));
             }
         });
-
-        async function hardRefresh() {
-            const btn = document.getElementById('refresh-btn');
-            if (btn) btn.classList.add('spinning');
-            try {
-                if ('caches' in window) {
-                    const keys = await caches.keys();
-                    await Promise.all(keys.map(key => caches.delete(key)));
-                }
-                if ('serviceWorker' in navigator) {
-                    const regs = await navigator.serviceWorker.getRegistrations();
-                    await Promise.all(regs.map(reg => reg.unregister()));
-                }
-                try { sessionStorage.clear(); } catch(e) {}
-            } catch(e) {}
-            // iOS Safari يتجاهل reload(true) ويعرض النسخة المخزنة.
-            // الحل: التنقل إلى رابط جديد بمعامل زمني لكسر الكاش، مع استبدال السجل.
-            try {
-                const url = new URL(window.location.href);
-                url.searchParams.set('_r', Date.now().toString());
-                window.location.replace(url.toString());
-            } catch(e) {
-                window.location.reload();
-            }
-        }
 
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
@@ -3503,6 +3476,25 @@ function closeAnalyticsDashboard() {
          * يعرض أعداد اشتراكات Web Push وFCM الأصلية المسجلة حالياً.
          * لا يغيّر هذا القسم نظام الإشعارات؛ يقرأ العددين فقط للمشرف.
          */
+        /**
+         * يحذف اشتراكات Web Push التي لم تُحدّث منذ 90 يوماً.
+         * الاشتراكات التي يرفضها مزود الإشعارات تُحذف تلقائياً من الخادم عند الإرسال.
+         */
+        async function cleanupExpiredPushSubscriptions() {
+            if (!isAdmin() || !supabaseClient) return;
+            const status = document.getElementById('push-status');
+            try {
+                if (status) { status.textContent = '⏳ جاري تنظيف الاشتراكات غير النشطة...'; status.className = 'status-msg'; }
+                const { data, error } = await supabaseClient.rpc('cleanup_expired_push_subscriptions', { p_inactive_days: 90 });
+                if (error) throw error;
+                const removed = Number(data || 0);
+                if (status) { status.textContent = `✅ تم حذف ${removed} اشتراك غير نشط (أكثر من 90 يوماً).`; status.className = 'status-msg success'; }
+                loadPushActiveDeviceCount();
+            } catch (e) {
+                console.error('cleanupExpiredPushSubscriptions', e);
+                if (status) { status.textContent = '❌ تعذر تنظيف الاشتراكات: ' + (e.message || e); status.className = 'status-msg error'; }
+            }
+        }
         async function loadPushActiveDeviceCount() {
             const webEl = document.getElementById('push-active-device-count');
             const fcmEl = document.getElementById('push-active-fcm-count');
@@ -6535,7 +6527,6 @@ function escapeHtml(value){
     })();
     </script>
     <!-- END ADVANCED PROTECTION CODE -->
-    </script>
     <!-- END PROTECTION CODE -->
     
 </body>
