@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MoyenneRouteImport } from './routes/moyenne'
 import { Route as ResultatsRouteImport } from './routes/resultats'
+import { Route as ApiWebProxyRouteImport } from './routes/api/web-proxy'
 import { Route as ApiPublicFileRouteImport } from './routes/api/public/file'
 import { Route as ApiPublicCloudinaryConfigRouteImport } from './routes/api/public/cloudinary/config'
 import { Route as ApiPublicCloudinaryDestroyRouteImport } from './routes/api/public/cloudinary/destroy'
@@ -32,6 +33,11 @@ const MoyenneRoute = MoyenneRouteImport.update({
 const ResultatsRoute = ResultatsRouteImport.update({
   id: '/resultats',
   path: '/resultats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebProxyRoute = ApiWebProxyRouteImport.update({
+  id: '/api/web-proxy',
+  path: '/api/web-proxy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicFileRoute = ApiPublicFileRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/file': typeof ApiPublicFileRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/file': typeof ApiPublicFileRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
+  '/api/web-proxy': typeof ApiWebProxyRoute
   '/api/public/file': typeof ApiPublicFileRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
@@ -172,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResultatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/web-proxy': {
+      id: '/api/web-proxy'
+      path: '/api/web-proxy'
+      fullPath: '/api/web-proxy'
+      preLoaderRoute: typeof ApiWebProxyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/file': {
       id: '/api/public/file'
       path: '/api/public/file'
@@ -221,6 +237,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MoyenneRoute: MoyenneRoute,
   ResultatsRoute: ResultatsRoute,
+  ApiWebProxyRoute: ApiWebProxyRoute,
   ApiPublicFileRoute: ApiPublicFileRoute,
   ApiPublicCloudinaryConfigRoute: ApiPublicCloudinaryConfigRoute,
   ApiPublicCloudinaryDestroyRoute: ApiPublicCloudinaryDestroyRoute,
