@@ -970,10 +970,35 @@
 #main-menu .stage-report-home-card .icon-box { color:#0f766e; }
 #stage-report-home-selection .specialization-card { cursor:pointer; }
 
+/* شاشة Rapport de stage مستقلة عن إشعار الصيانة: تستعمل كامل مساحة section-box */
+        #stage-report-home-selection {
+            min-height: 0;
+        }
+        #stage-report-home-selection #stage-report-home-specializations {
+            width: 100%;
+            max-width: 100%;
+        }
+
 /* في سبتمبر 2026: لا نحذف البطاقات الأصلية، بل نخفيها مؤقتاً ونُبقي مدخل التقرير فقط. */
 html.unem-stage-report-month #main-menu .semester-card:not(#stage-report-home-card) { display:none !important; }
 html.unem-stage-report-month #main-menu .semesters-grid { grid-template-columns:minmax(0,1fr) !important; max-width:520px; }
 html.unem-stage-report-month #main-menu .stage-report-home-card { display:flex !important; aspect-ratio:auto; min-height:150px; }
+
+/* إصلاح جذري للمساحة البيضاء أسفل بطاقة Rapport de stage في واجهة سبتمبر:
+   نجعل حاوية القائمة الرئيسية بحجم محتواها فقط، بدلاً من تمديدها لملء الارتفاع المتبقي. */
+html.unem-stage-report-month .container {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+}
+html.unem-stage-report-month #main-menu {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+html.unem-stage-report-month #main-menu .semesters-grid {
+    flex: 0 0 auto !important;
+}
 
 .buttons-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
         @media (min-width: 650px) { .buttons-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
@@ -1049,6 +1074,60 @@ html.unem-stage-report-month #main-menu .stage-report-home-card { display:flex !
         .fb-btn { background: linear-gradient(135deg, #1877F2, #0c56b9); } 
         .wa-btn { background: linear-gradient(135deg, #25D366, #1da851); }
         .copyright { margin-top: 10px; font-size: 0.85rem; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 0;}
+
+        /* إشعار حالة المنصة — إضافة مستقلة في المساحة البيضاء أسفل المحتوى */
+        .platform-maintenance-notice {
+            width: 100%; max-width: 980px; margin: 14px auto 12px; padding: 12px 16px;
+            background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--border-color);
+            border-radius: 16px; box-shadow: var(--shadow-sm); text-align: center;
+            position: relative; overflow: visible; box-sizing: border-box; flex: 0 0 auto;
+        }
+        .platform-maintenance-notice.hidden { display: none !important; }
+        .platform-maintenance-notice::before {
+            content: ''; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px;
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+        }
+        .platform-maintenance-notice .maintenance-icon {
+            width: 42px; height: 42px; margin: 0 auto 8px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(15,81,50,.10); color: var(--primary-color); font-size: 1.15rem;
+        }
+        .platform-maintenance-notice h3 { margin: 0 0 6px; color: var(--primary-color); font-size: 1rem; font-weight: 900; }
+        .platform-maintenance-notice p { margin: 4px 0; color: var(--text-secondary); font-size: .88rem; font-weight: 650; line-height: 1.75; }
+        .platform-maintenance-notice .maintenance-highlight { color: var(--primary-color); font-weight: 900; }
+        body.dark-mode .platform-maintenance-notice .maintenance-icon { background: rgba(16,185,129,.14); }
+        /* تحسين الاستجابة للشاشات المحمولة/اللوحية بعرض CSS متوسط:
+   يمنع طول النص الفرنسي من ضغط بطاقة Rapport de stage إلى مساحة ضيقة. */
+        @media (max-width: 800px) {
+            .platform-maintenance-notice {
+                width: 96%;
+                margin: 10px auto 8px;
+                padding: 10px 12px;
+                border-radius: 14px;
+            }
+            .platform-maintenance-notice .maintenance-icon {
+                width: 36px; height: 36px; margin-bottom: 5px;
+                border-radius: 10px; font-size: 1rem;
+            }
+            .platform-maintenance-notice h3 {
+                margin-bottom: 4px;
+                font-size: .92rem;
+                line-height: 1.45;
+            }
+            .platform-maintenance-notice p {
+                margin: 2px 0;
+                font-size: .76rem;
+                line-height: 1.55;
+            }
+        }
+
+        /* بطاقة Rapport de stage في مدخل سبتمبر لا تتقلص بسبب مساحة الإشعار */
+        html.unem-stage-report-month #main-menu .stage-report-home-card {
+            flex: 0 0 auto;
+            width: 100%;
+            min-height: 150px;
+            aspect-ratio: auto;
+        }
 
         #update-toast {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(150px);
@@ -2606,6 +2685,13 @@ body.dark-mode #main-menu .registration-card .icon-box{
 <button class="btn-submit" data-i18n="btn_close_window" onclick="document.getElementById('ios-install-modal').classList.add('hidden')" style="background:#007aff; margin-top:10px;">حسناً، فهمت</button>
 </div>
 </div>
+<div class="platform-maintenance-notice" role="status" aria-live="polite">
+<div class="maintenance-icon" aria-hidden="true"><i class="fas fa-screwdriver-wrench"></i></div>
+<h3 data-i18n="platform_maintenance_title">المنصة الرسمية قيد الصيانة والتحديث</h3>
+<p data-i18n="platform_maintenance_desc">نعمل حالياً على صيانة المنصة الرسمية وإجراء مجموعة من التحديثات والتحسينات لضمان تجربة أفضل وأكثر استقراراً.</p>
+<p data-i18n="platform_maintenance_stage">أما طلبة السنة الثالثة الذين يعملون على <span class="maintenance-highlight">تقارير التدريب</span>، فهي متوفرة ويمكن الوصول إليها من قسم تقارير التدريب في المنصة.</p>
+<p data-i18n="platform_maintenance_return">ستعود المنصة الرسمية بكامل خدماتها مع افتتاح العام الدراسي، إن شاء الله.</p>
+</div>
 <footer class="main-footer">
 <div class="social-buttons-container">
 <a class="social-btn fb-btn" href="https://www.facebook.com/share/1Ce3zTEpvC/" target="_blank"><i class="fab fa-facebook"></i> <span data-i18n="fb_link">صفحتنا على فيسبوك</span></a>
@@ -2728,6 +2814,10 @@ body.dark-mode #main-menu .registration-card .icon-box{
                 copyright: "جميع الحقوق محفوظة © <span id='copyright-year' style='cursor:pointer; user-select:none;'>2026</span> - UNEM ISCAE",
                 update_msg: "يتوفر تحديث جديد!",
                 update_btn: "تحديث الآن",
+                platform_maintenance_title: "المنصة الرسمية قيد الصيانة والتحديث",
+                platform_maintenance_desc: "نعمل حالياً على صيانة المنصة الرسمية وإجراء مجموعة من التحديثات والتحسينات لضمان تجربة أفضل وأكثر استقراراً.",
+                platform_maintenance_stage: "أما طلبة السنة الثالثة الذين يعملون على <span class='maintenance-highlight'>تقارير التدريب</span>، فهي متوفرة ويمكن الوصول إليها من قسم تقارير التدريب في المنصة.",
+                platform_maintenance_return: "ستعود المنصة الرسمية بكامل خدماتها مع افتتاح العام الدراسي، إن شاء الله.",
                 no_subjects: "لا توجد مواد مضافة حالياً",
                 install_msg: "أضف المنصة لشاشة هاتفك لتجربة أسرع وأفضل!",
                 btn_install: "تثبيت",
@@ -2848,6 +2938,10 @@ body.dark-mode #main-menu .registration-card .icon-box{
                 copyright: "Tous droits réservés © <span id='copyright-year' style='cursor:pointer; user-select:none;'>2026</span> - UNEM ISCAE",
                 update_msg: "Mise à jour disponible !",
                 update_btn: "Mettre à jour",
+                platform_maintenance_title: "La plateforme officielle est en maintenance et en cours de mise à jour",
+                platform_maintenance_desc: "La plateforme officielle fait actuellement l'objet d'une maintenance et de plusieurs mises à jour afin d'assurer une expérience plus stable et plus performante.",
+                platform_maintenance_stage: "Pour les étudiants de troisième année qui travaillent sur leurs <span class='maintenance-highlight'>rapports de stage</span>, ceux-ci restent disponibles et accessibles depuis la rubrique dédiée aux rapports de stage.",
+                platform_maintenance_return: "La plateforme officielle reprendra l'ensemble de ses services à la rentrée universitaire, si Dieu le veut.",
                 no_subjects: "Aucune matière n'a été ajoutée pour le moment",
                 install_msg: "Ajoutez la plateforme à votre écran pour un accès plus rapide !",
                 btn_install: "Installer",
@@ -4209,7 +4303,13 @@ function closeAnalyticsDashboard() {
 
         function hideAll() { document.querySelectorAll('.section-box').forEach(el => el.classList.add('hidden')); }
         
-        function goBackToMainMenu() { stageReportMode = false; hideAll(); document.getElementById('main-menu').classList.remove('hidden'); }
+        function setMaintenanceNoticeVisible(visible) {
+            const notice = document.querySelector('.platform-maintenance-notice');
+            if (notice) notice.classList.toggle('hidden', !visible);
+            document.body.classList.toggle('maintenance-notice-visible', !!visible);
+        }
+
+        function goBackToMainMenu() { stageReportMode = false; hideAll(); document.getElementById('main-menu').classList.remove('hidden'); setMaintenanceNoticeVisible(true); }
         function goBackToSpecialization() {
             if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
             hideAll(); document.getElementById('specialization-selection').classList.remove('hidden');
@@ -4242,6 +4342,7 @@ function closeAnalyticsDashboard() {
         
         function openStageReportsHome() {
     stageReportMode = true;
+    setMaintenanceNoticeVisible(false);
     hideAll();
     const box = document.getElementById('stage-report-home-selection');
     if (box) box.classList.remove('hidden');
@@ -7776,7 +7877,105 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
 // تشغيل العرض المؤقت لـ Rapport de stage في الصفحة الرئيسية لشهر سبتمبر 2026.
 document.addEventListener('DOMContentLoaded', function(){
     try { initStageReportHomeMonth(); } catch (e) { console.warn('stage report home month', e); }
+    try { document.body.classList.toggle('maintenance-notice-visible', !!document.querySelector('.platform-maintenance-notice') && !document.querySelector('.platform-maintenance-notice').classList.contains('hidden')); } catch (_) {}
 });
 </script>
+
+<style id="maintenance-layout-final-fix">
+/* الإصلاح الجذري: عند ظهور إشعار الصيانة، لا يُسمح لمساحة القائمة الرئيسية بالانكماش.
+   تُصبح الصفحة قابلة للتمرير حتى تبقى بطاقة Rapport de stage كاملة، خصوصاً بالفرنسية. */
+body.maintenance-notice-visible {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+body.maintenance-notice-visible .container {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+}
+body.maintenance-notice-visible #main-menu {
+    display: flex !important;
+    height: auto !important;
+    max-height: none !important;
+    flex: none !important;
+}
+body.maintenance-notice-visible #main-menu .semesters-grid {
+    height: auto !important;
+    max-height: none !important;
+    flex: none !important;
+    align-content: start !important;
+}
+body.maintenance-notice-visible #main-menu {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+body.maintenance-notice-visible #main-menu .semesters-grid {
+    height: auto !important;
+    min-height: 0 !important;
+    align-content: start !important;
+}
+body.maintenance-notice-visible #main-menu .stage-report-home-card {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 150px !important;
+    aspect-ratio: auto !important;
+}
+</style>
+
+<style id="stage-report-month-whitespace-fix">
+/* السبب الحقيقي للمساحة البيضاء الكبيرة أسفل بطاقة Rapport de stage في وضع سبتمبر:
+   شبكة القائمة الرئيسية (#main-menu .semesters-grid) مُعدّة أصلاً لعرض 6-8 بطاقات على شكل
+   3 أعمدة × صفين (grid-template-rows: repeat(2, minmax(132px/142px, 1fr))، مع height:100%)،
+   وهذا التنسيق يبقى ساري المفعول حتى بعد إخفاء بقية البطاقات وتحويل الشبكة لعمود واحد،
+   فتحجز الشبكة ارتفاع صفّين رغم وجود بطاقة واحدة ظاهرة فقط، مما يترك فراغاً كبيراً أسفلها.
+   الإصلاح هنا يستهدف وضع سبتمبر (html.unem-stage-report-month) حصراً بخصوصية أعلى من
+   القواعد الأصلية، فيجعل الشبكة تحتسب ارتفاعها فعلياً حسب محتواها (صف واحد فقط) دون أي
+   تأثير على تنسيق القائمة الرئيسية العادية (6-8 بطاقات) في باقي أشهر السنة. */
+html.unem-stage-report-month #main-menu .semesters-grid {
+    grid-template-rows: none !important;
+    grid-auto-rows: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    align-content: start !important;
+}
+html.unem-stage-report-month #main-menu .semester-card.wide-card.stage-report-home-card {
+    height: auto !important;
+    aspect-ratio: auto !important;
+}
+
+/* لمسة تصميم إضافية: تقريب بطاقة تقرير التدريب من إشعار الصيانة بمسافة متناسقة وجذابة
+   بعد إزالة الفراغ الزائد، بدل ترك الانتقال بينهما فجائياً. */
+html.unem-stage-report-month #main-menu {
+    margin-bottom: 4px;
+}
+html.unem-stage-report-month .platform-maintenance-notice {
+    margin-top: 18px;
+}
+</style>
+
+<style id="maintenance-notice-visual-polish">
+/* تحسين بصري لإشعار حالة المنصة: خلفية متدرّجة هادئة، أيقونة أكثر حيوية، وظل ناعم —
+   بدون أي تغيير على النص أو المحتوى أو آلية إظهار/إخفاء الإشعار. */
+.platform-maintenance-notice {
+    background: linear-gradient(160deg, var(--card-bg) 60%, var(--theme-light, rgba(15,118,110,.06)));
+    box-shadow: var(--shadow-md);
+    border-color: rgba(15,118,110,.18);
+}
+.platform-maintenance-notice .maintenance-icon {
+    background: linear-gradient(135deg, rgba(15,118,110,.16), rgba(16,185,129,.10));
+    box-shadow: 0 4px 10px rgba(15,118,110,.15);
+}
+body.dark-mode .platform-maintenance-notice {
+    background: linear-gradient(160deg, var(--card-bg) 60%, rgba(16,185,129,.06));
+}
+body.dark-mode .platform-maintenance-notice .maintenance-icon {
+    background: linear-gradient(135deg, rgba(16,185,129,.20), rgba(16,185,129,.10));
+}
+</style>
 </body>
 </html>
