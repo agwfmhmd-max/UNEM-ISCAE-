@@ -961,21 +961,7 @@
 
         body.dark-mode .semester-card, body.dark-mode .category-card { background-color: var(--card-bg); }
 
-        /* مدخل Rapport de stage في الصفحة الرئيسية — نفس المادة الأصلية الموجودة في S5 */
-#main-menu .stage-report-home-card { 
-    --theme-color:#0f766e; --theme-light:rgba(15,118,110,.14);
-    background:linear-gradient(145deg,rgba(236,253,245,.98),rgba(240,253,250,.90));
-    border-color:rgba(15,118,110,.22);
-}
-#main-menu .stage-report-home-card .icon-box { color:#0f766e; }
-#stage-report-home-selection .specialization-card { cursor:pointer; }
-
-/* في سبتمبر 2026: لا نحذف البطاقات الأصلية، بل نخفيها مؤقتاً ونُبقي مدخل التقرير فقط. */
-html.unem-stage-report-month #main-menu .semester-card:not(#stage-report-home-card) { display:none !important; }
-html.unem-stage-report-month #main-menu .semesters-grid { grid-template-columns:minmax(0,1fr) !important; max-width:520px; }
-html.unem-stage-report-month #main-menu .stage-report-home-card { display:flex !important; aspect-ratio:auto; min-height:150px; }
-
-.buttons-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        .buttons-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
         @media (min-width: 650px) { .buttons-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
         @media (min-width: 950px) { .buttons-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; } }
         
@@ -1915,13 +1901,6 @@ body.dark-mode #main-menu .registration-card .icon-box{
 <!-- 1. القائمة الرئيسية -->
 <div class="section-box" id="main-menu">
 <div class="semesters-grid">
-<!-- تقرير التدريب S5: في سبتمبر فقط يظهر هذا المدخل في الصفحة الرئيسية، وهو نفس مادة S5 الأصلية -->
-<div class="semester-card wide-card stage-report-home-card" id="stage-report-home-card" onclick="openStageReportsHome()" style="--theme-color:#0f766e; --theme-light:rgba(15,118,110,0.16);">
-<div class="icon-box"><i class="fas fa-file-signature"></i></div>
-<h3 data-i18n="stage_report_home">Rapport de stage de la 2ème année</h3>
-<p data-i18n="stage_report_home_desc">جميع التخصصات</p>
-</div>
-
 <!-- التسجيل في المعهد: يفتح داخل المتصفح الداخلي للمنصة -->
 
 
@@ -1976,26 +1955,10 @@ body.dark-mode #main-menu .registration-card .icon-box{
 </div>
 <div class="registration-browser-frame-wrap">
 <div aria-live="polite" class="registration-browser-loading" id="registration-browser-loading"><span aria-hidden="true" class="registration-browser-spinner"></span><span data-i18n="registration_loading">جاري فتح صفحة التسجيل...</span></div>
-<iframe id="registration-browser-frame" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="about:blank" title="صفحة التسجيل في المعهد"></iframe>
+<iframe id="registration-browser-frame" loading="eager" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write; fullscreen; geolocation" src="about:blank" title="صفحة التسجيل في المعهد"></iframe>
 </div>
 </div>
 <!-- باقي الأكواد كما هي بدون تغيير -->
-<!-- مدخل تقرير التدريب من الصفحة الرئيسية: يستخدم نفس مادة S5 الأصلية دون إنشاء مادة جديدة -->
-<div class="section-box hidden" id="stage-report-home-selection">
-<div class="header-with-back">
-<button class="back-btn" data-i18n="btn_home" onclick="goBackToMainMenu()">الرئيسية</button>
-<h2 class="section-title" data-i18n="stage_report_home">Rapport de stage de la 2ème année</h2>
-</div>
-
-<div class="semesters-grid" id="stage-report-home-specializations">
-<div class="semester-card specialization-card" data-stage-spec="ba" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-university"></i></div><h3>BA</h3><p data-i18n="spec_ba">البنوك والتأمين</p></div>
-<div class="semester-card specialization-card" data-stage-spec="fc" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-calculator"></i></div><h3>FC</h3><p data-i18n="spec_fc">المالية والمحاسبة</p></div>
-<div class="semester-card specialization-card" data-stage-spec="tcm" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-bullhorn"></i></div><h3>TCM</h3><p data-i18n="spec_tcm">تقنيات المبيعات والتسويق</p></div>
-<div class="semester-card specialization-card" data-stage-spec="grh" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-users-cog"></i></div><h3>GRH</h3><p data-i18n="spec_grh">إدارة الموارد البشرية</p></div>
-<div class="semester-card specialization-card" data-stage-spec="sae" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-chart-pie"></i></div><h3>SAE</h3><p data-i18n="spec_sae">الإحصاء التطبيقي في الاقتصاد</p></div>
-<div class="semester-card specialization-card" data-stage-spec="ig" role="button" tabindex="0"><div class="icon-box"><span class="fa-stack" style="font-size:.6em;"><i class="fas fa-shield-halved fa-stack-2x"></i><i class="fas fa-chart-line fa-stack-1x fa-inverse" style="transform:scale(.9) translateX(1px);"></i></span></div><h3>IG</h3><p data-i18n="spec_ig">المعلوماتية المطبقة على التسيير</p></div>
-</div>
-</div>
 <div class="section-box hidden" id="specialization-selection">
 <div class="header-with-back">
 <button class="back-btn" data-i18n="btn_home" onclick="goBackToMainMenu()">الرئيسية</button>
@@ -2637,9 +2600,6 @@ body.dark-mode #main-menu .registration-card .icon-box{
                 card_about_desc: "نبذة تعريفية وتاريخية",
                 card_whatsapp: "مجموعات WhatsApp",
                 card_whatsapp_desc: "اختر المستوى ثم التخصص للوصول إلى مجموعتك",
-                stage_report_home: "Rapport de stage de la 2ème année",
-                stage_report_home_desc: "جميع التخصصات",
-
                 whatsapp_hub_desc: "اختر مستواك الدراسي للوصول إلى المجموعات العامة والخاصة بتخصصك.",
                 whatsapp_choose_level: "اختر المستوى الدراسي",
                 whatsapp_selected_level: "المستوى المختار",
@@ -2757,9 +2717,6 @@ body.dark-mode #main-menu .registration-card .icon-box{
                 card_about_desc: "Aperçu historique et présentation",
                 card_whatsapp: "Groupes WhatsApp",
                 card_whatsapp_desc: "Choisissez le niveau puis la filière pour accéder à votre groupe",
-                stage_report_home: "Rapport de stage de la 2ème année",
-                stage_report_home_desc: "Toutes les filières",
-
                 whatsapp_hub_desc: "Choisissez votre niveau pour accéder aux groupes généraux et aux groupes de votre filière.",
                 whatsapp_choose_level: "Choisir le niveau d'études",
                 whatsapp_selected_level: "Niveau sélectionné",
@@ -2952,7 +2909,7 @@ body.dark-mode #main-menu .registration-card .icon-box{
         const repoName = "UNEM-ISCAE-"; 
         const branchMap = { 'ba': 'BA', 'fc': 'FC', 'tcm': 'TCM', 'grh': 'GRH', 'sae': 'SAE', 'ig': 'IG' };
 
-        let allFiles =[]; let currentSpecialization = ''; let currentLevel = ''; let currentSemester = ''; let currentBranch = 'main'; let stageReportMode = false; 
+        let allFiles =[]; let currentSpecialization = ''; let currentLevel = ''; let currentSemester = ''; let currentBranch = 'main'; 
         let currentSubjectFiles =[]; let currentTab = 'cours'; let isArchiveSpecialCase = false; let isAdminLoggedIn = false; 
 
         /* ============ نظام الأدوار (يتم التحقق منه في Supabase وليس في الواجهة) ============ */
@@ -4209,82 +4166,16 @@ function closeAnalyticsDashboard() {
 
         function hideAll() { document.querySelectorAll('.section-box').forEach(el => el.classList.add('hidden')); }
         
-        function goBackToMainMenu() { stageReportMode = false; hideAll(); document.getElementById('main-menu').classList.remove('hidden'); }
-        function goBackToSpecialization() {
-            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
-            hideAll(); document.getElementById('specialization-selection').classList.remove('hidden');
-        }
-        function goBackToLevels() {
-            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
-            hideAll(); document.getElementById('level-selection').classList.remove('hidden');
-        }
-        function goBackToSemesters() {
-            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
-            hideAll(); if(currentLevel) { document.getElementById('semesters-container').classList.remove('hidden'); } else { document.getElementById('level-selection').classList.remove('hidden'); }
-        }
-        function goBackToSubjects() {
-            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
-            hideAll(); document.getElementById('subjects-container').classList.remove('hidden');
-        }
-        function goBackToCategories() {
-            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
-            hideAll(); document.getElementById('category-selection-container').classList.remove('hidden');
-        }
+        function goBackToMainMenu() { hideAll(); document.getElementById('main-menu').classList.remove('hidden'); }
+        function goBackToSpecialization() { hideAll(); document.getElementById('specialization-selection').classList.remove('hidden'); }
+        function goBackToLevels() { hideAll(); document.getElementById('level-selection').classList.remove('hidden'); }
+        function goBackToSemesters() { hideAll(); if(currentLevel) { document.getElementById('semesters-container').classList.remove('hidden'); } else { document.getElementById('level-selection').classList.remove('hidden'); } }
+        function goBackToSubjects() { hideAll(); document.getElementById('subjects-container').classList.remove('hidden'); }
+        function goBackToCategories() { hideAll(); document.getElementById('category-selection-container').classList.remove('hidden'); }
 
-        function showSpecializationSelection() { stageReportMode = false; hideAll(); document.getElementById('specialization-selection').classList.remove('hidden'); }
-
-        function goBackToStageReportHome() {
-            stageReportMode = true;
-            hideAll();
-            const box = document.getElementById('stage-report-home-selection');
-            if (box) box.classList.remove('hidden');
-        }
-        
-        function openStageReportsHome() {
-    stageReportMode = true;
-    hideAll();
-    const box = document.getElementById('stage-report-home-selection');
-    if (box) box.classList.remove('hidden');
-    try { logSupabaseAnalytics('دخول قسم', 'Rapport de stage de la 2ème année - S5'); } catch (_) {}
-}
-
-function openStageReportForSpecialization(spec) {
-    const s = String(spec || '').toLowerCase();
-    if (!branchMap[s]) return;
-    currentSpecialization = s;
-    currentBranch = branchMap[s];
-    currentLevel = 'l2';
-    currentSemester = 's5';
-    allFiles = [];
-    try { logSupabaseAnalytics('دخول مادة', 'Rapport de stage de la 2ème année - ' + s.toUpperCase()); } catch (_) {}
-    fetchFilesFromGitHub(currentBranch).catch(() => {}).finally(() => {
-        loadFiles('Rapport de stage de la 2ème année');
-    });
-}
-
-function initStageReportHomeMonth() {
-    const now = new Date();
-    // هذا المدخل مؤقت لشهر سبتمبر 2026 فقط، ثم تعود الصفحة الرئيسية تلقائياً كما كانت.
-    const isTargetMonth = now.getFullYear() === 2026 && now.getMonth() === 8;
-    document.documentElement.classList.toggle('unem-stage-report-month', isTargetMonth);
-    if (!isTargetMonth) return;
-    const cards = document.querySelectorAll('#stage-report-home-specializations [data-stage-spec]');
-    cards.forEach(card => {
-        const open = (event) => {
-            if (event) event.preventDefault();
-            openStageReportForSpecialization(card.getAttribute('data-stage-spec'));
-        };
-        card.addEventListener('click', open);
-        card.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') open(event);
-        });
-    });
-}
-
-
+        function showSpecializationSelection() { hideAll(); document.getElementById('specialization-selection').classList.remove('hidden'); }
         
         function selectSpecialization(spec) { 
-            stageReportMode = false;
             if(typeof gtag === 'function') gtag('event', 'select_specialization', { 'specialization': spec });
             logSupabaseAnalytics('دخول تخصص', spec.toUpperCase()); 
             
@@ -5392,7 +5283,7 @@ function initStageReportHomeMonth() {
                 isArchiveSpecialCase = true; 
                 hideAll(); 
                 document.getElementById('file-list-container').classList.remove('hidden'); 
-                document.getElementById('file-list-back-btn').setAttribute('onclick', stageReportMode ? 'goBackToStageReportHome()' : 'goBackToSubjects()'); 
+                document.getElementById('file-list-back-btn').setAttribute('onclick', 'goBackToSubjects()'); 
                 document.getElementById('pdf-list').innerHTML = ""; 
                 document.getElementById('loading-spinner').classList.remove('hidden'); 
                 document.getElementById('no-files-msg').classList.add('hidden');
@@ -5400,7 +5291,7 @@ function initStageReportHomeMonth() {
                 isArchiveSpecialCase = false; 
                 hideAll(); 
                 document.getElementById('category-selection-container').classList.remove('hidden'); 
-                document.getElementById('file-list-back-btn').setAttribute('onclick', stageReportMode ? 'goBackToStageReportHome()' : 'goBackToCategories()'); 
+                document.getElementById('file-list-back-btn').setAttribute('onclick', 'goBackToCategories()'); 
                 applySubjectCategoryGrid(subjectName);
             }
             
@@ -5809,113 +5700,16 @@ function initStageReportHomeMonth() {
             if(query.length === 0) { closeSearch(); return; }
             if(query.length > 2) {
                 if(typeof gtag === 'function') gtag('event', 'search', { 'search_term': query });
-                logSupabaseAnalytics('بحث', query);
+                logSupabaseAnalytics('بحث', query); 
             }
 
-            hideAll();
-            document.getElementById('file-list-container').classList.remove('hidden');
-            document.getElementById('file-list-back-btn').setAttribute('onclick', stageReportMode ? 'goBackToStageReportHome()' : 'closeSearch()');
-            document.getElementById('selected-subject-name').textContent = query;
-            const pdfList = document.getElementById('pdf-list');
-            pdfList.innerHTML = "";
-            const term = normalizeText(query);
-
-            /*
-             * وضع Rapport de stage:
-             * البحث هنا معزول تماماً عن البحث العام. لا نبحث في ملفات المواد
-             * الأخرى حتى لو كتب المستخدم اسم مادة أخرى في خانة البحث.
-             * المصدر الرسمي للمادة هو نفس مادة S5 الأصلية:
-             * "Rapport de stage de la 2ème année".
-             */
-            if (stageReportMode) {
-                const reportSubject = 'Rapport de stage de la 2ème année';
-                const reportCodeVariants = subjectCodeVariants(reportSubject).map(v => v.toLowerCase());
-                const reportMarkers = [
-                    'rapport de stage', 'rapport_stage', 'rapport-de-stage',
-                    'rapportdestage', 'stage de la 2eme', 'stage de la 2ème',
-                    'stage_2eme', 'stage-2eme'
-                ];
-                const isReportFile = (file) => {
-                    const text = normalizeText([
-                        file && file.name || '',
-                        file && file.original_name || '',
-                        file && file.path || '',
-                        file && file.github_path || '',
-                        file && file.subject || '',
-                        file && file.subject_code || ''
-                    ].join(' '));
-                    const code = normalizeText(file && file.subject_code || '');
-                    if (reportCodeVariants.includes(code)) return true;
-                    return reportMarkers.some(marker => text.includes(normalizeText(marker)));
-                };
-
-                let stageResults = [];
-
-                // 1) Supabase: المطابقة الصريحة للمادة + S5 فقط.
-                if (supabaseClient) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('documents')
-                            .select('id,name,original_name,source,cloudinary_url,cloudinary_public_id,cloudinary_resource_type,folder,file_type,subject,subject_code,specialization,level,semester,github_url,github_path,mime_type,status,sort_order,created_at')
-                            .in('semester', ['S5','s5'])
-                            .or(reportCodeVariants.map(code => 'subject_code.eq.' + code).concat(['subject.ilike.%Rapport de stage de la 2ème année%']).join(','))
-                            .order('sort_order', { ascending: true, nullsFirst: false })
-                            .order('created_at', { ascending: false })
-                            .limit(1000);
-                        if (error) throw error;
-                        stageResults = (data || [])
-                            .filter(r => !r.status || r.status === 'active')
-                            .filter(isReportFile)
-                            .map(mapDocumentRow)
-                            .filter(file => normalizeText([
-                                file.name || '', file.original_name || '', file.subject || ''
-                            ].join(' ')).includes(term));
-                    } catch (err) {
-                        console.warn('stage report search (Supabase)', err);
-                    }
-                }
-
-                // 2) GitHub: حتى ملفات GitHub غير المسجلة في documents لا تتسرب
-                // إلى البحث إلا إذا كانت مرتبطة بوضوح بمادة Rapport de stage.
-                try {
-                    const branches = Object.values(branchMap);
-                    const branchResults = await Promise.all(branches.map(async (branch) => {
-                        try {
-                            const files = await fetchFilesFromGitHub(branch);
-                            return (files || [])
-                                .filter(f => f && f.type === 'file' && isValidFile(f.name))
-                                .filter(f => isReportFile(f))
-                                .filter(f => normalizeText(f.name || '').includes(term))
-                                .map(f => mapGithubFile(f, reportSubject));
-                        } catch (_) { return []; }
-                    }));
-                    stageResults = stageResults.concat(branchResults.flat());
-                } catch (_) {}
-
-                // منع التكرار بين Cloudinary/GitHub/Supabase.
-                const seen = new Set();
-                const unique = stageResults.filter(file => {
-                    const key = normalizeText(String(file.id || file.cloudinary_public_id || file.github_path || file.path || file.name || ''));
-                    if (seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                });
-
-                document.getElementById('selected-subject-name').textContent = query;
-                if(unique.length === 0) {
-                    document.getElementById('no-files-msg').classList.remove('hidden');
-                } else {
-                    document.getElementById('no-files-msg').classList.add('hidden');
-                    unique.forEach(file => pdfList.appendChild(buildFileListItem(file)));
-                }
-                return;
-            }
-
-            // البحث العام الأصلي خارج وضع Rapport de stage — لم يتغير.
+            hideAll(); document.getElementById('file-list-container').classList.remove('hidden'); document.getElementById('file-list-back-btn').setAttribute('onclick', 'closeSearch()'); document.getElementById('selected-subject-name').textContent = query;
+            const pdfList = document.getElementById('pdf-list'); pdfList.innerHTML = ""; const term = normalizeText(query);
             if(allFiles.length === 0) fetchFilesFromGitHub('main');
             const results = allFiles.filter(file => isValidFile(file.name) && normalizeText(file.name).includes(term))
                                     .map(file => ({...file, source: 'github'}));
 
+            // البحث أيضاً داخل الملفات الجديدة المرفوعة على Cloudinary
             let docResults = [];
             if (supabaseClient && query.length > 1) {
                 try {
@@ -5933,7 +5727,7 @@ function initStageReportHomeMonth() {
             if(all.length === 0) { document.getElementById('no-files-msg').classList.remove('hidden'); }
             else { document.getElementById('no-files-msg').classList.add('hidden'); all.forEach(file => pdfList.appendChild(buildFileListItem(file))); }
         }
-
+        
         function closeSearch() { hideAll(); document.getElementById('main-menu').classList.remove('hidden'); }
         function closePdfViewer() { if (viewerFallbackTimer) { clearTimeout(viewerFallbackTimer); viewerFallbackTimer = null; } document.getElementById('pdf-viewer-overlay').classList.add('hidden'); document.getElementById('pdf-render-area').innerHTML = ""; }
         function openUnionModal() { document.getElementById('union-modal-overlay').classList.remove('hidden'); }
@@ -7659,6 +7453,15 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
     var frameId = 'registration-browser-frame';
     var loadingId = 'registration-browser-loading';
 
+    function toProxyUrl(url){
+        try{
+            var target = new URL(url || DEFAULT_REGISTRATION_URL, window.location.href).href;
+            return '/api/proxy?url=' + encodeURIComponent(target);
+        }catch(_){
+            return '/api/proxy?url=' + encodeURIComponent(DEFAULT_REGISTRATION_URL);
+        }
+    }
+
     async function refreshRegistrationUrl(){
         try{
             if(typeof loadRegistrationUrlFromDB === 'function'){
@@ -7668,115 +7471,99 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
         return registrationUrl;
     }
 
+    function ensureOverlay(){
+        var overlay = document.getElementById(overlayId);
+        if(overlay) return overlay;
+        overlay = document.createElement('div');
+        overlay.id = overlayId;
+        overlay.className = 'hidden';
+        overlay.setAttribute('aria-hidden','true');
+        overlay.setAttribute('role','dialog');
+        overlay.setAttribute('aria-label','التسجيل في المعهد');
+        overlay.style.display = 'none';
+        overlay.innerHTML =
+            '<div class="registration-browser-toolbar">'+
+            '  <div class="registration-browser-title"><strong>📝 التسجيل في المعهد</strong><small id="registration-browser-url-label"></small></div>'+
+            '  <div class="registration-browser-actions">'+
+            '    <button type="button" class="registration-browser-action" id="registration-browser-reload" title="إعادة التحميل"><i class="fas fa-rotate-right"></i><span class="registration-action-label">تحديث</span></button>'+
+            '    <button type="button" class="registration-browser-action" id="registration-browser-close" title="إغلاق"><i class="fas fa-xmark"></i><span class="registration-action-label">إغلاق</span></button>'+
+            '  </div>'+
+            '</div>'+ 
+            '<div class="registration-browser-frame-wrap">'+
+            '  <div class="registration-browser-loading hidden" id="registration-browser-loading"><div class="registration-browser-spinner"></div><div>جاري فتح صفحة التسجيل...</div></div>'+
+            '  <button type="button" class="registration-browser-back-fab" id="registration-standalone-back">← رجوع للمنصة</button>'+ 
+            '  <iframe id="registration-browser-frame" title="التسجيل في المعهد" src="about:blank" allow="fullscreen; geolocation; autoplay; encrypted-media; payment"></iframe>'+ 
+            '</div>';
+        document.body.appendChild(overlay);
+
+        var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
+        if(frame) frame.addEventListener('load', function(){ if(loading) loading.classList.add('hidden'); });
+        var back = document.getElementById('registration-standalone-back');
+        if(back) back.addEventListener('click', function(e){ window.closeRegistrationBrowser(e); }, true);
+        var closeBtn = document.getElementById('registration-browser-close');
+        if(closeBtn) closeBtn.addEventListener('click', function(e){ window.closeRegistrationBrowser(e); });
+        var reloadBtn = document.getElementById('registration-browser-reload');
+        if(reloadBtn) reloadBtn.addEventListener('click', function(e){ if(e && e.preventDefault) e.preventDefault(); window.reloadRegistrationBrowser(); });
+        return overlay;
+    }
+
     window.openRegistrationBrowser = function(){
-        /*
-         * IMPORTANT: inscription.iscae.mr is an external origin.
-         * Loading it inside an iframe can make its own JavaScript/navigation
-         * unusable when the remote site applies iframe/security restrictions.
-         * Open it as a real top-level page instead so ALL of its buttons, forms,
-         * redirects and JavaScript work normally.
-         */
-        var currentUrl = registrationUrl || DEFAULT_REGISTRATION_URL;
-        var lang = (typeof currentLang !== 'undefined' && currentLang === 'fr') ? 'fr' : 'ar';
-
-        function buildRegistrationTarget(url){
-            try {
-                var u = new URL(url, window.location.href);
-                /* Do not force an unsupported language parameter onto the external
-                   registration system. Preserve its own language handling. */
-                return u.href;
-            } catch (_) {
-                return String(url || DEFAULT_REGISTRATION_URL);
-            }
-        }
-
+        var overlay = ensureOverlay();
+        var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
+        try{ if(typeof logSupabaseAnalytics === 'function'){ logSupabaseAnalytics('دخول قسم','التسجيل في المعهد'); } }catch(_){}
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+        overlay.removeAttribute('aria-hidden');
+        document.body.classList.add('registration-browser-open');
+        if(loading) loading.classList.remove('hidden');
         function launch(url){
-            var target = buildRegistrationTarget(url);
-            try {
-                if (typeof logSupabaseAnalytics === 'function') {
-                    logSupabaseAnalytics('دخول قسم', 'التسجيل في المعهد');
-                }
-            } catch (_) {}
-
-            /* First try a separate top-level browser tab/window. This keeps the
-               UNEM ISCAE platform open and gives the external site full browser
-               privileges. If the WebView blocks popups, fall back to same-tab
-               navigation, which is guaranteed to make the remote site's controls
-               functional. */
-            var opened = null;
-            try {
-                opened = window.open(target, '_blank', 'noopener,noreferrer');
-            } catch (_) {}
-
-            if (!opened) {
-                try {
-                    window.location.assign(target);
-                } catch (_) {
-                    window.location.href = target;
-                }
-            }
-            return false;
+            var target = new URL(url || DEFAULT_REGISTRATION_URL, window.location.href).href;
+            var label = document.getElementById('registration-browser-url-label');
+            if(label) label.textContent = target;
+            try{ frame.src = toProxyUrl(target); }catch(_){}
         }
-
-        /* Refresh the administrator-controlled URL first, then launch it.
-           If Supabase is temporarily unavailable, use the cached/default URL. */
-        try {
-            if (typeof refreshRegistrationUrl === 'function') {
-                refreshRegistrationUrl().then(function(url){ launch(url || currentUrl); }).catch(function(){ launch(currentUrl); });
-            } else {
-                launch(currentUrl);
-            }
-        } catch (_) {
-            launch(currentUrl);
-        }
+        try{
+            refreshRegistrationUrl().then(function(url){ launch(url); }).catch(function(){ launch(registrationUrl); });
+        }catch(_){ launch(registrationUrl); }
         return false;
     };
 
     window.closeRegistrationBrowser = function(e){
-        if (e && typeof e.preventDefault === 'function') e.preventDefault();
-        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if(e && typeof e.preventDefault === 'function') e.preventDefault();
+        if(e && typeof e.stopPropagation === 'function') e.stopPropagation();
         var overlay = document.getElementById(overlayId), loading = document.getElementById(loadingId);
-        if (!overlay) return false;
+        if(!overlay) return false;
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
         overlay.setAttribute('aria-hidden','true');
         document.body.classList.remove('registration-browser-open');
-        if (loading) loading.classList.add('hidden');
+        var frame = document.getElementById(frameId);
+        if(frame){ try{ frame.src = 'about:blank'; }catch(_){} }
+        if(loading) loading.classList.add('hidden');
         return false;
     };
 
     window.reloadRegistrationBrowser = function(){
         var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
-        if (!frame) return;
-        if (loading) loading.classList.remove('hidden');
+        if(!frame) return;
+        if(loading) loading.classList.remove('hidden');
         refreshRegistrationUrl().then(function(url){
-            var registrationLang = (typeof currentLang !== 'undefined' && currentLang === 'fr') ? 'fr' : 'ar';
-            var target = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'lang=' + registrationLang;
-            try { frame.setAttribute('src', target); } catch (_) {}
-        });
+            var target = new URL(url || registrationUrl || DEFAULT_REGISTRATION_URL, window.location.href).href;
+            var label = document.getElementById('registration-browser-url-label');
+            if(label) label.textContent = target;
+            try{ frame.src = toProxyUrl(target); }catch(_){}
+        }).catch(function(){});
     };
 
     document.addEventListener('DOMContentLoaded', function(){
-        var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
-        if (frame) frame.addEventListener('load', function(){ if (loading) loading.classList.add('hidden'); });
-        var back = document.getElementById('registration-standalone-back');
-        if (back) back.addEventListener('click', function(e){ window.closeRegistrationBrowser(e); }, true);
+        ensureOverlay();
         refreshRegistrationUrl().catch(function(){});
     });
 
     document.addEventListener('keydown', function(e){
-        if (e.key === 'Escape' && document.body.classList.contains('registration-browser-open')) {
-            window.closeRegistrationBrowser();
-        }
+        if(e.key === 'Escape' && document.body.classList.contains('registration-browser-open')) window.closeRegistrationBrowser();
     });
 })();
-</script>
-
-<script>
-// تشغيل العرض المؤقت لـ Rapport de stage في الصفحة الرئيسية لشهر سبتمبر 2026.
-document.addEventListener('DOMContentLoaded', function(){
-    try { initStageReportHomeMonth(); } catch (e) { console.warn('stage report home month', e); }
-});
 </script>
 </body>
 </html>
