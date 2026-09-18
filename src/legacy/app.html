@@ -7456,9 +7456,9 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
     function toProxyUrl(url){
         try{
             var target = new URL(url || DEFAULT_REGISTRATION_URL, window.location.href).href;
-            return '/api/proxy?url=' + encodeURIComponent(target);
+            return '/api/web-proxy?url=' + encodeURIComponent(target);
         }catch(_){
-            return '/api/proxy?url=' + encodeURIComponent(DEFAULT_REGISTRATION_URL);
+            return '/api/web-proxy?url=' + encodeURIComponent(DEFAULT_REGISTRATION_URL);
         }
     }
 
