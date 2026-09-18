@@ -961,7 +961,21 @@
 
         body.dark-mode .semester-card, body.dark-mode .category-card { background-color: var(--card-bg); }
 
-        .buttons-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        /* مدخل Rapport de stage في الصفحة الرئيسية — نفس المادة الأصلية الموجودة في S5 */
+#main-menu .stage-report-home-card { 
+    --theme-color:#0f766e; --theme-light:rgba(15,118,110,.14);
+    background:linear-gradient(145deg,rgba(236,253,245,.98),rgba(240,253,250,.90));
+    border-color:rgba(15,118,110,.22);
+}
+#main-menu .stage-report-home-card .icon-box { color:#0f766e; }
+#stage-report-home-selection .specialization-card { cursor:pointer; }
+
+/* في سبتمبر 2026: لا نحذف البطاقات الأصلية، بل نخفيها مؤقتاً ونُبقي مدخل التقرير فقط. */
+html.unem-stage-report-month #main-menu .semester-card:not(#stage-report-home-card) { display:none !important; }
+html.unem-stage-report-month #main-menu .semesters-grid { grid-template-columns:minmax(0,1fr) !important; max-width:520px; }
+html.unem-stage-report-month #main-menu .stage-report-home-card { display:flex !important; aspect-ratio:auto; min-height:150px; }
+
+.buttons-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
         @media (min-width: 650px) { .buttons-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
         @media (min-width: 950px) { .buttons-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; } }
         
@@ -1849,262 +1863,6 @@ body.dark-mode #main-menu .registration-card .icon-box{
 }
 </style>
 
-
-<style id="home-layout-polish-2026">
-/* تحسين الصفحة الرئيسية: شبكة مرنة ومتوازنة مع أو بدون بطاقة التسجيل */
-#main-menu{
-  width:min(100% - 20px,760px)!important;
-  margin:0 auto!important;
-  padding:clamp(12px,2.5vw,22px)!important;
-  border-radius:28px!important;
-  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,249,246,.94))!important;
-  border:1px solid rgba(15,118,110,.12)!important;
-  box-shadow:0 18px 48px rgba(15,81,50,.10)!important;
-}
-#main-menu .semesters-grid{
-  width:100%!important;
-  max-width:680px!important;
-  margin:0 auto!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  grid-template-rows:repeat(2,minmax(150px,1fr))!important;
-  gap:clamp(10px,2vw,16px)!important;
-}
-#main-menu .semester-card.wide-card{
-  position:relative!important;
-  overflow:hidden!important;
-  min-height:150px!important;
-  padding:clamp(12px,2.2vw,18px)!important;
-  border:1px solid rgba(15,23,42,.08)!important;
-  border-inline-end:4px solid var(--theme-color)!important;
-  border-bottom:4px solid var(--theme-color)!important;
-  border-radius:20px!important;
-  box-shadow:0 8px 20px rgba(15,23,42,.07)!important;
-  transition:transform .22s ease,box-shadow .22s ease!important;
-}
-#main-menu .semester-card.wide-card::after{
-  content:"";position:absolute;inset:auto -24px -34px auto;width:96px;height:96px;
-  border-radius:50%;background:var(--theme-light);pointer-events:none;
-}
-#main-menu .semester-card.wide-card:active{transform:scale(.975)!important;}
-#main-menu .semester-card.wide-card .icon-box{
-  position:relative!important;z-index:1;width:44px!important;height:44px!important;
-  border-radius:14px!important;background:rgba(255,255,255,.72)!important;
-  box-shadow:0 5px 13px rgba(15,23,42,.08)!important;
-}
-#main-menu .semester-card.wide-card h3{
-  position:relative!important;z-index:1;font-size:clamp(.78rem,2.1vw,.98rem)!important;
-  line-height:1.35!important;margin:12px 0 5px!important;
-}
-#main-menu .semester-card.wide-card p{
-  position:relative!important;z-index:1;font-size:clamp(.58rem,1.55vw,.72rem)!important;
-  line-height:1.5!important;max-width:18ch;margin-inline:auto!important;
-}
-#main-menu.registration-disabled .semesters-grid{
-  grid-template-rows:repeat(2,minmax(155px,1fr))!important;
-}
-#main-menu.registration-disabled .gpa-card{grid-column:2!important;}
-#main-menu.registration-disabled .about-card{grid-column:3!important;}
-body.dark-mode #main-menu{
-  background:linear-gradient(145deg,rgba(15,23,42,.96),rgba(17,64,55,.92))!important;
-  border-color:rgba(148,163,184,.18)!important;
-  box-shadow:0 18px 48px rgba(0,0,0,.22)!important;
-}
-body.dark-mode #main-menu .semester-card.wide-card{
-  border-color:rgba(255,255,255,.12)!important;
-  border-inline-end-color:var(--theme-color)!important;
-  border-bottom-color:var(--theme-color)!important;
-}
-@media(max-width:600px){
-  #main-menu{width:calc(100% - 18px)!important;padding:12px 9px!important;border-radius:24px!important;}
-  #main-menu .semesters-grid{gap:9px!important;grid-template-rows:repeat(2,minmax(142px,1fr))!important;}
-  #main-menu.registration-disabled .semesters-grid{grid-template-rows:repeat(2,minmax(142px,1fr))!important;}
-  #main-menu .semester-card.wide-card{min-height:142px!important;padding:10px 7px!important;border-radius:17px!important;}
-  #main-menu .semester-card.wide-card .icon-box{width:36px!important;height:36px!important;font-size:.9rem!important;border-radius:11px!important;}
-  #main-menu .semester-card.wide-card h3{font-size:.72rem!important;margin-top:9px!important;}
-  #main-menu .semester-card.wide-card p{font-size:.55rem!important;line-height:1.4!important;}
-}
-@media(max-width:360px){
-  #main-menu .semesters-grid{gap:7px!important;}
-  #main-menu .semester-card.wide-card{min-height:132px!important;padding:8px 5px!important;}
-  #main-menu .semester-card.wide-card h3{font-size:.66rem!important;}
-  #main-menu .semester-card.wide-card p{font-size:.5rem!important;}
-}
-</style>
-<style id="home-layout-polish-2026-v2">
-/* تصميم الصفحة الرئيسية المحسّن: إبراز الأرشيف عند إخفاء التسجيل */
-#main-menu{
-  position:relative!important;
-  isolation:isolate!important;
-  overflow:hidden!important;
-  background:
-    radial-gradient(circle at 8% 0%,rgba(16,185,129,.11),transparent 30%),
-    radial-gradient(circle at 100% 100%,rgba(37,99,235,.10),transparent 34%),
-    linear-gradient(145deg,#ffffff 0%,#f7fbfa 100%)!important;
-  border:1px solid rgba(16,185,129,.16)!important;
-  box-shadow:0 20px 55px rgba(15,81,50,.12)!important;
-}
-#main-menu::before{
-  content:"";position:absolute;inset:0 0 auto 0;height:5px;z-index:-1;
-  background:linear-gradient(90deg,#16a34a,#0f766e,#2563eb,#7c3aed);
-}
-#main-menu .semesters-grid{position:relative!important;z-index:1;}
-#main-menu .semester-card.wide-card{
-  justify-content:center!important;
-  align-items:center!important;
-  text-align:center!important;
-  background-image:linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,255,255,.62))!important;
-  box-shadow:0 10px 24px rgba(15,23,42,.07),inset 0 1px 0 rgba(255,255,255,.9)!important;
-}
-#main-menu .semester-card.wide-card:hover{
-  transform:translateY(-3px)!important;
-  box-shadow:0 16px 30px rgba(15,23,42,.12),inset 0 1px 0 rgba(255,255,255,.95)!important;
-}
-#main-menu .semester-card.wide-card .icon-box{
-  margin-inline:auto!important;
-  border:1px solid rgba(255,255,255,.85)!important;
-}
-#main-menu .semester-card.wide-card h3{font-weight:950!important;letter-spacing:-.015em!important;}
-#main-menu .semester-card.wide-card p{font-weight:700!important;color:#64748b!important;}
-/* عند إخفاء التسجيل: الأرشيف يصبح البطاقة الرئيسية بعرض عمودين */
-#main-menu.registration-disabled .archive-card{
-  grid-column:span 2!important;
-  min-height:176px!important;
-  background:
-    radial-gradient(circle at 15% 15%,rgba(34,197,94,.18),transparent 34%),
-    linear-gradient(145deg,#ecfdf5 0%,#ffffff 68%,#f0fdf4 100%)!important;
-  border-inline-end-width:5px!important;
-  border-bottom-width:5px!important;
-  box-shadow:0 14px 30px rgba(22,163,74,.14),inset 0 1px 0 rgba(255,255,255,.95)!important;
-}
-#main-menu.registration-disabled .archive-card .icon-box{
-  width:54px!important;height:54px!important;font-size:1.25rem!important;
-  border-radius:17px!important;background:rgba(255,255,255,.84)!important;
-}
-#main-menu.registration-disabled .archive-card h3{font-size:1.05rem!important;margin-top:14px!important;}
-#main-menu.registration-disabled .archive-card p{font-size:.72rem!important;max-width:28ch!important;}
-#main-menu.registration-disabled .result-card,
-#main-menu.registration-disabled .whatsapp-card,
-#main-menu.registration-disabled .gpa-card,
-#main-menu.registration-disabled .about-card{min-height:154px!important;}
-body.dark-mode #main-menu{
-  background:
-    radial-gradient(circle at 8% 0%,rgba(16,185,129,.16),transparent 30%),
-    radial-gradient(circle at 100% 100%,rgba(59,130,246,.14),transparent 34%),
-    linear-gradient(145deg,#0f211f 0%,#111827 100%)!important;
-  border-color:rgba(110,231,183,.18)!important;
-}
-body.dark-mode #main-menu .semester-card.wide-card{background-image:linear-gradient(145deg,rgba(248,250,252,.98),rgba(241,245,249,.9))!important;}
-@media(max-width:600px){
-  #main-menu.registration-disabled .archive-card{min-height:164px!important;}
-  #main-menu.registration-disabled .archive-card .icon-box{width:44px!important;height:44px!important;font-size:1rem!important;}
-  #main-menu.registration-disabled .archive-card h3{font-size:.82rem!important;}
-  #main-menu.registration-disabled .archive-card p{font-size:.58rem!important;}
-  #main-menu.registration-disabled .result-card,
-  #main-menu.registration-disabled .whatsapp-card,
-  #main-menu.registration-disabled .gpa-card,
-  #main-menu.registration-disabled .about-card{min-height:142px!important;}
-}
-@media(max-width:360px){
-  #main-menu.registration-disabled .archive-card{min-height:150px!important;}
-  #main-menu.registration-disabled .archive-card h3{font-size:.75rem!important;}
-}
-</style>
-<style id="final-visual-update-2026">
-/* ألوان المنصة: أخضر زمردي وتركوازي بدل الأحمر مع خلفية هادئة */
-body{
-  background:
-    radial-gradient(circle at 8% 5%,rgba(16,185,129,.10),transparent 24%),
-    radial-gradient(circle at 92% 28%,rgba(14,165,233,.08),transparent 25%),
-    linear-gradient(160deg,#f8fcfb 0%,#eef8f4 52%,#f5f9ff 100%)!important;
-}
-#main-menu .archive-card{
-  --theme-color:#0f766e!important;
-  --theme-light:rgba(20,184,166,.18)!important;
-  background:
-    radial-gradient(circle at 15% 12%,rgba(45,212,191,.18),transparent 32%),
-    linear-gradient(145deg,#ecfdf8 0%,#ffffff 64%,#effcf8 100%)!important;
-  border-bottom-color:#0f766e!important;
-  border-inline-end-color:#0f766e!important;
-}
-#main-menu .archive-card .icon-box{color:#0f766e!important;}
-#main-menu.registration-disabled .archive-card{
-  --theme-color:#0f766e!important;
-  background:
-    radial-gradient(circle at 15% 15%,rgba(45,212,191,.24),transparent 34%),
-    linear-gradient(145deg,#dffaf2 0%,#ffffff 68%,#ecfdf8 100%)!important;
-  border-bottom-color:#0f766e!important;
-  border-inline-end-color:#0f766e!important;
-}
-body.dark-mode{
-  background:
-    radial-gradient(circle at 8% 5%,rgba(16,185,129,.16),transparent 25%),
-    radial-gradient(circle at 92% 28%,rgba(14,165,233,.14),transparent 25%),
-    linear-gradient(160deg,#071c19 0%,#0f2926 52%,#111827 100%)!important;
-}
-body.dark-mode #main-menu .archive-card,
-body.dark-mode #main-menu.registration-disabled .archive-card{
-  --theme-color:#14b8a6!important;
-  background:linear-gradient(145deg,#dffaf2 0%,#f8fffd 100%)!important;
-  border-bottom-color:#14b8a6!important;
-  border-inline-end-color:#14b8a6!important;
-}
-/* حركات خفيفة لا تعيق الاستخدام */
-@keyframes unemCardEntrance{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes unemGlow{0%,100%{box-shadow:0 10px 24px rgba(15,23,42,.07),0 0 0 0 rgba(20,184,166,0)}50%{box-shadow:0 14px 28px rgba(15,23,42,.10),0 0 0 5px rgba(20,184,166,.045)}}
-#main-menu .semester-card.wide-card{animation:unemCardEntrance .55s cubic-bezier(.2,.8,.2,1) both;}
-#main-menu .semester-card.wide-card:nth-child(1){animation-delay:.04s;}
-#main-menu .semester-card.wide-card:nth-child(2){animation-delay:.09s;}
-#main-menu .semester-card.wide-card:nth-child(3){animation-delay:.14s;}
-#main-menu .semester-card.wide-card:nth-child(4){animation-delay:.19s;}
-#main-menu .semester-card.wide-card:nth-child(5){animation-delay:.24s;}
-#main-menu .semester-card.wide-card:nth-child(6){animation-delay:.29s;}
-#main-menu.registration-disabled .archive-card{animation:unemCardEntrance .6s cubic-bezier(.2,.8,.2,1) both,unemGlow 3.8s ease-in-out 1s infinite;}
-#main-menu .semester-card.wide-card .icon-box{transition:transform .25s ease,background .25s ease!important;}
-#main-menu .semester-card.wide-card:hover .icon-box{transform:translateY(-3px) rotate(-4deg) scale(1.06)!important;background:#ffffff!important;}
-@media(prefers-reduced-motion:reduce){
-  #main-menu .semester-card.wide-card,#main-menu.registration-disabled .archive-card{animation:none!important;}
-  #main-menu .semester-card.wide-card,.welcome-skip{transition:none!important;}
-}
-</style>
-<style id="results-whatsapp-highlight-2026">
-/* إبراز النتائج وواتساب دون تغيير أي وظيفة أو ترتيب */
-#main-menu .result-card{
-  --theme-color:#2563eb!important;
-  --theme-light:rgba(37,99,235,.20)!important;
-  background:
-    radial-gradient(circle at 15% 12%,rgba(96,165,250,.22),transparent 32%),
-    linear-gradient(145deg,#eff6ff 0%,#ffffff 64%,#f5f8ff 100%)!important;
-  border-bottom-color:#2563eb!important;
-  border-inline-end-color:#2563eb!important;
-  box-shadow:0 12px 26px rgba(37,99,235,.13),inset 0 1px 0 rgba(255,255,255,.95)!important;
-}
-#main-menu .result-card .icon-box{
-  color:#2563eb!important;
-  background:rgba(219,234,254,.82)!important;
-  box-shadow:0 6px 15px rgba(37,99,235,.16)!important;
-}
-#main-menu .result-card h3{color:#1d4ed8!important;}
-#main-menu .whatsapp-card{
-  --theme-color:#16a34a!important;
-  --theme-light:rgba(34,197,94,.22)!important;
-  background:
-    radial-gradient(circle at 15% 12%,rgba(74,222,128,.24),transparent 32%),
-    linear-gradient(145deg,#ecfdf3 0%,#ffffff 64%,#f0fdf4 100%)!important;
-  border-bottom-color:#16a34a!important;
-  border-inline-end-color:#16a34a!important;
-  box-shadow:0 12px 26px rgba(22,163,74,.14),inset 0 1px 0 rgba(255,255,255,.95)!important;
-}
-#main-menu .whatsapp-card .icon-box{
-  color:#16a34a!important;
-  background:rgba(220,252,231,.88)!important;
-  box-shadow:0 6px 15px rgba(22,163,74,.16)!important;
-}
-#main-menu .whatsapp-card h3{color:#15803d!important;}
-#main-menu .result-card:hover,#main-menu .whatsapp-card:hover{transform:translateY(-5px) scale(1.012)!important;}
-body.dark-mode #main-menu .result-card{background:linear-gradient(145deg,#eff6ff 0%,#f8fbff 100%)!important;}
-body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfdf3 0%,#f8fff9 100%)!important;}
-@media(prefers-reduced-motion:reduce){#main-menu .result-card:hover,#main-menu .whatsapp-card:hover{transform:none!important;}}
-</style>
 </head>
 <body>
 <!-- مقدمة ترحيبية متحركة عند دخول المنصة -->
@@ -2157,6 +1915,13 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
 <!-- 1. القائمة الرئيسية -->
 <div class="section-box" id="main-menu">
 <div class="semesters-grid">
+<!-- تقرير التدريب S5: في سبتمبر فقط يظهر هذا المدخل في الصفحة الرئيسية، وهو نفس مادة S5 الأصلية -->
+<div class="semester-card wide-card stage-report-home-card" id="stage-report-home-card" onclick="openStageReportsHome()" style="--theme-color:#0f766e; --theme-light:rgba(15,118,110,0.16);">
+<div class="icon-box"><i class="fas fa-file-signature"></i></div>
+<h3 data-i18n="stage_report_home">Rapport de stage de la 2ème année</h3>
+<p data-i18n="stage_report_home_desc">جميع التخصصات</p>
+</div>
+
 <!-- التسجيل في المعهد: يفتح داخل المتصفح الداخلي للمنصة -->
 
 
@@ -2211,10 +1976,26 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
 </div>
 <div class="registration-browser-frame-wrap">
 <div aria-live="polite" class="registration-browser-loading" id="registration-browser-loading"><span aria-hidden="true" class="registration-browser-spinner"></span><span data-i18n="registration_loading">جاري فتح صفحة التسجيل...</span></div>
-<iframe id="registration-browser-frame" loading="eager" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write; fullscreen; geolocation" src="about:blank" title="صفحة التسجيل في المعهد"></iframe>
+<iframe id="registration-browser-frame" loading="eager" referrerpolicy="strict-origin-when-cross-origin" src="about:blank" title="صفحة التسجيل في المعهد"></iframe>
 </div>
 </div>
 <!-- باقي الأكواد كما هي بدون تغيير -->
+<!-- مدخل تقرير التدريب من الصفحة الرئيسية: يستخدم نفس مادة S5 الأصلية دون إنشاء مادة جديدة -->
+<div class="section-box hidden" id="stage-report-home-selection">
+<div class="header-with-back">
+<button class="back-btn" data-i18n="btn_home" onclick="goBackToMainMenu()">الرئيسية</button>
+<h2 class="section-title" data-i18n="stage_report_home">Rapport de stage de la 2ème année</h2>
+</div>
+
+<div class="semesters-grid" id="stage-report-home-specializations">
+<div class="semester-card specialization-card" data-stage-spec="ba" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-university"></i></div><h3>BA</h3><p data-i18n="spec_ba">البنوك والتأمين</p></div>
+<div class="semester-card specialization-card" data-stage-spec="fc" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-calculator"></i></div><h3>FC</h3><p data-i18n="spec_fc">المالية والمحاسبة</p></div>
+<div class="semester-card specialization-card" data-stage-spec="tcm" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-bullhorn"></i></div><h3>TCM</h3><p data-i18n="spec_tcm">تقنيات المبيعات والتسويق</p></div>
+<div class="semester-card specialization-card" data-stage-spec="grh" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-users-cog"></i></div><h3>GRH</h3><p data-i18n="spec_grh">إدارة الموارد البشرية</p></div>
+<div class="semester-card specialization-card" data-stage-spec="sae" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-chart-pie"></i></div><h3>SAE</h3><p data-i18n="spec_sae">الإحصاء التطبيقي في الاقتصاد</p></div>
+<div class="semester-card specialization-card" data-stage-spec="ig" role="button" tabindex="0"><div class="icon-box"><span class="fa-stack" style="font-size:.6em;"><i class="fas fa-shield-halved fa-stack-2x"></i><i class="fas fa-chart-line fa-stack-1x fa-inverse" style="transform:scale(.9) translateX(1px);"></i></span></div><h3>IG</h3><p data-i18n="spec_ig">المعلوماتية المطبقة على التسيير</p></div>
+</div>
+</div>
 <div class="section-box hidden" id="specialization-selection">
 <div class="header-with-back">
 <button class="back-btn" data-i18n="btn_home" onclick="goBackToMainMenu()">الرئيسية</button>
@@ -2403,14 +2184,6 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
     <div class="registration-settings-direct-body">
       <label for="registration-url-direct-input">رابط صفحة التسجيل</label>
       <input id="registration-url-direct-input" type="url" dir="ltr" autocomplete="off" inputmode="url" placeholder="https://inscription.iscae.mr/">
-      <div class="registration-visibility-row">
-        <label class="registration-visibility-label" for="registration-visibility-direct-toggle">
-          <span>👁️ إظهار بطاقة التسجيل للطلبة</span>
-          <small>عند التعطيل تختفي البطاقة فقط، ولا تتأثر بقية أقسام المنصة.</small>
-        </label>
-        <input id="registration-visibility-direct-toggle" type="checkbox" role="switch" checked>
-      </div>
-      <div id="registration-visibility-direct-status" aria-live="polite"></div>
       <div class="registration-settings-direct-actions">
         <button type="button" id="registration-url-direct-save" class="wa-save">💾 حفظ واستبدال الرابط</button>
         <button type="button" class="btn-submit" id="registration-url-direct-reload">↻ إعادة تحميل</button>
@@ -2864,6 +2637,9 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
                 card_about_desc: "نبذة تعريفية وتاريخية",
                 card_whatsapp: "مجموعات WhatsApp",
                 card_whatsapp_desc: "اختر المستوى ثم التخصص للوصول إلى مجموعتك",
+                stage_report_home: "Rapport de stage de la 2ème année",
+                stage_report_home_desc: "جميع التخصصات",
+
                 whatsapp_hub_desc: "اختر مستواك الدراسي للوصول إلى المجموعات العامة والخاصة بتخصصك.",
                 whatsapp_choose_level: "اختر المستوى الدراسي",
                 whatsapp_selected_level: "المستوى المختار",
@@ -2981,6 +2757,9 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
                 card_about_desc: "Aperçu historique et présentation",
                 card_whatsapp: "Groupes WhatsApp",
                 card_whatsapp_desc: "Choisissez le niveau puis la filière pour accéder à votre groupe",
+                stage_report_home: "Rapport de stage de la 2ème année",
+                stage_report_home_desc: "Toutes les filières",
+
                 whatsapp_hub_desc: "Choisissez votre niveau pour accéder aux groupes généraux et aux groupes de votre filière.",
                 whatsapp_choose_level: "Choisir le niveau d'études",
                 whatsapp_selected_level: "Niveau sélectionné",
@@ -3173,7 +2952,7 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
         const repoName = "UNEM-ISCAE-"; 
         const branchMap = { 'ba': 'BA', 'fc': 'FC', 'tcm': 'TCM', 'grh': 'GRH', 'sae': 'SAE', 'ig': 'IG' };
 
-        let allFiles =[]; let currentSpecialization = ''; let currentLevel = ''; let currentSemester = ''; let currentBranch = 'main'; 
+        let allFiles =[]; let currentSpecialization = ''; let currentLevel = ''; let currentSemester = ''; let currentBranch = 'main'; let stageReportMode = false; 
         let currentSubjectFiles =[]; let currentTab = 'cours'; let isArchiveSpecialCase = false; let isAdminLoggedIn = false; 
 
         /* ============ نظام الأدوار (يتم التحقق منه في Supabase وليس في الواجهة) ============ */
@@ -4430,16 +4209,82 @@ function closeAnalyticsDashboard() {
 
         function hideAll() { document.querySelectorAll('.section-box').forEach(el => el.classList.add('hidden')); }
         
-        function goBackToMainMenu() { hideAll(); document.getElementById('main-menu').classList.remove('hidden'); }
-        function goBackToSpecialization() { hideAll(); document.getElementById('specialization-selection').classList.remove('hidden'); }
-        function goBackToLevels() { hideAll(); document.getElementById('level-selection').classList.remove('hidden'); }
-        function goBackToSemesters() { hideAll(); if(currentLevel) { document.getElementById('semesters-container').classList.remove('hidden'); } else { document.getElementById('level-selection').classList.remove('hidden'); } }
-        function goBackToSubjects() { hideAll(); document.getElementById('subjects-container').classList.remove('hidden'); }
-        function goBackToCategories() { hideAll(); document.getElementById('category-selection-container').classList.remove('hidden'); }
+        function goBackToMainMenu() { stageReportMode = false; hideAll(); document.getElementById('main-menu').classList.remove('hidden'); }
+        function goBackToSpecialization() {
+            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
+            hideAll(); document.getElementById('specialization-selection').classList.remove('hidden');
+        }
+        function goBackToLevels() {
+            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
+            hideAll(); document.getElementById('level-selection').classList.remove('hidden');
+        }
+        function goBackToSemesters() {
+            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
+            hideAll(); if(currentLevel) { document.getElementById('semesters-container').classList.remove('hidden'); } else { document.getElementById('level-selection').classList.remove('hidden'); }
+        }
+        function goBackToSubjects() {
+            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
+            hideAll(); document.getElementById('subjects-container').classList.remove('hidden');
+        }
+        function goBackToCategories() {
+            if (stageReportMode) { hideAll(); document.getElementById('stage-report-home-selection').classList.remove('hidden'); return; }
+            hideAll(); document.getElementById('category-selection-container').classList.remove('hidden');
+        }
 
-        function showSpecializationSelection() { hideAll(); document.getElementById('specialization-selection').classList.remove('hidden'); }
+        function showSpecializationSelection() { stageReportMode = false; hideAll(); document.getElementById('specialization-selection').classList.remove('hidden'); }
+
+        function goBackToStageReportHome() {
+            stageReportMode = true;
+            hideAll();
+            const box = document.getElementById('stage-report-home-selection');
+            if (box) box.classList.remove('hidden');
+        }
+        
+        function openStageReportsHome() {
+    stageReportMode = true;
+    hideAll();
+    const box = document.getElementById('stage-report-home-selection');
+    if (box) box.classList.remove('hidden');
+    try { logSupabaseAnalytics('دخول قسم', 'Rapport de stage de la 2ème année - S5'); } catch (_) {}
+}
+
+function openStageReportForSpecialization(spec) {
+    const s = String(spec || '').toLowerCase();
+    if (!branchMap[s]) return;
+    currentSpecialization = s;
+    currentBranch = branchMap[s];
+    currentLevel = 'l2';
+    currentSemester = 's5';
+    allFiles = [];
+    try { logSupabaseAnalytics('دخول مادة', 'Rapport de stage de la 2ème année - ' + s.toUpperCase()); } catch (_) {}
+    fetchFilesFromGitHub(currentBranch).catch(() => {}).finally(() => {
+        loadFiles('Rapport de stage de la 2ème année');
+    });
+}
+
+function initStageReportHomeMonth() {
+    const now = new Date();
+    // هذا المدخل مؤقت لشهر سبتمبر 2026 فقط، ثم تعود الصفحة الرئيسية تلقائياً كما كانت.
+    const isTargetMonth = now.getFullYear() === 2026 && now.getMonth() === 8;
+    document.documentElement.classList.toggle('unem-stage-report-month', isTargetMonth);
+    if (!isTargetMonth) return;
+    const cards = document.querySelectorAll('#stage-report-home-specializations [data-stage-spec]');
+    cards.forEach(card => {
+        const open = (event) => {
+            if (event) event.preventDefault();
+            openStageReportForSpecialization(card.getAttribute('data-stage-spec'));
+        };
+        card.addEventListener('click', open);
+        card.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') open(event);
+        });
+    });
+}
+
+
         
         function selectSpecialization(spec) { 
+            stageReportMode = false;
             if(typeof gtag === 'function') gtag('event', 'select_specialization', { 'specialization': spec });
             logSupabaseAnalytics('دخول تخصص', spec.toUpperCase()); 
             
@@ -5149,35 +4994,9 @@ function closeAnalyticsDashboard() {
             // عرض فوري من الكاش (إن وُجد) ثم تحديث حقيقي من GitHub
             if (cachedData && allFiles.length === 0) { try { allFiles = JSON.parse(cachedData); } catch (_) {} }
             try {
-                // اجلب شجرة Git كاملة حتى تظهر الملفات الموجودة داخل كل المجلدات،
-                // وليس ملفات المجلد الجذر فقط. هذا يشمل PDF وWord وExcel وPowerPoint.
-                const treeRes = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/git/trees/${encodeURIComponent(branch)}?recursive=1&v=${new Date().getTime()}`, { cache: 'no-store' });
-                if (treeRes.ok) {
-                    const treeData = await treeRes.json();
-                    if (Array.isArray(treeData.tree)) {
-                        allFiles = treeData.tree
-                            .filter(item => item && item.type === 'blob' && item.path)
-                            .map(item => ({
-                                type: 'file',
-                                name: String(item.path).split('/').pop(),
-                                path: item.path,
-                                download_url: `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${encodeURIComponent(branch)}/${String(item.path).split('/').map(encodeURIComponent).join('/')}`
-                            }));
-                        localStorage.setItem(cacheKey, JSON.stringify(allFiles));
-                        localStorage.setItem(cacheTimeKey, now.toString());
-                    }
-                } else {
-                    // توافق احتياطي مع API المحتويات إذا تعذر endpoint الشجرة.
-                    const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/?ref=${branch}&v=${new Date().getTime()}`, { cache: 'no-store' });
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (Array.isArray(data)) {
-                            allFiles = data;
-                            localStorage.setItem(cacheKey, JSON.stringify(data));
-                            localStorage.setItem(cacheTimeKey, now.toString());
-                        }
-                    } else if (cachedData) allFiles = JSON.parse(cachedData);
-                }
+                const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/?ref=${branch}&v=${new Date().getTime()}`, { cache: 'no-store' });
+                if(res.ok) { const data = await res.json(); if(Array.isArray(data)) { allFiles = data; localStorage.setItem(cacheKey, JSON.stringify(data)); localStorage.setItem(cacheTimeKey, now.toString()); } }
+                else if (cachedData) allFiles = JSON.parse(cachedData);
             } catch(err) { if (cachedData) { try { allFiles = JSON.parse(cachedData); } catch (_) {} } }
             return allFiles;
         }
@@ -5214,20 +5033,6 @@ function closeAnalyticsDashboard() {
             // كل الصيغ المدعومة رسمياً: PDF, Word, PowerPoint, Excel, صور
             if (window.UNEMUpload) return window.UNEMUpload.isSupported(filename);
             return /\.(pdf|docx?|pptx?|xlsx?|jpe?g|png)$/i.test(String(filename || ''));
-        }
-
-        // البحث العام يعرض المستندات فقط؛ صور الواجهة مثل icon-192.png ليست ملفات دراسية.
-        function isSearchableDocument(file) {
-            if (!file) return false;
-            const name = String(file.name || file.original_name || file.path || '');
-            const mime = String(file.mime_type || file.mimeType || '').toLowerCase();
-            return /\.(pdf|docx?|pptx?|xlsx?)$/i.test(name)
-                || ['application/pdf', 'application/msword', 'application/vnd.ms-word',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'application/vnd.ms-powerpoint',
-                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                    'application/vnd.ms-excel',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(mime);
         }
 
         function getFileCategory(filename) {
@@ -5587,7 +5392,7 @@ function closeAnalyticsDashboard() {
                 isArchiveSpecialCase = true; 
                 hideAll(); 
                 document.getElementById('file-list-container').classList.remove('hidden'); 
-                document.getElementById('file-list-back-btn').setAttribute('onclick', 'goBackToSubjects()'); 
+                document.getElementById('file-list-back-btn').setAttribute('onclick', stageReportMode ? 'goBackToStageReportHome()' : 'goBackToSubjects()'); 
                 document.getElementById('pdf-list').innerHTML = ""; 
                 document.getElementById('loading-spinner').classList.remove('hidden'); 
                 document.getElementById('no-files-msg').classList.add('hidden');
@@ -5595,7 +5400,7 @@ function closeAnalyticsDashboard() {
                 isArchiveSpecialCase = false; 
                 hideAll(); 
                 document.getElementById('category-selection-container').classList.remove('hidden'); 
-                document.getElementById('file-list-back-btn').setAttribute('onclick', 'goBackToCategories()'); 
+                document.getElementById('file-list-back-btn').setAttribute('onclick', stageReportMode ? 'goBackToStageReportHome()' : 'goBackToCategories()'); 
                 applySubjectCategoryGrid(subjectName);
             }
             
@@ -6004,28 +5809,122 @@ function closeAnalyticsDashboard() {
             if(query.length === 0) { closeSearch(); return; }
             if(query.length > 2) {
                 if(typeof gtag === 'function') gtag('event', 'search', { 'search_term': query });
-                logSupabaseAnalytics('بحث', query); 
+                logSupabaseAnalytics('بحث', query);
             }
 
-            hideAll(); document.getElementById('file-list-container').classList.remove('hidden'); document.getElementById('file-list-back-btn').setAttribute('onclick', 'closeSearch()'); document.getElementById('selected-subject-name').textContent = query;
-            const pdfList = document.getElementById('pdf-list'); pdfList.innerHTML = ""; const term = normalizeText(query);
-            if (allFiles.length === 0) await fetchFilesFromGitHub(currentBranch || 'main');
-            const results = allFiles.filter(file => {
-                                        const searchableName = String(file.name || file.path || '');
-                                        return isSearchableDocument(file) && normalizeText(searchableName).includes(term);
-                                    })
+            hideAll();
+            document.getElementById('file-list-container').classList.remove('hidden');
+            document.getElementById('file-list-back-btn').setAttribute('onclick', stageReportMode ? 'goBackToStageReportHome()' : 'closeSearch()');
+            document.getElementById('selected-subject-name').textContent = query;
+            const pdfList = document.getElementById('pdf-list');
+            pdfList.innerHTML = "";
+            const term = normalizeText(query);
+
+            /*
+             * وضع Rapport de stage:
+             * البحث هنا معزول تماماً عن البحث العام. لا نبحث في ملفات المواد
+             * الأخرى حتى لو كتب المستخدم اسم مادة أخرى في خانة البحث.
+             * المصدر الرسمي للمادة هو نفس مادة S5 الأصلية:
+             * "Rapport de stage de la 2ème année".
+             */
+            if (stageReportMode) {
+                const reportSubject = 'Rapport de stage de la 2ème année';
+                const reportCodeVariants = subjectCodeVariants(reportSubject).map(v => v.toLowerCase());
+                const reportMarkers = [
+                    'rapport de stage', 'rapport_stage', 'rapport-de-stage',
+                    'rapportdestage', 'stage de la 2eme', 'stage de la 2ème',
+                    'stage_2eme', 'stage-2eme'
+                ];
+                const isReportFile = (file) => {
+                    const text = normalizeText([
+                        file && file.name || '',
+                        file && file.original_name || '',
+                        file && file.path || '',
+                        file && file.github_path || '',
+                        file && file.subject || '',
+                        file && file.subject_code || ''
+                    ].join(' '));
+                    const code = normalizeText(file && file.subject_code || '');
+                    if (reportCodeVariants.includes(code)) return true;
+                    return reportMarkers.some(marker => text.includes(normalizeText(marker)));
+                };
+
+                let stageResults = [];
+
+                // 1) Supabase: المطابقة الصريحة للمادة + S5 فقط.
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('documents')
+                            .select('id,name,original_name,source,cloudinary_url,cloudinary_public_id,cloudinary_resource_type,folder,file_type,subject,subject_code,specialization,level,semester,github_url,github_path,mime_type,status,sort_order,created_at')
+                            .in('semester', ['S5','s5'])
+                            .or(reportCodeVariants.map(code => 'subject_code.eq.' + code).concat(['subject.ilike.%Rapport de stage de la 2ème année%']).join(','))
+                            .order('sort_order', { ascending: true, nullsFirst: false })
+                            .order('created_at', { ascending: false })
+                            .limit(1000);
+                        if (error) throw error;
+                        stageResults = (data || [])
+                            .filter(r => !r.status || r.status === 'active')
+                            .filter(isReportFile)
+                            .map(mapDocumentRow)
+                            .filter(file => normalizeText([
+                                file.name || '', file.original_name || '', file.subject || ''
+                            ].join(' ')).includes(term));
+                    } catch (err) {
+                        console.warn('stage report search (Supabase)', err);
+                    }
+                }
+
+                // 2) GitHub: حتى ملفات GitHub غير المسجلة في documents لا تتسرب
+                // إلى البحث إلا إذا كانت مرتبطة بوضوح بمادة Rapport de stage.
+                try {
+                    const branches = Object.values(branchMap);
+                    const branchResults = await Promise.all(branches.map(async (branch) => {
+                        try {
+                            const files = await fetchFilesFromGitHub(branch);
+                            return (files || [])
+                                .filter(f => f && f.type === 'file' && isValidFile(f.name))
+                                .filter(f => isReportFile(f))
+                                .filter(f => normalizeText(f.name || '').includes(term))
+                                .map(f => mapGithubFile(f, reportSubject));
+                        } catch (_) { return []; }
+                    }));
+                    stageResults = stageResults.concat(branchResults.flat());
+                } catch (_) {}
+
+                // منع التكرار بين Cloudinary/GitHub/Supabase.
+                const seen = new Set();
+                const unique = stageResults.filter(file => {
+                    const key = normalizeText(String(file.id || file.cloudinary_public_id || file.github_path || file.path || file.name || ''));
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+
+                document.getElementById('selected-subject-name').textContent = query;
+                if(unique.length === 0) {
+                    document.getElementById('no-files-msg').classList.remove('hidden');
+                } else {
+                    document.getElementById('no-files-msg').classList.add('hidden');
+                    unique.forEach(file => pdfList.appendChild(buildFileListItem(file)));
+                }
+                return;
+            }
+
+            // البحث العام الأصلي خارج وضع Rapport de stage — لم يتغير.
+            if(allFiles.length === 0) fetchFilesFromGitHub('main');
+            const results = allFiles.filter(file => isValidFile(file.name) && normalizeText(file.name).includes(term))
                                     .map(file => ({...file, source: 'github'}));
 
-            // البحث أيضاً داخل الملفات الجديدة المرفوعة على Cloudinary
             let docResults = [];
             if (supabaseClient && query.length > 1) {
                 try {
                     const { data } = await supabaseClient
                         .from('documents')
-                        .select('id,name,original_name,source,cloudinary_url,cloudinary_public_id,cloudinary_resource_type,mime_type,folder,storage_path,github_url,github_path,file_type,subject,subject_code,status,created_at')
+                        .select('id,name,original_name,source,cloudinary_url,cloudinary_public_id,cloudinary_resource_type,folder,file_type,subject,subject_code,created_at')
                         .or(`name.ilike.%${query}%,original_name.ilike.%${query}%,subject.ilike.%${query}%`)
                         .limit(50);
-                    docResults = (data || []).map(mapDocumentRow).filter(isSearchableDocument);
+                    docResults = (data || []).map(mapDocumentRow);
                 } catch (err) { console.error(err); }
             }
 
@@ -6034,7 +5933,7 @@ function closeAnalyticsDashboard() {
             if(all.length === 0) { document.getElementById('no-files-msg').classList.remove('hidden'); }
             else { document.getElementById('no-files-msg').classList.add('hidden'); all.forEach(file => pdfList.appendChild(buildFileListItem(file))); }
         }
-        
+
         function closeSearch() { hideAll(); document.getElementById('main-menu').classList.remove('hidden'); }
         function closePdfViewer() { if (viewerFallbackTimer) { clearTimeout(viewerFallbackTimer); viewerFallbackTimer = null; } document.getElementById('pdf-viewer-overlay').classList.add('hidden'); document.getElementById('pdf-render-area').innerHTML = ""; }
         function openUnionModal() { document.getElementById('union-modal-overlay').classList.remove('hidden'); }
@@ -6237,10 +6136,7 @@ function escapeHtml(value){
            يعتمد على platform_settings. يدعم value_text / value_url / value.
            ================================================================ */
         const REGISTRATION_SETTING_KEY = 'registration_url';
-        const REGISTRATION_VISIBILITY_KEY = 'registration_enabled';
         const DEFAULT_REGISTRATION_URL = 'https://inscription.iscae.mr/';
-        let registrationEnabledCache = true;
-        let registrationEnabledLoaded = false;
         let registrationUrlCache = DEFAULT_REGISTRATION_URL;
         let registrationUrlLoaded = false;
 
@@ -6279,52 +6175,6 @@ function escapeHtml(value){
             }
             return registrationUrlCache;
         }
-
-        async function loadRegistrationVisibility(force){
-            if(registrationEnabledLoaded && !force) return registrationEnabledCache;
-            registrationEnabledLoaded = true;
-            try{
-                if(!supabaseClient) throw new Error('Supabase غير متصل');
-                const {data,error}=await supabaseClient
-                    .from('platform_settings')
-                    .select('value_boolean')
-                    .eq('key',REGISTRATION_VISIBILITY_KEY)
-                    .maybeSingle();
-                if(error) throw error;
-                if(data && typeof data.value_boolean === 'boolean'){
-                    registrationEnabledCache=data.value_boolean;
-                }
-            }catch(error){
-                console.warn('registration visibility load',error);
-            }
-            return registrationEnabledCache;
-        }
-        function applyRegistrationVisibility(enabled){
-            const card=document.querySelector('#main-menu .registration-card');
-            const menu=document.getElementById('main-menu');
-            if(!card) return;
-            const visible=enabled !== false;
-            card.style.display=visible ? '' : 'none';
-            card.setAttribute('aria-hidden',visible ? 'false' : 'true');
-            card.dataset.registrationEnabled=visible ? 'true' : 'false';
-            if(menu) menu.classList.toggle('registration-disabled',!visible);
-        }
-        async function saveRegistrationVisibility(enabled){
-            if(typeof isAdmin === 'function' && !isAdmin()) throw new Error('هذه العملية للمشرف الرئيسي فقط.');
-            if(!supabaseClient) throw new Error('Supabase غير متصل.');
-            const value=enabled === true;
-            const {error}=await supabaseClient
-                .from('platform_settings')
-                .upsert({key:REGISTRATION_VISIBILITY_KEY,value_boolean:value},{onConflict:'key'});
-            if(error) throw new Error((error.message||'تعذر حفظ حالة ظهور التسجيل.')+' — نفّذ SQL إعداد registration_enabled.');
-            registrationEnabledCache=value;
-            registrationEnabledLoaded=true;
-            applyRegistrationVisibility(value);
-            return value;
-        }
-        window.loadRegistrationVisibility=loadRegistrationVisibility;
-        window.saveRegistrationVisibility=saveRegistrationVisibility;
-        window.applyRegistrationVisibility=applyRegistrationVisibility;
 
         async function saveRegistrationUrlToDB(url){
             if(!isAdmin()) throw new Error('هذه العملية للمشرف الرئيسي فقط.');
@@ -7538,14 +7388,6 @@ function escapeHtml(value){
             function startWelcomeSplash(){
                 const splash=document.getElementById('welcome-splash');
                 if(!splash) return;
-                let alreadyShown=false;
-                try{ alreadyShown=sessionStorage.getItem('unem_welcome_seen')==='1'; }catch(_){ alreadyShown=!!window.__unemWelcomeShown; }
-                if(alreadyShown){
-                    splash.classList.add('is-hidden');
-                    splash.setAttribute('aria-hidden','true');
-                    return;
-                }
-                try{ sessionStorage.setItem('unem_welcome_seen','1'); }catch(_){ window.__unemWelcomeShown=true; }
                 if(typeof currentLang!=='undefined' && currentLang==='fr'){
                     const kicker=splash.querySelector('.welcome-kicker');
                     const title=splash.querySelector('.welcome-title');
@@ -7734,13 +7576,6 @@ function escapeHtml(value){
 .registration-settings-direct-actions{display:flex;gap:9px;flex-wrap:wrap;}
 .registration-settings-direct-actions button{min-height:44px;}
 #registration-url-direct-status{min-height:22px;font-weight:800;font-size:.88rem;}
-.registration-visibility-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 14px;border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;}
-.registration-visibility-label{display:grid;gap:4px;font-weight:900;cursor:pointer;}
-.registration-visibility-label small{font-size:.78rem;color:#475569;font-weight:700;line-height:1.45;}
-#registration-visibility-direct-toggle{width:48px;height:26px;accent-color:#2563eb;flex:0 0 auto;cursor:pointer;}
-#registration-visibility-direct-status{min-height:20px;font-weight:800;font-size:.84rem;}
-body.dark-mode .registration-visibility-row{background:#172554;border-color:#1d4ed8;}
-body.dark-mode .registration-visibility-label small{color:#cbd5e1;}
 .registration-settings-direct-note{padding:12px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;font-size:.8rem;line-height:1.65;font-weight:700;}
 body.dark-mode .registration-settings-direct-modal{background:#111827;color:#f8fafc;}
 body.dark-mode #registration-url-direct-input{background:#0f172a;color:#f8fafc;border-color:#475569;}
@@ -7762,8 +7597,6 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
       var overlay=byId('registration-settings-direct-overlay');
       var input=byId('registration-url-direct-input');
       var status=byId('registration-url-direct-status');
-      var visibilityToggle=byId('registration-visibility-direct-toggle');
-      var visibilityStatus=byId('registration-visibility-direct-status');
       if(!overlay || !input) return false;
       overlay.classList.remove('hidden');
       overlay.style.display='flex';
@@ -7772,9 +7605,6 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
       if(status){ status.textContent='⏳ جاري قراءة الرابط الحالي...'; status.style.color=''; }
       var current=(typeof loadRegistrationUrlFromDB==='function') ? await loadRegistrationUrlFromDB(true) : 'https://inscription.iscae.mr/';
       input.value=current || 'https://inscription.iscae.mr/';
-      var enabled=(typeof loadRegistrationVisibility==='function') ? await loadRegistrationVisibility(true) : true;
-      if(visibilityToggle) visibilityToggle.checked = enabled !== false;
-      if(visibilityStatus) visibilityStatus.textContent = enabled === false ? 'البطاقة مخفية حالياً.' : 'البطاقة ظاهرة حالياً.';
       if(status) status.textContent='';
       setTimeout(function(){try{input.focus();input.select();}catch(_){ }},80);
     }catch(err){
@@ -7791,24 +7621,6 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
     document.body.classList.remove('registration-settings-direct-open');
     return false;
   };
-  async function saveVisibilityFromDirectModal(){
-    var toggle=byId('registration-visibility-direct-toggle');
-    var status=byId('registration-visibility-direct-status');
-    if(!toggle) return;
-    toggle.disabled=true;
-    if(status) status.textContent='⏳ جاري حفظ حالة الظهور...';
-    try{
-      var enabled=await saveRegistrationVisibility(toggle.checked);
-      if(status){status.textContent=enabled ? '✅ بطاقة التسجيل ظاهرة للطلبة.' : '✅ تم إخفاء بطاقة التسجيل دون التأثير على بقية المنصة.';status.style.color='#166534';}
-    }catch(err){
-      toggle.checked=!toggle.checked;
-      if(status){status.textContent='❌ '+(err && err.message ? err.message : err);status.style.color='#b91c1c';}
-      alert('❌ تعذر حفظ حالة ظهور التسجيل.\n'+(err && err.message ? err.message : err));
-    }finally{toggle.disabled=false;}
-  }
-  async function doSaveVisibilityFromChange(){
-    await saveVisibilityFromDirectModal();
-  }
   async function doSave(){
     var input=byId('registration-url-direct-input'), status=byId('registration-url-direct-status'), save=byId('registration-url-direct-save');
     if(!input || !save) return;
@@ -7827,9 +7639,7 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
   }
   document.addEventListener('DOMContentLoaded',function(){
     var save=byId('registration-url-direct-save'), reload=byId('registration-url-direct-reload'), overlay=byId('registration-settings-direct-overlay');
-    var visibilityToggle=byId('registration-visibility-direct-toggle');
     if(save) save.addEventListener('click',doSave);
-    if(visibilityToggle) visibilityToggle.addEventListener('change',doSaveVisibilityFromChange);
     if(reload) reload.addEventListener('click',function(){
       var input=byId('registration-url-direct-input'),status=byId('registration-url-direct-status');
       if(status){status.textContent='⏳ جاري إعادة التحميل...';status.style.color='';}
@@ -7849,15 +7659,6 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
     var frameId = 'registration-browser-frame';
     var loadingId = 'registration-browser-loading';
 
-    function toProxyUrl(url){
-        try{
-            var target = new URL(url || DEFAULT_REGISTRATION_URL, window.location.href).href;
-            return '/api/web-proxy?url=' + encodeURIComponent(target);
-        }catch(_){
-            return '/api/web-proxy?url=' + encodeURIComponent(DEFAULT_REGISTRATION_URL);
-        }
-    }
-
     async function refreshRegistrationUrl(){
         try{
             if(typeof loadRegistrationUrlFromDB === 'function'){
@@ -7867,108 +7668,115 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
         return registrationUrl;
     }
 
-    function ensureOverlay(){
-        var overlay = document.getElementById(overlayId);
-        if(overlay) return overlay;
-        overlay = document.createElement('div');
-        overlay.id = overlayId;
-        overlay.className = 'hidden';
-        overlay.setAttribute('aria-hidden','true');
-        overlay.setAttribute('role','dialog');
-        overlay.setAttribute('aria-label','التسجيل في المعهد');
-        overlay.style.display = 'none';
-        overlay.innerHTML =
-            '<div class="registration-browser-toolbar">'+
-            '  <div class="registration-browser-title"><strong>📝 التسجيل في المعهد</strong><small id="registration-browser-url-label"></small></div>'+
-            '  <div class="registration-browser-actions">'+
-            '    <button type="button" class="registration-browser-action" id="registration-browser-reload" title="إعادة التحميل"><i class="fas fa-rotate-right"></i><span class="registration-action-label">تحديث</span></button>'+
-            '    <button type="button" class="registration-browser-action" id="registration-browser-close" title="إغلاق"><i class="fas fa-xmark"></i><span class="registration-action-label">إغلاق</span></button>'+
-            '  </div>'+
-            '</div>'+ 
-            '<div class="registration-browser-frame-wrap">'+
-            '  <div class="registration-browser-loading hidden" id="registration-browser-loading"><div class="registration-browser-spinner"></div><div>جاري فتح صفحة التسجيل...</div></div>'+
-            '  <button type="button" class="registration-browser-back-fab" id="registration-standalone-back">← رجوع للمنصة</button>'+ 
-            '  <iframe id="registration-browser-frame" title="التسجيل في المعهد" src="about:blank" allow="fullscreen; geolocation; autoplay; encrypted-media; payment"></iframe>'+ 
-            '</div>';
-        document.body.appendChild(overlay);
-
-        var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
-        if(frame) frame.addEventListener('load', function(){ if(loading) loading.classList.add('hidden'); });
-        var back = document.getElementById('registration-standalone-back');
-        if(back) back.addEventListener('click', function(e){ window.closeRegistrationBrowser(e); }, true);
-        var closeBtn = document.getElementById('registration-browser-close');
-        if(closeBtn) closeBtn.addEventListener('click', function(e){ window.closeRegistrationBrowser(e); });
-        var reloadBtn = document.getElementById('registration-browser-reload');
-        if(reloadBtn) reloadBtn.addEventListener('click', function(e){ if(e && e.preventDefault) e.preventDefault(); window.reloadRegistrationBrowser(); });
-        return overlay;
-    }
-
     window.openRegistrationBrowser = function(){
-        var overlay = ensureOverlay();
-        var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
-        try{ if(typeof logSupabaseAnalytics === 'function'){ logSupabaseAnalytics('دخول قسم','التسجيل في المعهد'); } }catch(_){}
-        overlay.classList.remove('hidden');
-        overlay.style.display = 'flex';
-        overlay.removeAttribute('aria-hidden');
-        document.body.classList.add('registration-browser-open');
-        if(loading) loading.classList.remove('hidden');
-        function launch(url){
-            var target = new URL(url || DEFAULT_REGISTRATION_URL, window.location.href).href;
-            var label = document.getElementById('registration-browser-url-label');
-            if(label) label.textContent = target;
-            // فتح الموقع الخارجي مباشرة لتجاوز تحديات Cloudflare الخاصة بالـ iframe والـ proxy.
-            // العودة إلى المنصة ممكنة بزر الرجوع في المتصفح.
-            try{ window.location.href = target; }catch(_){}
+        /*
+         * IMPORTANT: inscription.iscae.mr is an external origin.
+         * Loading it inside an iframe can make its own JavaScript/navigation
+         * unusable when the remote site applies iframe/security restrictions.
+         * Open it as a real top-level page instead so ALL of its buttons, forms,
+         * redirects and JavaScript work normally.
+         */
+        var currentUrl = registrationUrl || DEFAULT_REGISTRATION_URL;
+        var lang = (typeof currentLang !== 'undefined' && currentLang === 'fr') ? 'fr' : 'ar';
+
+        function buildRegistrationTarget(url){
+            try {
+                var u = new URL(url, window.location.href);
+                /* Do not force an unsupported language parameter onto the external
+                   registration system. Preserve its own language handling. */
+                return u.href;
+            } catch (_) {
+                return String(url || DEFAULT_REGISTRATION_URL);
+            }
         }
-        try{
-            refreshRegistrationUrl().then(function(url){ launch(url); }).catch(function(){ launch(registrationUrl); });
-        }catch(_){ launch(registrationUrl); }
+
+        function launch(url){
+            var target = buildRegistrationTarget(url);
+            try {
+                if (typeof logSupabaseAnalytics === 'function') {
+                    logSupabaseAnalytics('دخول قسم', 'التسجيل في المعهد');
+                }
+            } catch (_) {}
+
+            /* First try a separate top-level browser tab/window. This keeps the
+               UNEM ISCAE platform open and gives the external site full browser
+               privileges. If the WebView blocks popups, fall back to same-tab
+               navigation, which is guaranteed to make the remote site's controls
+               functional. */
+            var opened = null;
+            try {
+                opened = window.open(target, '_blank', 'noopener,noreferrer');
+            } catch (_) {}
+
+            if (!opened) {
+                try {
+                    window.location.assign(target);
+                } catch (_) {
+                    window.location.href = target;
+                }
+            }
+            return false;
+        }
+
+        /* Refresh the administrator-controlled URL first, then launch it.
+           If Supabase is temporarily unavailable, use the cached/default URL. */
+        try {
+            if (typeof refreshRegistrationUrl === 'function') {
+                refreshRegistrationUrl().then(function(url){ launch(url || currentUrl); }).catch(function(){ launch(currentUrl); });
+            } else {
+                launch(currentUrl);
+            }
+        } catch (_) {
+            launch(currentUrl);
+        }
         return false;
     };
 
     window.closeRegistrationBrowser = function(e){
-        if(e && typeof e.preventDefault === 'function') e.preventDefault();
-        if(e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (e && typeof e.preventDefault === 'function') e.preventDefault();
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
         var overlay = document.getElementById(overlayId), loading = document.getElementById(loadingId);
-        if(!overlay) return false;
+        if (!overlay) return false;
         overlay.classList.add('hidden');
         overlay.style.display = 'none';
         overlay.setAttribute('aria-hidden','true');
         document.body.classList.remove('registration-browser-open');
-        var frame = document.getElementById(frameId);
-        if(frame){ try{ frame.src = 'about:blank'; }catch(_){} }
-        if(loading) loading.classList.add('hidden');
+        if (loading) loading.classList.add('hidden');
         return false;
     };
 
     window.reloadRegistrationBrowser = function(){
         var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
-        if(!frame) return;
-        if(loading) loading.classList.remove('hidden');
+        if (!frame) return;
+        if (loading) loading.classList.remove('hidden');
         refreshRegistrationUrl().then(function(url){
-            var target = new URL(url || registrationUrl || DEFAULT_REGISTRATION_URL, window.location.href).href;
-            var label = document.getElementById('registration-browser-url-label');
-            if(label) label.textContent = target;
-            // فتح الموقع الخارجي مباشرة لتجاوز تحديات Cloudflare الخاصة بالـ iframe والـ proxy.
-            // العودة إلى المنصة ممكنة بزر الرجوع في المتصفح.
-            try{ window.location.href = target; }catch(_){}
-        }).catch(function(){});
+            var registrationLang = (typeof currentLang !== 'undefined' && currentLang === 'fr') ? 'fr' : 'ar';
+            var target = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'lang=' + registrationLang;
+            try { frame.setAttribute('src', target); } catch (_) {}
+        });
     };
 
     document.addEventListener('DOMContentLoaded', function(){
-        ensureOverlay();
+        var frame = document.getElementById(frameId), loading = document.getElementById(loadingId);
+        if (frame) frame.addEventListener('load', function(){ if (loading) loading.classList.add('hidden'); });
+        var back = document.getElementById('registration-standalone-back');
+        if (back) back.addEventListener('click', function(e){ window.closeRegistrationBrowser(e); }, true);
         refreshRegistrationUrl().catch(function(){});
-        if(typeof loadRegistrationVisibility === 'function'){
-            loadRegistrationVisibility(false).then(function(enabled){
-                if(typeof applyRegistrationVisibility === 'function') applyRegistrationVisibility(enabled);
-            }).catch(function(){ applyRegistrationVisibility(true); });
-        }
     });
 
     document.addEventListener('keydown', function(e){
-        if(e.key === 'Escape' && document.body.classList.contains('registration-browser-open')) window.closeRegistrationBrowser();
+        if (e.key === 'Escape' && document.body.classList.contains('registration-browser-open')) {
+            window.closeRegistrationBrowser();
+        }
     });
 })();
+</script>
+
+<script>
+// تشغيل العرض المؤقت لـ Rapport de stage في الصفحة الرئيسية لشهر سبتمبر 2026.
+document.addEventListener('DOMContentLoaded', function(){
+    try { initStageReportHomeMonth(); } catch (e) { console.warn('stage report home month', e); }
+});
 </script>
 </body>
 </html>
