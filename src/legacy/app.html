@@ -7520,7 +7520,9 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
             var target = new URL(url || DEFAULT_REGISTRATION_URL, window.location.href).href;
             var label = document.getElementById('registration-browser-url-label');
             if(label) label.textContent = target;
-            try{ frame.src = toProxyUrl(target); }catch(_){}
+            // فتح الموقع الخارجي مباشرة لتجاوز تحديات Cloudflare الخاصة بالـ iframe والـ proxy.
+            // العودة إلى المنصة ممكنة بزر الرجوع في المتصفح.
+            try{ window.location.href = target; }catch(_){}
         }
         try{
             refreshRegistrationUrl().then(function(url){ launch(url); }).catch(function(){ launch(registrationUrl); });
@@ -7551,7 +7553,9 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
             var target = new URL(url || registrationUrl || DEFAULT_REGISTRATION_URL, window.location.href).href;
             var label = document.getElementById('registration-browser-url-label');
             if(label) label.textContent = target;
-            try{ frame.src = toProxyUrl(target); }catch(_){}
+            // فتح الموقع الخارجي مباشرة لتجاوز تحديات Cloudflare الخاصة بالـ iframe والـ proxy.
+            // العودة إلى المنصة ممكنة بزر الرجوع في المتصفح.
+            try{ window.location.href = target; }catch(_){}
         }).catch(function(){});
     };
 
