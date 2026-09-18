@@ -985,18 +985,23 @@ html.unem-stage-report-month #main-menu .semesters-grid { grid-template-columns:
 html.unem-stage-report-month #main-menu .stage-report-home-card { display:flex !important; aspect-ratio:auto; min-height:150px; }
 
 /* إصلاح جذري للمساحة البيضاء أسفل بطاقة Rapport de stage في واجهة سبتمبر:
-   نجعل حاوية القائمة الرئيسية بحجم محتواها فقط، بدلاً من تمديدها لملء الارتفاع المتبقي. */
-html.unem-stage-report-month .container {
+   نجعل حاوية القائمة الرئيسية بحجم محتواها فقط، بدلاً من تمديدها لملء الارتفاع المتبقي.
+   هام: هذا التقليص يجب أن يقتصر فقط على وقت عرض القائمة الرئيسية (main-menu) نفسها؛
+   فور الانتقال إلى شاشات أخرى (اختيار التخصص، نوع الملف، قائمة الملفات) يجب أن تعود
+   الحاوية لسلوكها الطبيعي القابل للتمرير، وإلا تصبح تلك الشاشات ثابتة ولا يمكن التمرير
+   داخلها لرؤية بقية الملفات. لذلك نربط القواعد بـ body.maintenance-notice-visible التي لا
+   تكون صحيحة إلا عندما تكون القائمة الرئيسية هي المعروضة فعلياً. */
+html.unem-stage-report-month body.maintenance-notice-visible .container {
     flex: 0 0 auto !important;
     min-height: auto !important;
     overflow: visible !important;
 }
-html.unem-stage-report-month #main-menu {
+html.unem-stage-report-month body.maintenance-notice-visible #main-menu {
     flex: 0 0 auto !important;
     min-height: 0 !important;
     overflow: visible !important;
 }
-html.unem-stage-report-month #main-menu .semesters-grid {
+html.unem-stage-report-month body.maintenance-notice-visible #main-menu .semesters-grid {
     flex: 0 0 auto !important;
 }
 
