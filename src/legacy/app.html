@@ -2166,11 +2166,7 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
 <!-- زر حساب المعدل — يوجه لـ /moyenne -->
 
 
-<div class="semester-card wide-card featured-subject-card" id="featured-subject-card" onclick="showSpecializationSelection()" style="display:none;--theme-color:#7c3aed;--theme-light:rgba(124,58,237,.18);background:linear-gradient(145deg,rgba(245,243,255,.98),rgba(255,255,255,.92));">
-<div class="icon-box" style="color:#7c3aed;"><i class="fas fa-file-signature"></i></div>
-<h3 id="featured-subject-title">Rapport de Stage de la 2ème année</h3>
-<p id="featured-subject-desc">الوصول إلى ملفات المادة</p>
-</div><div class="semester-card wide-card registration-card" onclick="openRegistrationBrowser()" style="--theme-color:#0f766e; --theme-light:rgba(20,184,166,0.18); background:linear-gradient(145deg,rgba(236,253,245,.96),rgba(240,253,250,.82));">
+<div class="semester-card wide-card registration-card" onclick="openRegistrationBrowser()" style="--theme-color:#0f766e; --theme-light:rgba(20,184,166,0.18); background:linear-gradient(145deg,rgba(236,253,245,.96),rgba(240,253,250,.82));">
 <div class="icon-box" style="color:#0f766e;"><i class="fas fa-file-signature"></i></div>
 <h3 data-i18n="card_registration">التسجيل في المعهد</h3>
 <p data-i18n="card_registration_desc">التسجيل الإلكتروني في ISCAE</p>
@@ -2386,7 +2382,7 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
 <button class="admin-dash-card" onclick="adminDashOpen('top-files')"><b>📁 أكثر الملفات تفاعلاً</b><span>التحميلات وعمليات فتح الملفات بالتفصيل</span></button>
 <button class="admin-dash-card" onclick="adminDashOpen('announcements')"><b>📢 الإعلانات</b><span>إدارة شريط الإعلانات</span></button>
 <button class="admin-dash-card" onclick="adminDashOpen('notifications')"><b>🔔 الإشعارات</b><span>إرسال ومراجعة الإشعارات</span></button>
-<button class="admin-dash-card" onclick="adminDashOpen('types')"><b>🗂️ أنواع الملفات</b><span>تنظيم أنواع ملفات المواد</span></button><button class="admin-dash-card registration-settings-card" type="button" onclick="openRegistrationSettingsDirect(event)"><b>📝 رابط التسجيل في المعهد</b><span>تغيير رابط التسجيل الذي يفتح للطلبة</span></button><button class="admin-dash-card featured-home-settings-card" type="button" onclick="adminDashOpen('featured-home')"><b>⭐ مادة الصفحة الرئيسية</b><span>إظهار Rapport de Stage de la 2ème année وحدها أو إعادة الوضع الطبيعي</span></button>
+<button class="admin-dash-card" onclick="adminDashOpen('types')"><b>🗂️ أنواع الملفات</b><span>تنظيم أنواع ملفات المواد</span></button><button class="admin-dash-card registration-settings-card" type="button" onclick="openRegistrationSettingsDirect(event)"><b>📝 رابط التسجيل في المعهد</b><span>تغيير رابط التسجيل الذي يفتح للطلبة</span></button>
 </div>
 <div id="admin-dashboard-page" style="display:none;padding:22px;">
 <button class="back-btn" onclick="adminDashHome()" style="margin-bottom:15px">← لوحة التحكم</button>
@@ -3160,7 +3156,7 @@ body.dark-mode #main-menu .whatsapp-card{background:linear-gradient(145deg,#ecfd
 
         const SUPABASE_URL = 'https://cbaswqaufawdsvadizyi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU'; 
-        let supabaseClient; try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); window.supabaseClient = supabaseClient; } catch (e) {}
+        let supabaseClient; try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) {}
 
         // عنوان API موحّد: يمنع خطأ Failed to fetch عند فتح نسخة HTML محلياً (content:// أو file://).
         const UNEM_PRODUCTION_ORIGIN = 'https://unem-iscae.vercel.app';
@@ -7972,101 +7968,6 @@ body.dark-mode .registration-settings-direct-note{background:#172554;border-colo
     document.addEventListener('keydown', function(e){
         if(e.key === 'Escape' && document.body.classList.contains('registration-browser-open')) window.closeRegistrationBrowser();
     });
-})();
-</script>
-<script>
-(function(){
-  'use strict';
-  const FEATURED_HOME_KEY='featured_home_subject_enabled';
-  const FEATURED_HOME_SUBJECT='Rapport de Stage de la 2ème année';
-  let featuredHomeEnabledCache=false;
-  let featuredHomeLoaded=false;
-
-  function applyFeaturedHome(enabled){
-    const on=enabled===true;
-    featuredHomeEnabledCache=on;
-    const menu=document.getElementById('main-menu');
-    const card=document.getElementById('featured-subject-card');
-    if(!menu||!card) return;
-    const normalCards=Array.from(menu.querySelectorAll('.semesters-grid > .semester-card:not(#featured-subject-card)'));
-    card.style.display=on?'':'none';
-    card.setAttribute('aria-hidden',on?'false':'true');
-    normalCards.forEach(el=>{
-      el.style.display=on?'none':'';
-      el.setAttribute('aria-hidden',on?'true':'false');
-    });
-    menu.classList.toggle('featured-subject-mode',on);
-    const title=document.getElementById('featured-subject-title');
-    if(title) title.textContent=FEATURED_HOME_SUBJECT;
-  }
-
-  async function loadFeaturedHome(force){
-    if(featuredHomeLoaded && !force) return featuredHomeEnabledCache;
-    featuredHomeLoaded=true;
-    try{
-      if(!window.supabaseClient) throw new Error('Supabase غير متصل');
-      const {data,error}=await window.supabaseClient.from('platform_settings').select('value_boolean').eq('key',FEATURED_HOME_KEY).maybeSingle();
-      if(error) throw error;
-      if(data && typeof data.value_boolean==='boolean') featuredHomeEnabledCache=data.value_boolean;
-    }catch(err){ console.warn('featured home load',err); }
-    applyFeaturedHome(featuredHomeEnabledCache);
-    return featuredHomeEnabledCache;
-  }
-
-  async function saveFeaturedHome(enabled){
-    if(typeof window.isAdmin==='function' && !window.isAdmin()) throw new Error('هذه العملية للمشرف الرئيسي فقط.');
-    if(!window.supabaseClient) throw new Error('Supabase غير متصل.');
-    const value=enabled===true;
-    const {error}=await window.supabaseClient.from('platform_settings').upsert({key:FEATURED_HOME_KEY,value_boolean:value},{onConflict:'key'});
-    if(error) throw new Error((error.message||'تعذر حفظ إعداد الصفحة الرئيسية.')+' — تأكد من وجود عمود value_boolean في platform_settings.');
-    featuredHomeEnabledCache=value; featuredHomeLoaded=true; applyFeaturedHome(value);
-    return value;
-  }
-
-  function applyFeaturedAdminCard(){
-    const card=document.querySelector('#admin-dashboard-home .featured-home-settings-card');
-    if(!card) return;
-    const allowed=typeof window.isAdmin==='function' && window.isAdmin();
-    card.style.display=allowed?'flex':'none'; card.style.visibility=allowed?'visible':'hidden'; card.style.pointerEvents=allowed?'auto':'none';
-  }
-
-  function renderFeaturedHomeAdmin(){
-    if(typeof window.isAdmin==='function' && !window.isAdmin()) return alert('❌ هذه الصفحة للمشرف الرئيسي فقط.');
-    const page=document.getElementById('admin-dashboard-page');
-    const home=document.getElementById('admin-dashboard-home');
-    const box=document.getElementById('admin-dashboard-page-content');
-    if(home) home.style.display='none'; if(page) page.style.display='block';
-    if(!box) return;
-    box.innerHTML='<div class="admin-page-box"><h3 style="color:#7c3aed;font-weight:900;margin-top:0;">⭐ مادة الصفحة الرئيسية</h3><p style="font-weight:700;line-height:1.7;">عند التفعيل ستظهر مادة <b>Rapport de Stage de la 2ème année</b> وحدها في الصفحة الرئيسية للزوار، وعند التعطيل يعود العرض الطبيعي بكل البطاقات.</p><label style="display:flex;align-items:center;gap:10px;font-weight:900;margin:18px 0;cursor:pointer;"><input id="featured-home-toggle" type="checkbox" style="width:21px;height:21px;accent-color:#7c3aed;"><span>تفعيل المادة في الصفحة الرئيسية وحدها</span></label><div id="featured-home-status" class="status-msg"></div><button id="featured-home-save" class="btn-submit" type="button" style="background:#7c3aed;">💾 حفظ الإعداد</button><button class="btn-submit btn-cancel" type="button" onclick="adminDashHome()">عودة</button></div>';
-    const toggle=document.getElementById('featured-home-toggle');
-    const status=document.getElementById('featured-home-status');
-    const save=document.getElementById('featured-home-save');
-    loadFeaturedHome(true).then(v=>{if(toggle) toggle.checked=v;});
-    if(save) save.onclick=async function(){
-      save.disabled=true; status.textContent='⏳ جاري الحفظ...'; status.className='status-msg';
-      try{ const v=await saveFeaturedHome(!!toggle.checked); status.textContent=v?'✅ تم تفعيل المادة في الصفحة الرئيسية وحدها.':'✅ تم إلغاء التفعيل والعودة إلى الوضع الطبيعي.'; status.className='status-msg success'; }
-      catch(e){ status.textContent='❌ '+(e.message||e); status.className='status-msg error'; }
-      finally{save.disabled=false;}
-    };
-  }
-
-  const originalAdminDashOpen=window.adminDashOpen;
-  window.adminDashOpen=function(page){
-    if(page==='featured-home') return renderFeaturedHomeAdmin();
-    return originalAdminDashOpen.apply(this,arguments);
-  };
-  window.loadFeaturedHome=loadFeaturedHome;
-  window.applyFeaturedHome=applyFeaturedHome;
-  window.saveFeaturedHome=saveFeaturedHome;
-
-  document.addEventListener('DOMContentLoaded',function(){
-    applyFeaturedAdminCard();
-    loadFeaturedHome(false).catch(function(){applyFeaturedHome(false);});
-  });
-  // عند فتح لوحة الإدارة أو العودة إليها، نضمن بقاء بطاقة الإعداد للمشرف الرئيسي فقط.
-  document.addEventListener('click',function(e){
-    if(e.target.closest && (e.target.closest('#admin-dashboard-home') || e.target.closest('#admin-dashboard-overlay'))) setTimeout(applyFeaturedAdminCard,0);
-  });
 })();
 </script>
 </body>
