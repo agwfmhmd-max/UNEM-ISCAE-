@@ -3,6 +3,7 @@ import {
   authenticateCaller,
   bearerToken,
   fetchActiveCommonSubjects,
+  fetchActiveMasterSubjects,
   fetchSubjectDocumentTypes,
   isDocumentTypeAllowedForSubject,
   corsOptions,
@@ -12,7 +13,15 @@ import {
   signCloudinaryParams,
 } from "@/lib/unem-server";
 import { fileTypeInfo } from "@/lib/unem-files";
-import { isLevelSemesterValid, semestersForLevel, subjectsFor } from "@/lib/unem-subjects";
+import {
+  isLevelSemesterValid,
+  MASTER_SPECS,
+  masterStorageCode,
+  masterSubjectsFor,
+  normalizeMasterScope,
+  semestersForLevel,
+  subjectsFor,
+} from "@/lib/unem-subjects";
 
 const SPECS = ["BA", "FC", "TCM", "GRH", "SAE", "IG", "COMMON"];
 const LEVELS = ["L1", "L2", "L3"];
@@ -128,11 +137,27 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
           });
         }
 
-        const specialization = String(body["specialization"] ?? "").toUpperCase();
-        const level = String(body["level"] ?? "").toUpperCase();
+        // الماستر: MASTER_FC / M1 / M2 تُطبَّع إلى مفاتيح التخزين (FC + L1/L2) قبل أي تحقق
+        const scopeKeys = normalizeMasterScope(
+          String(body["specialization"] ?? ""),
+          String(body["level"] ?? ""),
+        );
+        const rawSpecialization = String(body["specialization"] ?? "");
+        const rawLevel = String(body["level"] ?? "");
+        // دورة الماستر: تُحدَّد صراحةً من الواجهة (cycle) أو من MASTER_* / M1 / M2
+        const isMasterCycle =
+          String(body["cycle"] ?? "").toLowerCase() === "master" ||
+          /^MASTER_/i.test(rawSpecialization) ||
+          /^M[12]$/i.test(rawLevel);
+        const specialization = scopeKeys.specialization;
+        const level = scopeKeys.level;
         const semester = String(body["semester"] ?? "").toUpperCase();
         const subjectName = String(body["subject"] ?? "").trim();
-        const subjectCode = normalizeSubjectCode(subjectName || String(body["subjectCode"] ?? ""));
+        const plainSubjectCode = normalizeSubjectCode(
+          subjectName || String(body["subjectCode"] ?? ""),
+        );
+        // مواد الماستر لها رمز تخزين مستقل (m_...) حتى لا تتطابق مع الليسانس (Archive S1 ...)
+        const subjectCode = isMasterCycle ? masterStorageCode(plainSubjectCode) : plainSubjectCode;
         const fileTypeSlug = String(body["fileTypeSlug"] ?? body["fileType"] ?? "").trim();
 
 
@@ -147,10 +172,16 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
             400,
           );
         }
-        if (!subjectCode) return json({ error: "❌ يجب اختيار المادة." }, 400);
+        if (!plainSubjectCode) return json({ error: "❌ يجب اختيار المادة." }, 400);
+        if (isMasterCycle && (!MASTER_SPECS.includes(specialization) || (level !== "L1" && level !== "L2"))) {
+          return json({ error: "❌ تخصص أو مستوى الماستر غير صالح." }, 400);
+        }
+        if (isMasterCycle && !subjectName) {
+          return json({ error: "❌ يجب إرسال اسم مادة الماستر." }, 400);
+        }
 
         // المواد المشتركة تُقرأ من قاعدة البيانات (لا استثناءات ثابتة في الكود)
-        const commonSubjects = await fetchActiveCommonSubjects(token);
+        const commonSubjects = isMasterCycle ? [] : await fetchActiveCommonSubjects(token);
         const commonMatch = commonSubjects.find(
           (c) =>
             normalizeSubjectCode(c.subject_code) === subjectCode &&
@@ -163,9 +194,35 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
           return json({ error: "❌ المادة المختارة ليست مادة مشتركة صالحة." }, 400);
         }
 
-        if (!isCommon) {
+        if (isMasterCycle) {
+          // مواد الماستر: الثابتة في الكود + المضافة يدوياً في master_subjects
+          let allowedMaster = masterSubjectsFor(specialization, level, semester).some(
+            (s) => normalizeSubjectCode(s) === plainSubjectCode,
+          );
+          if (!allowedMaster) {
+            const masterLevel = level === "L1" ? "M1" : "M2";
+            const rows = await fetchActiveMasterSubjects(token);
+            allowedMaster = rows.some(
+              (r) =>
+                r.specialization.toUpperCase() === specialization &&
+                r.level.toUpperCase() === masterLevel &&
+                r.semester.toUpperCase() === semester &&
+                normalizeSubjectCode(r.name) === plainSubjectCode,
+            );
+          }
+          if (!allowedMaster) {
+            return json(
+              { error: `❌ المادة المختارة غير موجودة ضمن Master ${specialization} / ${semester}.` },
+              400,
+            );
+          }
+        } else if (!isCommon) {
           const allowedSubjects = subjectsFor(specialization, semester);
-          const matched = allowedSubjects.find((s) => normalizeSubjectCode(s) === subjectCode);
+          // مواد الماستر (M1 → L1، M2 → L2) تُقبل إضافةً إلى مواد الليسانس
+          const masterSubjects = masterSubjectsFor(specialization, level, semester);
+          const matched = allowedSubjects
+            .concat(masterSubjects)
+            .find((s) => normalizeSubjectCode(s) === subjectCode);
           if (!matched) {
             return json(
               { error: `❌ المادة المختارة غير موجودة ضمن ${specialization} / ${semester}.` },
