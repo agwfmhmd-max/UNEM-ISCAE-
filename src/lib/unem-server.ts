@@ -228,6 +228,16 @@ export type CommonSubjectRow = {
   is_active: boolean;
 };
 
+export type MasterSubjectRow = {
+  id: string;
+  name: string;
+  subject_code: string;
+  specialization: string;
+  level: string;
+  semester: string;
+  is_active: boolean;
+};
+
 async function restSelect<T>(path: string, token: string | null): Promise<T[]> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: {
@@ -251,6 +261,14 @@ export async function fetchActiveDocumentTypes(token: string | null): Promise<Do
 export async function fetchActiveCommonSubjects(token: string | null): Promise<CommonSubjectRow[]> {
   return restSelect<CommonSubjectRow>(
     "common_subjects?select=id,name,subject_code,level,semester,is_active&is_active=eq.true&order=sort_order.asc",
+    token,
+  );
+}
+
+/** مواد الماستر المضافة يدوياً من المشرف الرئيسي (جدول master_subjects) */
+export async function fetchActiveMasterSubjects(token: string | null): Promise<MasterSubjectRow[]> {
+  return restSelect<MasterSubjectRow>(
+    "master_subjects?select=id,name,subject_code,specialization,level,semester,is_active&is_active=eq.true&order=sort_order.asc",
     token,
   );
 }
