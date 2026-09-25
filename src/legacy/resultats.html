@@ -1494,6 +1494,113 @@
             border-radius: 2px;
         }
 
+        /* ── MDA professional seal / signature mark (تفاعلي) ── */
+        .mda-seal {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 66px;
+            height: 66px;
+            padding: 0;
+            margin: 0 auto;
+            flex: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: none;
+            cursor: pointer;
+            font-family: 'Tajawal', 'Cairo', serif;
+            background:
+                radial-gradient(circle at 32% 26%, rgba(255,255,255,.6), rgba(255,255,255,0) 45%),
+                conic-gradient(from 210deg, var(--primary) 0%, var(--pro-gold, #d9a42b) 50%, var(--primary) 100%);
+            box-shadow: 0 10px 24px rgba(0,60,30,.26), inset 0 0 0 2px rgba(255,255,255,.35);
+            transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+            user-select: none;
+        }
+        .mda-seal:hover, .mda-seal:focus-visible {
+            transform: scale(1.08) rotate(-2deg);
+            box-shadow: 0 14px 30px rgba(0,60,30,.32), inset 0 0 0 2px rgba(255,255,255,.5);
+            outline: none;
+        }
+        .mda-seal:active { transform: scale(.96); }
+        .mda-seal-ring {
+            position: absolute;
+            inset: 5px;
+            border-radius: 50%;
+            border: 1px dashed rgba(255,255,255,.7);
+            pointer-events: none;
+        }
+        .mda-seal-core {
+            position: relative;
+            z-index: 1;
+            width: 47px;
+            height: 47px;
+            border-radius: 50%;
+            background: linear-gradient(155deg, #ffffff 0%, #f2fbf6 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,.08);
+            pointer-events: none;
+        }
+        .mda-seal-txt {
+            font-weight: 900;
+            font-size: .92rem;
+            letter-spacing: .7px;
+            line-height: 1;
+            color: var(--primary);
+        }
+        .mda-seal-sub {
+            display: block;
+            font-size: .36rem;
+            font-weight: 800;
+            letter-spacing: 1.7px;
+            color: #b8860b;
+            margin-top: 3px;
+        }
+
+        /* بطاقة التوقيع المضيئة التي تظهر عند الضغط على الختم */
+        .mda-signature {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 14px auto 0;
+            padding: 9px 20px;
+            border-radius: 999px;
+            background: linear-gradient(120deg, #fffef4, #fff6da);
+            border: 1px solid rgba(217,164,43,.55);
+            color: #7a5510;
+            font-size: .82rem;
+            font-weight: 700;
+            letter-spacing: .2px;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transform: translateY(-6px) scale(.96);
+            transition: opacity .4s ease, transform .4s ease, max-height .4s ease;
+            pointer-events: none;
+        }
+        .mda-signature.show {
+            opacity: 1;
+            max-height: 60px;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            animation: mdaGlow 1.8s ease-in-out infinite alternate;
+        }
+        .mda-signature-name {
+            color: var(--primary);
+            font-weight: 900;
+        }
+        @keyframes mdaGlow {
+            from { box-shadow: 0 0 6px rgba(217,164,43,.22), 0 4px 14px rgba(0,92,41,.08); }
+            to   { box-shadow: 0 0 20px rgba(217,164,43,.6), 0 6px 22px rgba(0,92,41,.18); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mda-signature.show { animation: none; box-shadow: 0 0 14px rgba(217,164,43,.4); }
+        }
+
         /* ── Details scroll hint (shown on narrow screens) ── */
         .details-scroll-hint {
             display: none;
@@ -1909,6 +2016,7 @@ body.fp-open{ overflow:hidden !important; }
                 .pc-delete { background:linear-gradient(135deg,#dc2626 0%,#7f1d1d 100%); }
                 .pc-display { background:linear-gradient(135deg,#7c3aed 0%,#4c1d95 100%); }
                 .pc-grad { background:linear-gradient(135deg,#4338ca 0%,#312e81 100%); }
+                .pc-edit { background:linear-gradient(135deg,#d97706 0%,#7c2d12 100%); }
 
                 .admin-sheet { display:none; position:fixed; inset:0; z-index:9998; background:var(--bg-gradient, #f7fcf9); overflow-y:auto; -webkit-overflow-scrolling:touch; }
                 @keyframes sheetIn { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:none;} }
@@ -1959,6 +2067,13 @@ body.fp-open{ overflow:hidden !important; }
                     <span class="pc-icon">🎓</span>
                     <div class="pc-title">Classement des Étudiants sortants</div>
                     <div class="pc-desc">رفع ملفات Excel لترتيب الطلاب المتخرجين، تحديد السنة الجامعية، وإظهار أو إخفاء الزر للزوار.</div>
+                    <span class="pc-cta">فتح الصفحة ←</span>
+                </button>
+
+                <button type="button" class="pro-card pc-edit" onclick="openAdminSheet('sheet-edit-student')">
+                    <span class="pc-icon">✏️</span>
+                    <div class="pc-title">تعديل نتيجة طالب</div>
+                    <div class="pc-desc">ابحث عن طالب بواسطة رقم التسجيل وعدّل نتيجته بالكامل: الاسم، المعدل، القرار، وكشف النقاط التفصيلي.</div>
                     <span class="pc-cta">فتح الصفحة ←</span>
                 </button>
             </div>
@@ -2376,6 +2491,85 @@ body.fp-open{ overflow:hidden !important; }
                     </div>
                 </div>
             </div>
+
+            <!-- ===================== FULL-PAGE SHEET: EDIT STUDENT RESULT (المشرف الرئيسي فقط) ===================== -->
+            <style>
+                .edit-search-row { display:flex; gap:10px; flex-wrap:wrap; }
+                .edit-search-row input { flex:1; min-width:200px; padding:12px; border-radius:10px; border:1px solid #cbd5e1; font-weight:700; font-size:0.95rem; direction:ltr; text-align:left; }
+                .edit-search-row button { padding:12px 20px; border-radius:10px; border:none; background:#d97706; color:#fff; font-weight:800; cursor:pointer; font-family:inherit; }
+                .edit-search-row button:hover { background:#b45309; }
+                .edit-record-card { border:1px solid #f1d9ae; background:#fffaf1; border-radius:14px; padding:14px 16px; margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+                .edit-record-card .erc-info { font-size:0.86rem; color:#334155; line-height:1.7; }
+                .edit-record-card .erc-info b { color:#0f172a; }
+                .edit-record-card button { padding:9px 16px; border-radius:10px; border:none; background:#0f766e; color:#fff; font-weight:800; cursor:pointer; font-family:inherit; white-space:nowrap; }
+                .edit-record-card button:hover { background:#115e59; }
+                #edit-form-panel { margin-top:22px; border-top:2px dashed #e2e8f0; padding-top:20px; }
+                .edit-transcript-hint { font-size:0.82rem; color:#475569; background:#f0fdfa; border:1px solid #ccfbf1; border-radius:10px; padding:10px 14px; margin-bottom:12px; line-height:1.7; }
+                .edit-transcript-grid { max-height:420px; overflow:auto; border:1px solid #e2e8f0; border-radius:12px; padding:10px; background:#f8fafc; }
+                .edit-transcript-row { display:flex; gap:6px; margin-bottom:6px; }
+                .edit-cell-input { flex:1; min-width:70px; padding:6px 8px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.8rem; font-family:inherit; }
+                .edit-cell-input:focus { border-color:#d97706; outline:2px solid rgba(217,119,6,.15); }
+                #edit-save-btn { margin-top:18px; width:100%; padding:14px; border-radius:12px; border:none; background:linear-gradient(135deg,#d97706,#92400e); color:#fff; font-weight:900; font-size:1rem; cursor:pointer; font-family:inherit; }
+                #edit-save-btn:disabled { opacity:.6; cursor:not-allowed; }
+                .edit-warn-banner { background:#fff1f2; border:1px solid #fecdd3; color:#9f1239; font-size:0.82rem; border-radius:10px; padding:10px 14px; margin-bottom:16px; line-height:1.7; }
+            </style>
+            <div id="sheet-edit-student" class="admin-sheet">
+                <div class="as-header" style="background:linear-gradient(135deg,#d97706,#7c2d12);">
+                    <button type="button" class="as-back" onclick="closeAdminSheet('sheet-edit-student')">→ رجوع</button>
+                    <div class="as-title">✏️ تعديل نتيجة طالب</div>
+                    <span style="width:78px;"></span>
+                </div>
+                <div class="as-body">
+                    <div class="as-card">
+                        <div class="edit-warn-banner">
+                            ⚠️ هذه الأداة مخصصة للمشرف الرئيسي فقط، وتُعدّل النتيجة الرسمية للطالب مباشرة (الاسم، المعدل، القرار، وكشف النقاط التفصيلي). يُسجَّل كل تعديل مع بريد المشرف والتاريخ. تأكد من صحة المعلومة قبل الحفظ.
+                        </div>
+                        <p style="font-size:0.9rem; color:#475569; margin:0 0 14px 0; line-height:1.7;">
+                            أدخل <b>رقم تسجيل الطالب (Matricule)</b> للبحث عن كل نتائجه المسجّلة، ثم اختر النتيجة التي تريد تعديلها.
+                        </p>
+                        <div class="edit-search-row">
+                            <input type="text" id="edit-matricule" placeholder="رقم التسجيل...">
+                            <button type="button" onclick="adminSearchStudentResults()">🔍 بحث</button>
+                        </div>
+                        <div id="edit-search-results"></div>
+
+                        <div id="edit-form-panel" style="display:none;">
+                            <h3 style="margin:0 0 4px; font-size:1rem; color:#7c2d12;">تعديل النتيجة</h3>
+                            <p id="edit-context" style="font-size:0.82rem; color:#64748b; margin:0 0 14px;"></p>
+
+                            <div class="form-group">
+                                <label>اسم الطالب:</label>
+                                <input type="text" id="edit-name" style="width:100%; padding:12px; border-radius:10px; border:1px solid #cbd5e1; font-weight:700; font-size:0.95rem;">
+                            </div>
+                            <div class="form-group">
+                                <label>المعدل (Moyenne):</label>
+                                <input type="text" id="edit-moyenne" style="width:100%; padding:12px; border-radius:10px; border:1px solid #cbd5e1; font-weight:700; font-size:0.95rem; direction:ltr; text-align:left;">
+                            </div>
+                            <div class="form-group">
+                                <label>القرار (Décision):</label>
+                                <input type="text" id="edit-decision" list="edit-decision-options" style="width:100%; padding:12px; border-radius:10px; border:1px solid #cbd5e1; font-weight:700; font-size:0.95rem;">
+                                <datalist id="edit-decision-options">
+                                    <option value="Admis">
+                                    <option value="Admis avec dette">
+                                    <option value="Validé">
+                                    <option value="Ajourné(e)">
+                                    <option value="Non Validé">
+                                    <option value="Exclu(e)">
+                                </datalist>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="button" class="admin-btn" style="background:#0f766e; color:#fff;" onclick="loadTranscriptForEdit()">📄 تحميل كشف النقاط التفصيلي للتعديل (اختياري)</button>
+                            </div>
+                            <div id="edit-transcript-area" style="margin-top:10px;"></div>
+
+                            <button id="edit-save-btn" type="button" onclick="saveEditedRecord()">💾 حفظ التعديلات</button>
+                            <div id="edit-save-status" style="margin-top:12px; font-weight:bold; font-size:0.9rem; text-align:center;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <script>
                 function openAdminSheet(id){
                     var el = document.getElementById(id);
@@ -2393,7 +2587,7 @@ body.fp-open{ overflow:hidden !important; }
                 // Close any open sheet with Escape
                 document.addEventListener('keydown', function(e){
                     if (e.key === 'Escape') {
-                        ['sheet-upload-hub','sheet-individual-upload','sheet-bulk-upload','sheet-stats','sheet-bulk-delete','sheet-display-settings'].forEach(function(id){
+                        ['sheet-upload-hub','sheet-individual-upload','sheet-bulk-upload','sheet-stats','sheet-bulk-delete','sheet-display-settings','sheet-grad-rank','sheet-edit-student'].forEach(function(id){
                             var el = document.getElementById(id);
                             if (el && el.style.display === 'block') closeAdminSheet(id);
                         });
@@ -2547,10 +2741,50 @@ body.fp-open{ overflow:hidden !important; }
 </div>
 
 <div class="site-footer">
-    Développé par UNEM ISCAE (MDA)
+    <button type="button" class="mda-seal" id="mda-seal-btn" onclick="toggleMdaSignature()" aria-label="عرض معلومات المطوّر" aria-expanded="false" aria-controls="mda-signature">
+        <span class="mda-seal-ring"></span>
+        <span class="mda-seal-core">
+            <span class="mda-seal-txt">MDA</span>
+            <span class="mda-seal-sub">OFFICIEL</span>
+        </span>
+    </button>
+    <div class="mda-signature" id="mda-signature" role="status" aria-hidden="true">
+        Développé par&nbsp;<span class="mda-signature-name">Mohamed Dah Agove</span>
+    </div>
 </div>
 
 <script>
+    /* ── الختم الرسمي MDA: إظهار/إخفاء بطاقة التوقيع المضيئة عند الضغط ── */
+    let __mdaSigTimer = null;
+    function toggleMdaSignature() {
+        const btn = document.getElementById('mda-seal-btn');
+        const sig = document.getElementById('mda-signature');
+        if (!btn || !sig) return;
+        const willShow = !sig.classList.contains('show');
+        sig.classList.toggle('show', willShow);
+        btn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+        sig.setAttribute('aria-hidden', willShow ? 'false' : 'true');
+        clearTimeout(__mdaSigTimer);
+        if (willShow) {
+            __mdaSigTimer = setTimeout(() => {
+                sig.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+                sig.setAttribute('aria-hidden', 'true');
+            }, 5000);
+        }
+    }
+    // إخفاء البطاقة عند الضغط خارجها
+    document.addEventListener('click', function (e) {
+        const sig = document.getElementById('mda-signature');
+        const btn = document.getElementById('mda-seal-btn');
+        if (!sig || !sig.classList.contains('show')) return;
+        if (e.target === btn || (btn && btn.contains(e.target)) || e.target === sig || sig.contains(e.target)) return;
+        sig.classList.remove('show');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+        sig.setAttribute('aria-hidden', 'true');
+        clearTimeout(__mdaSigTimer);
+    });
+
     const SUPABASE_URL = 'https://daqcwhcmoqnpxtnpwqil.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhcWN3aGNtb3FucHh0bnB3cWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMzY1MTMsImV4cCI6MjA5NzcxMjUxM30.xqdrGPLB_KoJ69JPvY7DhP_bTmVBaW63r2kYt_viMvo';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -4042,26 +4276,264 @@ body.fp-open{ overflow:hidden !important; }
     function applyResultsRoleUI() {
         // pc-grad (Classement des Étudiants sortants) متاح لمشرفي الرفع أيضاً،
         // بينما بقية الأدوات (إحصائيات، حذف فصل، إعدادات العرض) تبقى للمشرف الرئيسي فقط.
-        const adminOnly = document.querySelectorAll('.pc-stats, .pc-delete, .pc-display');
+        const adminOnly = document.querySelectorAll('.pc-stats, .pc-delete, .pc-display, .pc-edit');
         adminOnly.forEach(el => { el.style.display = isResultsAdmin() ? '' : 'none'; });
         // داخل بطاقة الكلاسمان: الرفع والنشر وحفظ الإعدادات متاحان لمشرف الرفع،
         // أما زر "حذف الكلاسمان المنشور" فيبقى حصرياً للمشرف الرئيسي.
         const grDeleteBtn = document.getElementById('gr-delete-btn');
         if (grDeleteBtn) grDeleteBtn.style.display = isResultsAdmin() ? '' : 'none';
         const title = document.querySelector('#admin-upload-step h2');
-        if (title) title.textContent = isResultsAdmin() ? '📤 لوحة تحكم المشرف' : '📤 واجهة رفع النتائج';
+        if (title) title.textContent = '📤 لوحة التحكم';
+        // ملاحظة الدور: تظهر فقط للمشرف الرئيسي (تأكيد صلاحياته الكاملة).
+        // لا تُعرض أي رسالة لمشرفي الرفع توضح أنهم ليسوا مشرفين رئيسيين؛
+        // يكتفى بإظهار الأدوات التي لديهم صلاحية استخدامها فقط (عبر
+        // adminOnly أعلاه)، دون أي رسالة إضافية.
         let note = document.getElementById('role-note');
-        if (!note) {
-            note = document.createElement('p');
-            note.id = 'role-note';
-            note.style.cssText = 'margin:0 0 12px; font-size:.85rem; color:#475569; font-weight:700;';
-            const step = document.getElementById('admin-upload-step');
-            if (step && title) step.insertBefore(note, title.nextSibling);
+        if (isResultsAdmin()) {
+            if (!note) {
+                note = document.createElement('p');
+                note.id = 'role-note';
+                note.style.cssText = 'margin:0 0 12px; font-size:.85rem; color:#475569; font-weight:700;';
+                const step = document.getElementById('admin-upload-step');
+                if (step && title) step.insertBefore(note, title.nextSibling);
+            }
+            note.style.display = '';
+            note.textContent = '👑 صلاحية المشرف الرئيسي: كل الأدوات متاحة.';
+        } else if (note) {
+            note.style.display = 'none';
         }
-        if (note) {
-            note.textContent = isResultsAdmin()
-                ? '👑 صلاحية المشرف الرئيسي: كل الأدوات متاحة.'
-                : '🔒 صلاحية مشرف رفع: يمكنك رفع النتائج فقط.';
+    }
+
+    /* =================================================================
+       تعديل نتيجة طالب (المشرف الرئيسي فقط)
+       ------------------------------------------------------------------
+       • البحث: يستعلم جدول student_results بواسطة رقم التسجيل فقط
+         (دون قيد السنة الحالية) ليجد كل نتائج الطالب عبر كل السنوات.
+       • الحقول الأساسية (الاسم / المعدل / القرار) تُحفظ مباشرة في
+         student_results، وهو نفس الجدول الذي تعتمد عليه صفحة البحث
+         العمومية، فالتعديل ينعكس فوراً لأي زائر يبحث برقم التسجيل.
+       • كشف النقاط التفصيلي مبني من ملف JSON واحد (ranking_url) يخص كل
+         طلاب الفصل/السنة معاً، وليس ملفاً خاصاً بكل طالب. لذلك عند تعديل
+         الكشف التفصيلي نُعيد رفع الملف الكامل (بعد تعديل بيانات هذا
+         الطالب فقط داخله) كملف جديد على Supabase Storage، ثم نُحدّث
+         عمود ranking_url في results_metadata ليشير إليه. الملف الأصلي
+         (PDF) المرفوع من البداية لا يتغيّر — فقط ما يُعرض وما يُحمَّل من
+         كشف النقاط (الذي يعتمد أصلاً على details.rows وليس على PDF) هو
+         ما يعكس التعديل. هذا محدود بالتصميم الحالي للموقع.
+       • كل عملية حفظ تُسجَّل في جدول admin_edits_log (اختياري، راجع ملف
+         SQL المرفق) مع بريد المشرف، رقم التسجيل، والقيم قبل/بعد التعديل.
+       ================================================================= */
+    let __editCurrentRecord = null; // { row, fileMeta, rankingArr, studentIndex }
+
+    async function adminSearchStudentResults() {
+        const listEl = document.getElementById('edit-search-results');
+        const formPanel = document.getElementById('edit-form-panel');
+        formPanel.style.display = 'none';
+        __editCurrentRecord = null;
+        const matricule = (document.getElementById('edit-matricule').value || '').trim();
+        if (!matricule) { listEl.innerHTML = '<p style="color:#dc2626; margin-top:12px;">أدخل رقم التسجيل أولاً.</p>'; return; }
+        listEl.innerHTML = '<p style="margin-top:12px;">⏳ جاري البحث...</p>';
+        try {
+            const { data, error } = await _supabase
+                .from('student_results')
+                .select('id, matricule, name, moyenne, decision, academic_year, major, level, semester')
+                .eq('matricule', matricule)
+                .order('academic_year', { ascending: false });
+            if (error) throw error;
+            if (!data || !data.length) {
+                listEl.innerHTML = '<p style="color:#dc2626; margin-top:12px;">لا توجد أي نتيجة مسجّلة لهذا الرقم.</p>';
+                return;
+            }
+            window.__editSearchRows = data;
+            listEl.innerHTML = data.map((r, i) => {
+                const semLabel = r.semester === 'ANNUEL' ? 'سنوي' : r.semester;
+                return `
+                <div class="edit-record-card">
+                    <div class="erc-info">
+                        <b>${(r.name || '').replace(/</g, '&lt;')}</b> — ${r.academic_year} | ${r.major} - ${r.level} - ${semLabel}<br>
+                        المعدل: <b>${r.moyenne}</b> &nbsp;|&nbsp; القرار الحالي: <b>${(r.decision || '-').replace(/</g, '&lt;')}</b>
+                    </div>
+                    <button type="button" onclick="openEditRecord(${i})">✏️ تعديل</button>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            console.error(e);
+            listEl.innerHTML = '<p style="color:#dc2626; margin-top:12px;">حدث خطأ أثناء البحث: ' + (e.message || e) + '</p>';
+        }
+    }
+
+    function openEditRecord(index) {
+        const row = (window.__editSearchRows || [])[index];
+        if (!row) return;
+        __editCurrentRecord = { row, fileMeta: null, rankingArr: null, studentIndex: -1 };
+        document.getElementById('edit-form-panel').style.display = 'block';
+        document.getElementById('edit-name').value = row.name || '';
+        document.getElementById('edit-moyenne').value = (row.moyenne ?? '');
+        document.getElementById('edit-decision').value = row.decision || '';
+        const semLabel = row.semester === 'ANNUEL' ? 'سنوي' : row.semester;
+        document.getElementById('edit-context').textContent =
+            `رقم التسجيل: ${row.matricule} — ${row.academic_year} | ${row.major} - ${row.level} - ${semLabel}`;
+        document.getElementById('edit-transcript-area').innerHTML = '';
+        document.getElementById('edit-save-status').textContent = '';
+        document.getElementById('edit-form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function loadTranscriptForEdit() {
+        const rec = __editCurrentRecord;
+        if (!rec) return;
+        const row = rec.row;
+        const area = document.getElementById('edit-transcript-area');
+        area.innerHTML = '⏳ جاري تحميل كشف النقاط...';
+        try {
+            const { data: metaRows, error } = await _supabase
+                .from('results_metadata')
+                .select('*')
+                .match({ academic_year: row.academic_year, major: row.major, level: row.level, semester: row.semester })
+                .limit(1);
+            if (error) throw error;
+            const fileMeta = metaRows && metaRows[0];
+            if (!fileMeta || !fileMeta.ranking_url) {
+                area.innerHTML = '<p style="color:#dc2626;">لا تتوفر بيانات كشف نقاط تفصيلية قابلة للتعديل لهذه النتيجة (رفعة قديمة). لا يزال بإمكانك تعديل الاسم/المعدل/القرار أعلاه.</p>';
+                return;
+            }
+            const arr = await fetchRankingData(fileMeta.ranking_url);
+            if (!Array.isArray(arr)) { area.innerHTML = '<p style="color:#dc2626;">تعذر قراءة بيانات كشف النقاط.</p>'; return; }
+            const idx = arr.findIndex(s => s.id === row.matricule);
+            if (idx === -1 || !arr[idx].details || !Array.isArray(arr[idx].details.rows) || !arr[idx].details.rows.length) {
+                area.innerHTML = '<p style="color:#dc2626;">لم يتم العثور على كشف نقاط تفصيلي لهذا الطالب ضمن هذا الملف.</p>';
+                return;
+            }
+            rec.fileMeta = fileMeta;
+            rec.rankingArr = arr;
+            rec.studentIndex = idx;
+            renderTranscriptEditor(area, arr[idx].details);
+        } catch (e) {
+            console.error(e);
+            area.innerHTML = '<p style="color:#dc2626;">حدث خطأ أثناء تحميل الكشف: ' + (e.message || e) + '</p>';
+        }
+    }
+
+    function renderTranscriptEditor(container, details) {
+        // نرتّب الأسطر حسب الإحداثي y ثم الخانات داخل كل سطر حسب x، ونعرض كل
+        // خانة كحقل نص قابل للتعديل. نحتفظ بنفس مراجع الكائنات الأصلية
+        // (rowsSorted تُشير لنفس عناصر details.rows) لنتمكّن من تحديثها
+        // مباشرة عند الحفظ دون إعادة بناء بنية الإحداثيات.
+        const rowsSorted = (details.rows || []).slice().sort((a, b) => (a.y || 0) - (b.y || 0));
+        let html = '<div class="edit-transcript-hint">✏️ عدّل نص أي خانة عند الحاجة فقط (بقية الخانات ستبقى كما هي). كل سطر هنا يمثّل سطراً في الكشف الأصلي.</div>';
+        html += '<div class="edit-transcript-grid">';
+        rowsSorted.forEach((row, rIdx) => {
+            const cells = (row.cells || []).slice().sort((a, b) => (a.x || 0) - (b.x || 0));
+            html += `<div class="edit-transcript-row">`;
+            cells.forEach((cell, cIdx) => {
+                const val = String(cell.s || '').replace(/"/g, '&quot;');
+                html += `<input type="text" class="edit-cell-input" data-row="${rIdx}" data-cell="${cIdx}" value="${val}">`;
+            });
+            html += `</div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        container.querySelector('.edit-transcript-grid').__rowsSorted = rowsSorted;
+    }
+
+    async function saveEditedRecord() {
+        const rec = __editCurrentRecord;
+        if (!rec) return;
+        const row = rec.row;
+        const newName = (document.getElementById('edit-name').value || '').trim();
+        const newMoyenne = parseFloat(String(document.getElementById('edit-moyenne').value || '').replace(',', '.'));
+        const newDecision = (document.getElementById('edit-decision').value || '').trim();
+        const statusEl = document.getElementById('edit-save-status');
+
+        if (!newName) { alert('اسم الطالب لا يمكن أن يكون فارغاً.'); return; }
+        if (isNaN(newMoyenne)) { alert('المعدل المدخل غير صالح.'); return; }
+        if (!confirm(`سيتم تعديل نتيجة الطالب "${newName}" (${row.matricule}) بشكل رسمي ونهائي.\nهل أنت متأكد من صحة المعلومات؟`)) return;
+
+        const btn = document.getElementById('edit-save-btn');
+        btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
+        statusEl.textContent = '';
+        try {
+            const before = { name: row.name, moyenne: row.moyenne, decision: row.decision };
+
+            // 1) تحديث السطر الملخّص (المستعمل في البحث العمومي)
+            const { error: updErr } = await _supabase
+                .from('student_results')
+                .update({
+                    name: newName,
+                    moyenne: newMoyenne,
+                    decision: newDecision || null,
+                })
+                .match({
+                    matricule: row.matricule,
+                    academic_year: row.academic_year,
+                    major: row.major,
+                    level: row.level,
+                    semester: row.semester,
+                });
+            if (updErr) throw updErr;
+
+            // 2) إن تم تحميل كشف النقاط التفصيلي وتعديله، أعد بناءه وارفعه
+            let transcriptChanged = false;
+            const gridEl = document.querySelector('#edit-transcript-area .edit-transcript-grid');
+            if (rec.rankingArr && rec.studentIndex > -1 && gridEl) {
+                const rowsSorted = gridEl.__rowsSorted || [];
+                gridEl.querySelectorAll('.edit-cell-input').forEach(inp => {
+                    const rIdx = +inp.dataset.row, cIdx = +inp.dataset.cell;
+                    const r = rowsSorted[rIdx];
+                    if (r && r.cells && r.cells[cIdx]) r.cells[cIdx].s = inp.value;
+                });
+                const entry = rec.rankingArr[rec.studentIndex];
+                entry.name = newName;
+                entry.avg = String(newMoyenne);
+                entry.avgNum = newMoyenne;
+                entry.decision = newDecision || '';
+                transcriptChanged = true;
+            }
+
+            if (transcriptChanged) {
+                const jsonBlob = new Blob([JSON.stringify(rec.rankingArr)], { type: 'application/json' });
+                const newRankingUrl = await uploadToSupabaseStorage(
+                    jsonBlob,
+                    `RANKING_EDIT_${rec.fileMeta.major}_${rec.fileMeta.level}_${rec.fileMeta.semester}_${rec.fileMeta.academic_year}_${Date.now()}`,
+                    'json'
+                );
+                const { error: metaErr } = await _supabase
+                    .from('results_metadata')
+                    .update({ ranking_url: newRankingUrl })
+                    .match({
+                        academic_year: rec.fileMeta.academic_year,
+                        major: rec.fileMeta.major,
+                        level: rec.fileMeta.level,
+                        semester: rec.fileMeta.semester,
+                    });
+                if (metaErr) throw metaErr;
+            }
+
+            // 3) سجل تدقيق (best-effort — لا يوقف الحفظ إن فشل لعدم وجود الجدول بعد)
+            try {
+                await _supabase.from('admin_edits_log').insert([{
+                    matricule: row.matricule,
+                    editor_email: currentResultsEmail || null,
+                    before_data: before,
+                    after_data: { name: newName, moyenne: newMoyenne, decision: newDecision },
+                    transcript_edited: transcriptChanged,
+                    academic_year: row.academic_year,
+                    major: row.major,
+                    level: row.level,
+                    semester: row.semester,
+                }]);
+            } catch (logErr) { console.warn('[adminEdit] audit log insert failed (non-blocking):', logErr); }
+
+            row.name = newName; row.moyenne = newMoyenne; row.decision = newDecision;
+            statusEl.style.color = '#166534';
+            statusEl.textContent = '✅ تم حفظ التعديلات بنجاح.' + (transcriptChanged ? ' (تم تحديث كشف النقاط التفصيلي أيضاً)' : '');
+            // حدّث بطاقة النتيجة في قائمة نتائج البحث أعلاه إن كانت ظاهرة
+            adminSearchStudentResults();
+        } catch (e) {
+            console.error(e);
+            statusEl.style.color = '#dc2626';
+            statusEl.textContent = '❌ حدث خطأ أثناء الحفظ: ' + (e.message || e);
+        } finally {
+            btn.disabled = false; btn.textContent = '💾 حفظ التعديلات';
         }
     }
 
@@ -6999,6 +7471,7 @@ body.fp-open{ overflow:hidden !important; }
 .atx-tbl td.atx-empty{background:repeating-linear-gradient(135deg,#f8fafc 0 8px,#eef2f7 8px 16px);color:transparent;border:1px dashed #cbd5e1;padding:0;height:100%;}
 .atx-tbl tbody tr:nth-child(even) td.atx-empty{background:repeating-linear-gradient(135deg,#f8fafc 0 8px,#eef2f7 8px 16px);}
 .atx-footer-note{text-align:center;color:#94a3b8;font-size:11px;padding:12px 8px 4px;}
+.atx-mda-stamp{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid #94a3b8;color:#64748b;font-weight:900;font-size:8px;letter-spacing:.3px;transform:rotate(-8deg);vertical-align:middle;margin-inline-start:6px;}
 </style>`;
 
         const headHtml = `<div class="atx-head"><div><h2>Relevé de Notes - Transcript</h2><div class="mat">Matricule: ${esc(inscr)}</div></div><div class="date">${dateStr}</div></div>`;
@@ -7102,7 +7575,7 @@ body.fp-open{ overflow:hidden !important; }
 
         const tableHtml = `<table class="atx-tbl">${colGroup}${theadHtml}<tbody>${bodyHtml}${footHtml}</tbody></table>`;
 
-        return `<div data-details-root class="atx-wrap">${css}${headHtml}<div class="atx-body">${bannerFixed}${infoHtml}${tableHtml}<div class="atx-footer-note">UNEM ISCAE - Document officiel généré automatiquement  |  Développé par MDA</div></div></div>`;
+        return `<div data-details-root class="atx-wrap">${css}${headHtml}<div class="atx-body">${bannerFixed}${infoHtml}${tableHtml}<div class="atx-footer-note">UNEM ISCAE - Document officiel généré automatiquement <span class="atx-mda-stamp">MDA</span></div></div></div>`;
     }
 
     function _semesterEsc(v) {
@@ -7524,7 +7997,7 @@ body.fp-open{ overflow:hidden !important; }
     }
 
     async function downloadDetailsAsPdf(canvas, studentId) {
-        const { PDFDocument, StandardFonts, rgb } = PDFLib;
+        const { PDFDocument, StandardFonts, rgb, degrees } = PDFLib;
         const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
         const b64     = dataUrl.split(',')[1];
         const bin     = atob(b64);
@@ -7575,10 +8048,27 @@ body.fp-open{ overflow:hidden !important; }
         page.drawImage(jpg, { x, y, width: w, height: h });
 
         // ── Footer ────────────────────────────────────────────────────
-        const footer = 'UNEM ISCAE - Document officiel genere automatiquement  |  Developpe par MDA';
+        const footer = 'UNEM ISCAE - Document officiel genere automatiquement';
         const fw = fontLite.widthOfTextAtSize(footer, 8);
         page.drawText(footer, {
             x: (PAGE_W - fw) / 2, y: 14, size: 8, font: fontLite, color: rgb(0.45, 0.5, 0.55),
+        });
+
+        // ── MDA professional seal (small circular stamp, bottom-right) ──
+        const sealCx = PAGE_W - MARGIN_X - 16, sealCy = 22;
+        page.drawEllipse({
+            x: sealCx, y: sealCy, xScale: 15, yScale: 15,
+            borderColor: rgb(0, 0.36, 0.16), borderWidth: 1,
+        });
+        page.drawEllipse({
+            x: sealCx, y: sealCy, xScale: 11.5, yScale: 11.5,
+            borderColor: rgb(0, 0.36, 0.16), borderWidth: 0.75,
+        });
+        const sealText = 'MDA';
+        const sealTextW = font.widthOfTextAtSize(sealText, 7);
+        page.drawText(sealText, {
+            x: sealCx - sealTextW / 2, y: sealCy - 2.5, size: 7, font,
+            color: rgb(0, 0.36, 0.16), rotate: degrees(-8),
         });
 
         const pdfBytes = await pdfDoc.save();
@@ -9737,6 +10227,64 @@ body.fp-open{ overflow:hidden !important; }
 .atx-tbl tr.atx-jury-danger td { background:#ffd4d4 !important; color:#991b1b !important; border-color:#ef4444 !important; }
 .atx-tbl tr.atx-jury-neutral td { background:#e7eef0 !important; color:#334155 !important; border-color:#cbd5e1 !important; }
 .pro-card, .admin-sheet, .modal-overlay.fullpage .modal-content { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+
+/* =====================================================================
+   لمسة احترافية إضافية (طبقة تحسين بصري نهائية — لا تُغيّر أي بنية HTML
+   أو منطق JS، فقط تُنقّح المظهر: رأس الصفحة، الأزرار، البطاقات، اللوحة
+   الإدارية). كل القواعد هنا إضافية ومتوافقة مع ما هو موجود أعلاه.
+   ===================================================================== */
+
+/* رأس الصفحة: عمق وتدرّج أدفأ + خط فاصل ذهبي رفيع أسفل الشريط */
+#main-header {
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,45,20,.18), 0 2px 0 rgba(0,0,0,.04);
+}
+#main-header::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(217,164,43,.85) 50%, transparent);
+}
+#main-header h1 { text-shadow: 0 2px 10px rgba(0,0,0,.12); letter-spacing: .2px; }
+#main-header .btn-home {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+#main-header .btn-home:hover { transform: translateY(-1px); }
+
+/* أزرار عامة: حركة دقيقة عند المرور والضغط لإحساس أكثر احترافية */
+.btn-search, .btn-top20, .view-details-btn, .share-btn,
+.admin-btn, .pro-card, .edit-record-card button, .edit-search-row button {
+    transition: transform .18s ease, box-shadow .18s ease, filter .18s ease !important;
+}
+.btn-search:hover, .btn-top20:hover, .view-details-btn:hover, .share-btn:hover,
+.admin-btn:hover, .edit-record-card button:hover, .edit-search-row button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+}
+.btn-search:active, .btn-top20:active, .view-details-btn:active, .share-btn:active,
+.admin-btn:active, .edit-record-card button:active, .edit-search-row button:active {
+    transform: translateY(0);
+    filter: brightness(.98);
+}
+
+/* بطاقات النتائج: دخول ناعم عند الظهور */
+@keyframes resultCardIn { from { opacity:0; transform:translateY(10px);} to { opacity:1; transform:none; } }
+.result-card { animation: resultCardIn .35s ease both; }
+
+/* حقول الإدخال: تركيز أوضح وأدفأ في كل النماذج */
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus,
+select:focus, textarea:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 4px rgba(0,92,41,.10) !important;
+    border-color: var(--pro-green-2, #0b8f5a) !important;
+}
+
+/* بطاقة كشف النقاط: ظل أعمق قليلاً وحواف أدفأ */
+.atx-wrap { transition: box-shadow .25s ease; }
+.atx-wrap:hover { box-shadow: 0 16px 38px rgba(15,92,55,.16); }
+
+/* الختم الرسمي MDA: تأثيرات إضافية معرّفة أعلاه في mda-seal الأساسية */
 </style>
 
 </body>
