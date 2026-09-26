@@ -2251,7 +2251,7 @@ body.dark-mode .whatsapp-cycle-divider.master{color:#c4b5fd;}
 <div class="icon-box" style="color:#0f766e;"><i class="fas fa-file-signature"></i></div>
 <h3 data-i18n="card_registration">التسجيل في المعهد</h3>
 <p data-i18n="card_registration_desc">التسجيل الإلكتروني في ISCAE</p>
-</div><div class="semester-card wide-card archive-card" onclick="showStudyCycleSelection()">
+</div><script>try{if(localStorage.getItem('unem_registration_enabled_cache_v1')==='0'){var __rc=document.currentScript.previousElementSibling;if(__rc&&__rc.classList.contains('registration-card')){__rc.style.display='none';__rc.setAttribute('aria-hidden','true');__rc.dataset.registrationEnabled='false';}}}catch(_){}</script><div class="semester-card wide-card archive-card" onclick="showStudyCycleSelection()">
 <div class="icon-box"><i class="fas fa-book-reader"></i></div>
 <h3 data-i18n="card_summaries">الملخصات والأرشيف</h3>
 <p data-i18n="card_summaries_desc">جميع التخصصات (L1, L2, L3)</p>
@@ -3305,7 +3305,35 @@ body.dark-mode .whatsapp-cycle-divider.master{color:#c4b5fd;}
 
         const SUPABASE_URL = 'https://cbaswqaufawdsvadizyi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU'; 
-        let supabaseClient; try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) {}
+        /* تخزين آمن لجلسة Supabase: إن كان التخزين المحلي ممتلئاً (بسبب كاش ملفات GitHub القديم)
+           يُفرَّغ الكاش غير الضروري أولاً بدل أن يفشل تسجيل الدخول برسالة "exceeded the quota". */
+        function unemSafeAuthStorage() {
+            function purgeNonEssentialCache() {
+                try {
+                    Object.keys(localStorage)
+                        .filter(k => /^github_cache_/.test(k))
+                        .forEach(k => { try { localStorage.removeItem(k); } catch (_) {} });
+                } catch (_) {}
+            }
+            return {
+                getItem(key) {
+                    try { const v = localStorage.getItem(key); if (v !== null) return v; } catch (_) {}
+                    try { return sessionStorage.getItem(key); } catch (_) { return null; }
+                },
+                setItem(key, value) {
+                    try { localStorage.setItem(key, value); try { sessionStorage.removeItem(key); } catch (_) {} return; } catch (e1) {}
+                    purgeNonEssentialCache();
+                    try { localStorage.setItem(key, value); try { sessionStorage.removeItem(key); } catch (_) {} return; } catch (e2) {}
+                    // ملاذ أخير: نُبقي الجلسة في sessionStorage حتى لا يفشل تسجيل الدخول كليّاً.
+                    try { sessionStorage.setItem(key, value); } catch (_) {}
+                },
+                removeItem(key) {
+                    try { localStorage.removeItem(key); } catch (_) {}
+                    try { sessionStorage.removeItem(key); } catch (_) {}
+                }
+            };
+        }
+        let supabaseClient; try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: unemSafeAuthStorage() } }); } catch (e) {}
 
         // عنوان API موحّد: يمنع خطأ Failed to fetch عند فتح نسخة HTML محلياً (content:// أو file://).
         const UNEM_PRODUCTION_ORIGIN = 'https://unem-iscae.vercel.app';
@@ -4336,6 +4364,24 @@ function closeAnalyticsDashboard() {
             return 'serviceWorker' in navigator && 'PushManager' in window && typeof Notification !== 'undefined';
         }
 
+        // أصل غير آمن (content:// أو file:// عند فتح نسخة محفوظة على الجهاز) لا يمكنه تسجيل
+        // Service Worker أبداً، فتبقى navigator.serviceWorker.ready معلّقة للأبد دون أي خطأ.
+        function unemPushOriginOk() {
+            return typeof window.isSecureContext !== 'undefined'
+                ? (window.isSecureContext && /^https?:$/.test(location.protocol))
+                : /^https?:$/.test(location.protocol);
+        }
+
+        /** يعيد تسجيل Service Worker الجاهز، أو null بعد مهلة قصوى — بدل الانتظار للأبد. */
+        async function getPushServiceWorker() {
+            if (!('serviceWorker' in navigator) || !unemPushOriginOk()) return null;
+            try {
+                const timeout = new Promise(resolve => setTimeout(() => resolve(null), 8000));
+                const ready = navigator.serviceWorker.ready.then(reg => reg).catch(() => null);
+                return await Promise.race([ready, timeout]);
+            } catch (_) { return null; }
+        }
+
         function nativeFcmSupported() {
             return isAndroidWebView() && window.AndroidNotifications &&
                 typeof window.AndroidNotifications.requestNotificationPermission === 'function' &&
@@ -4370,7 +4416,8 @@ function closeAnalyticsDashboard() {
                 return;
             }
             try {
-                const reg = await navigator.serviceWorker.ready;
+                const reg = await getPushServiceWorker();
+                if (!reg) { setPushIcon(false); return; }
                 const sub = await reg.pushManager.getSubscription();
                 const active = !!sub && Notification.permission === 'granted';
                 setPushIcon(active);
@@ -4384,6 +4431,13 @@ function closeAnalyticsDashboard() {
 
         async function subscribeToPush() {
             if (!webPushSupported()) return false;
+            if (!unemPushOriginOk()) {
+                throw new Error('الإشعارات تعمل فقط عند فتح المنصة عبر رابطها الرسمي (https)، لا من نسخة محفوظة على الجهاز.');
+            }
+            const reg = await getPushServiceWorker();
+            if (!reg) {
+                throw new Error('تعذّر تجهيز خدمة الإشعارات في هذا المتصفح. أعد تحميل الصفحة من الرابط الرسمي ثم حاول مجدداً.');
+            }
             const res = await fetch(unemApi('/api/public/push/vapid-key'));
             const data = await res.json().catch(() => ({}));
             if (!data || !data.publicKey) {
@@ -4393,7 +4447,6 @@ function closeAnalyticsDashboard() {
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') return false;
 
-            const reg = await navigator.serviceWorker.ready;
             let sub = await reg.pushManager.getSubscription();
             if (!sub) {
                 sub = await reg.pushManager.subscribe({
@@ -4453,8 +4506,8 @@ function closeAnalyticsDashboard() {
 
         async function unsubscribeFromPush() {
             try {
-                const reg = await navigator.serviceWorker.ready;
-                const sub = await reg.pushManager.getSubscription();
+                const reg = await getPushServiceWorker();
+                const sub = reg ? await reg.pushManager.getSubscription() : null;
 
                 if (sub) {
                     const endpoint = sub.endpoint;
@@ -4487,8 +4540,8 @@ function closeAnalyticsDashboard() {
             const btn = document.getElementById('push-toggle-btn');
             if (btn) btn.disabled = true;
             try {
-                const reg = await navigator.serviceWorker.ready;
-                const existing = await reg.pushManager.getSubscription();
+                const reg = await getPushServiceWorker();
+                const existing = reg ? await reg.pushManager.getSubscription() : null;
                 if (existing && Notification.permission === 'granted') {
                     await unsubscribeFromPush();
                     setPushIcon(false);
@@ -5458,6 +5511,18 @@ function closeAnalyticsDashboard() {
         // مهلة كاش قصيرة جداً حتى تظهر ملفات GitHub الجديدة فوراً تقريباً
         const GITHUB_CACHE_TTL = 60 * 1000;
 
+        /** كتابة آمنة للتخزين المحلي: إن امتلأ (QuotaExceededError) نحذف كاش الفروع القديم ونعيد المحاولة
+         *  بدل ترك الاستثناء يتسرب خارج fetchFilesFromGitHub بلا داعٍ. */
+        function unemSafeLocalSet(key, value) {
+            try { localStorage.setItem(key, value); return true; } catch (e1) {}
+            try {
+                Object.keys(localStorage)
+                    .filter(k => /^github_cache_/.test(k) && k !== key)
+                    .forEach(k => { try { localStorage.removeItem(k); } catch (_) {} });
+                localStorage.setItem(key, value); return true;
+            } catch (e2) { return false; }
+        }
+
         async function fetchFilesFromGitHub(branch, options) {
             const force = !!(options && options.force);
             const cacheKey = `github_cache_${branch}`; const cacheTimeKey = `github_cache_time_${branch}`;
@@ -5483,8 +5548,8 @@ function closeAnalyticsDashboard() {
                                 path: item.path,
                                 download_url: `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${encodeURIComponent(branch)}/${String(item.path).split('/').map(encodeURIComponent).join('/')}`
                             }));
-                        localStorage.setItem(cacheKey, JSON.stringify(allFiles));
-                        localStorage.setItem(cacheTimeKey, now.toString());
+                        unemSafeLocalSet(cacheKey, JSON.stringify(allFiles));
+                        unemSafeLocalSet(cacheTimeKey, now.toString());
                     }
                 } else {
                     // توافق احتياطي مع API المحتويات إذا تعذر endpoint الشجرة.
@@ -5493,8 +5558,8 @@ function closeAnalyticsDashboard() {
                         const data = await res.json();
                         if (Array.isArray(data)) {
                             allFiles = data;
-                            localStorage.setItem(cacheKey, JSON.stringify(data));
-                            localStorage.setItem(cacheTimeKey, now.toString());
+                            unemSafeLocalSet(cacheKey, JSON.stringify(data));
+                            unemSafeLocalSet(cacheTimeKey, now.toString());
                         }
                     } else if (cachedData) allFiles = JSON.parse(cachedData);
                 }
@@ -6684,8 +6749,11 @@ function escapeHtml(value){
         function applyRegistrationVisibility(enabled){
             const card=document.querySelector('#main-menu .registration-card');
             const menu=document.getElementById('main-menu');
-            if(!card) return;
             const visible=enabled !== false && registrationScheduleIsActive(registrationScheduleCache);
+            // نحفظ آخر حالة معروفة لاستعمالها فوراً عند التحميل القادم، فلا تظهر البطاقة
+            // للحظة قبل أن يصل رد الخادم (خصوصاً حين تكون مخفية من المشرف).
+            try{ localStorage.setItem('unem_registration_enabled_cache_v1', visible ? '1' : '0'); }catch(_){}
+            if(!card) return;
             card.style.display=visible ? '' : 'none';
             card.setAttribute('aria-hidden',visible ? 'false' : 'true');
             card.dataset.registrationEnabled=visible ? 'true' : 'false';
@@ -8131,7 +8199,7 @@ function escapeHtml(value){
                 }
               });
             });
-          });
+          }).catch(err => { console.warn('SW registration failed:', err); });
           
           let refreshing;
           navigator.serviceWorker.addEventListener('controllerchange', () => {
