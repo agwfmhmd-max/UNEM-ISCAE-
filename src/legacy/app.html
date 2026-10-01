@@ -2051,16 +2051,16 @@ body.dark-mode #main-menu .registration-card .icon-box{
 <div class="section-box hidden" id="stage-report-home-selection">
 <div class="header-with-back">
 <button class="back-btn" data-i18n="btn_home" onclick="goBackToMainMenu()">الرئيسية</button>
-<h2 class="section-title" data-i18n="stage_report_home">Rapport de stage de la 2ème année</h2>
+<h2 class="section-title" data-i18n="stage_report_home">Rapport de stage</h2>
 </div>
 
 <div class="semesters-grid" id="stage-report-home-specializations">
-<div class="semester-card specialization-card" data-stage-spec="ba" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-university"></i></div><h3>BA</h3><p data-i18n="spec_ba">البنوك والتأمين</p></div>
-<div class="semester-card specialization-card" data-stage-spec="fc" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-calculator"></i></div><h3>FC</h3><p data-i18n="spec_fc">المالية والمحاسبة</p></div>
-<div class="semester-card specialization-card" data-stage-spec="tcm" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-bullhorn"></i></div><h3>TCM</h3><p data-i18n="spec_tcm">تقنيات المبيعات والتسويق</p></div>
-<div class="semester-card specialization-card" data-stage-spec="grh" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-users-cog"></i></div><h3>GRH</h3><p data-i18n="spec_grh">إدارة الموارد البشرية</p></div>
-<div class="semester-card specialization-card" data-stage-spec="sae" role="button" tabindex="0"><div class="icon-box"><i class="fas fa-chart-pie"></i></div><h3>SAE</h3><p data-i18n="spec_sae">الإحصاء التطبيقي في الاقتصاد</p></div>
-<div class="semester-card specialization-card" data-stage-spec="ig" role="button" tabindex="0"><div class="icon-box"><span class="fa-stack" style="font-size:.6em;"><i class="fas fa-shield-halved fa-stack-2x"></i><i class="fas fa-chart-line fa-stack-1x fa-inverse" style="transform:scale(.9) translateX(1px);"></i></span></div><h3>IG</h3><p data-i18n="spec_ig">المعلوماتية المطبقة على التسيير</p></div>
+<div class="semester-card specialization-card" data-stage-spec="ba" role="button" tabindex="0" onclick="openStageReportForSpecialization('ba')"><div class="icon-box"><i class="fas fa-university"></i></div><h3>BA</h3><p data-i18n="spec_ba">البنوك والتأمين</p></div>
+<div class="semester-card specialization-card" data-stage-spec="fc" role="button" tabindex="0" onclick="openStageReportForSpecialization('fc')"><div class="icon-box"><i class="fas fa-calculator"></i></div><h3>FC</h3><p data-i18n="spec_fc">المالية والمحاسبة</p></div>
+<div class="semester-card specialization-card" data-stage-spec="tcm" role="button" tabindex="0" onclick="openStageReportForSpecialization('tcm')"><div class="icon-box"><i class="fas fa-bullhorn"></i></div><h3>TCM</h3><p data-i18n="spec_tcm">تقنيات المبيعات والتسويق</p></div>
+<div class="semester-card specialization-card" data-stage-spec="grh" role="button" tabindex="0" onclick="openStageReportForSpecialization('grh')"><div class="icon-box"><i class="fas fa-users-cog"></i></div><h3>GRH</h3><p data-i18n="spec_grh">إدارة الموارد البشرية</p></div>
+<div class="semester-card specialization-card" data-stage-spec="sae" role="button" tabindex="0" onclick="openStageReportForSpecialization('sae')"><div class="icon-box"><i class="fas fa-chart-pie"></i></div><h3>SAE</h3><p data-i18n="spec_sae">الإحصاء التطبيقي في الاقتصاد</p></div>
+<div class="semester-card specialization-card" data-stage-spec="ig" role="button" tabindex="0" onclick="openStageReportForSpecialization('ig')"><div class="icon-box"><span class="fa-stack" style="font-size:.6em;"><i class="fas fa-shield-halved fa-stack-2x"></i><i class="fas fa-chart-line fa-stack-1x fa-inverse" style="transform:scale(.9) translateX(1px);"></i></span></div><h3>IG</h3><p data-i18n="spec_ig">المعلوماتية المطبقة على التسيير</p></div>
 </div>
 </div>
 <div class="section-box hidden" id="specialization-selection">
@@ -4338,8 +4338,14 @@ function closeAnalyticsDashboard() {
 }
 
 function openStageReportForSpecialization(spec) {
-    const s = String(spec || '').toLowerCase();
-    if (!branchMap[s]) return;
+    const s = String(spec || '').toLowerCase().trim();
+    if (!s || !branchMap[s]) {
+        console.warn('Rapport de stage: spécialisation inconnue', spec);
+        return;
+    }
+    stageReportMode = true;
+    setMaintenanceNoticeVisible(false);
+    hideAll();
     currentSpecialization = s;
     currentBranch = branchMap[s];
     currentLevel = 'l2';
