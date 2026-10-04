@@ -13,10 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MoyenneRouteImport } from './routes/moyenne'
 import { Route as ResultatsRouteImport } from './routes/resultats'
 import { Route as ApiWebProxyRouteImport } from './routes/api/web-proxy'
-import { Route as ApiPublicFileRouteImport } from './routes/api/public/file'
 import { Route as ApiPublicCloudinaryConfigRouteImport } from './routes/api/public/cloudinary/config'
 import { Route as ApiPublicCloudinaryDestroyRouteImport } from './routes/api/public/cloudinary/destroy'
 import { Route as ApiPublicCloudinarySignRouteImport } from './routes/api/public/cloudinary/sign'
+import { Route as ApiPublicFcmRegisterRouteImport } from './routes/api/public/fcm/register'
 import { Route as ApiPublicPushSendRouteImport } from './routes/api/public/push/send'
 import { Route as ApiPublicPushVapidKeyRouteImport } from './routes/api/public/push/vapid-key'
 
@@ -40,11 +40,6 @@ const ApiWebProxyRoute = ApiWebProxyRouteImport.update({
   path: '/api/web-proxy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicFileRoute = ApiPublicFileRouteImport.update({
-  id: '/api/public/file',
-  path: '/api/public/file',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicCloudinaryConfigRoute =
   ApiPublicCloudinaryConfigRouteImport.update({
     id: '/api/public/cloudinary/config',
@@ -60,6 +55,11 @@ const ApiPublicCloudinaryDestroyRoute =
 const ApiPublicCloudinarySignRoute = ApiPublicCloudinarySignRouteImport.update({
   id: '/api/public/cloudinary/sign',
   path: '/api/public/cloudinary/sign',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicFcmRegisterRoute = ApiPublicFcmRegisterRouteImport.update({
+  id: '/api/public/fcm/register',
+  path: '/api/public/fcm/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPushSendRoute = ApiPublicPushSendRouteImport.update({
@@ -78,10 +78,10 @@ export interface FileRoutesByFullPath {
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
-  '/api/public/file': typeof ApiPublicFileRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
+  '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -90,10 +90,10 @@ export interface FileRoutesByTo {
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
-  '/api/public/file': typeof ApiPublicFileRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
+  '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -103,10 +103,10 @@ export interface FileRoutesById {
   '/moyenne': typeof MoyenneRoute
   '/resultats': typeof ResultatsRoute
   '/api/web-proxy': typeof ApiWebProxyRoute
-  '/api/public/file': typeof ApiPublicFileRoute
   '/api/public/cloudinary/config': typeof ApiPublicCloudinaryConfigRoute
   '/api/public/cloudinary/destroy': typeof ApiPublicCloudinaryDestroyRoute
   '/api/public/cloudinary/sign': typeof ApiPublicCloudinarySignRoute
+  '/api/public/fcm/register': typeof ApiPublicFcmRegisterRoute
   '/api/public/push/send': typeof ApiPublicPushSendRoute
   '/api/public/push/vapid-key': typeof ApiPublicPushVapidKeyRoute
 }
@@ -116,10 +116,11 @@ export interface FileRouteTypes {
     | '/'
     | '/moyenne'
     | '/resultats'
-    | '/api/public/file'
+    | '/api/web-proxy'
     | '/api/public/cloudinary/config'
     | '/api/public/cloudinary/destroy'
     | '/api/public/cloudinary/sign'
+    | '/api/public/fcm/register'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   fileRoutesByTo: FileRoutesByTo
@@ -127,10 +128,11 @@ export interface FileRouteTypes {
     | '/'
     | '/moyenne'
     | '/resultats'
-    | '/api/public/file'
+    | '/api/web-proxy'
     | '/api/public/cloudinary/config'
     | '/api/public/cloudinary/destroy'
     | '/api/public/cloudinary/sign'
+    | '/api/public/fcm/register'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   id:
@@ -138,10 +140,11 @@ export interface FileRouteTypes {
     | '/'
     | '/moyenne'
     | '/resultats'
-    | '/api/public/file'
+    | '/api/web-proxy'
     | '/api/public/cloudinary/config'
     | '/api/public/cloudinary/destroy'
     | '/api/public/cloudinary/sign'
+    | '/api/public/fcm/register'
     | '/api/public/push/send'
     | '/api/public/push/vapid-key'
   fileRoutesById: FileRoutesById
@@ -150,10 +153,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MoyenneRoute: typeof MoyenneRoute
   ResultatsRoute: typeof ResultatsRoute
-  ApiPublicFileRoute: typeof ApiPublicFileRoute
+  ApiWebProxyRoute: typeof ApiWebProxyRoute
   ApiPublicCloudinaryConfigRoute: typeof ApiPublicCloudinaryConfigRoute
   ApiPublicCloudinaryDestroyRoute: typeof ApiPublicCloudinaryDestroyRoute
   ApiPublicCloudinarySignRoute: typeof ApiPublicCloudinarySignRoute
+  ApiPublicFcmRegisterRoute: typeof ApiPublicFcmRegisterRoute
   ApiPublicPushSendRoute: typeof ApiPublicPushSendRoute
   ApiPublicPushVapidKeyRoute: typeof ApiPublicPushVapidKeyRoute
 }
@@ -188,13 +192,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWebProxyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/file': {
-      id: '/api/public/file'
-      path: '/api/public/file'
-      fullPath: '/api/public/file'
-      preLoaderRoute: typeof ApiPublicFileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/cloudinary/config': {
       id: '/api/public/cloudinary/config'
       path: '/api/public/cloudinary/config'
@@ -214,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/cloudinary/sign'
       fullPath: '/api/public/cloudinary/sign'
       preLoaderRoute: typeof ApiPublicCloudinarySignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/fcm/register': {
+      id: '/api/public/fcm/register'
+      path: '/api/public/fcm/register'
+      fullPath: '/api/public/fcm/register'
+      preLoaderRoute: typeof ApiPublicFcmRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/push/send': {
@@ -238,10 +242,10 @@ const rootRouteChildren: RootRouteChildren = {
   MoyenneRoute: MoyenneRoute,
   ResultatsRoute: ResultatsRoute,
   ApiWebProxyRoute: ApiWebProxyRoute,
-  ApiPublicFileRoute: ApiPublicFileRoute,
   ApiPublicCloudinaryConfigRoute: ApiPublicCloudinaryConfigRoute,
   ApiPublicCloudinaryDestroyRoute: ApiPublicCloudinaryDestroyRoute,
   ApiPublicCloudinarySignRoute: ApiPublicCloudinarySignRoute,
+  ApiPublicFcmRegisterRoute: ApiPublicFcmRegisterRoute,
   ApiPublicPushSendRoute: ApiPublicPushSendRoute,
   ApiPublicPushVapidKeyRoute: ApiPublicPushVapidKeyRoute,
 }
