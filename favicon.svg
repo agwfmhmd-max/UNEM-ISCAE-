@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1092 1092" role="img" aria-label="Solar PAYG Mauritanie">
+  <title>Solar PAYG Mauritanie</title>
+  <defs>
+    <radialGradient id="sun" cx=".3" cy=".22" r=".95"><stop offset="0" stop-color="#FDE047"/><stop offset=".3" stop-color="#FBBF24"/><stop offset=".68" stop-color="#F59E0B"/><stop offset="1" stop-color="#F97316"/></radialGradient>
+    <linearGradient id="ray" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBBF24"/><stop offset="1" stop-color="#F97316"/></linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#60A5FA"/><stop offset=".45" stop-color="#1D6FE0"/><stop offset="1" stop-color="#1E3A9A"/></linearGradient>
+    <linearGradient id="roof" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#14532D"/><stop offset="1" stop-color="#16803A"/></linearGradient>
+    <linearGradient id="arcR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16803A"/><stop offset="1" stop-color="#14532D"/></linearGradient>
+    <linearGradient id="leafL" x1=".1" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#84CC16"/><stop offset=".45" stop-color="#22A04B"/><stop offset="1" stop-color="#14532D"/></linearGradient>
+    <linearGradient id="swoosh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#14532D"/><stop offset=".55" stop-color="#65A30D"/><stop offset="1" stop-color="#15803D"/></linearGradient>
+    <linearGradient id="gBlob" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#65A30D"/><stop offset=".5" stop-color="#16803A"/><stop offset="1" stop-color="#14532D"/></linearGradient>
+    <linearGradient id="bBlob" x1=".2" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#0EA5E9"/><stop offset=".5" stop-color="#1D6FE0"/><stop offset="1" stop-color="#1E3A8A"/></linearGradient>
+    <linearGradient id="oBlob" x1=".4" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#FACC15"/><stop offset=".5" stop-color="#F59E0B"/><stop offset="1" stop-color="#EA580C"/></linearGradient>
+    <linearGradient id="oSw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#FACC15"/></linearGradient>
+    <linearGradient id="star" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FDE047"/><stop offset="1" stop-color="#CA8A04"/></linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F97316"/><stop offset="1" stop-color="#C2410C"/></linearGradient>
+  </defs>
+
+  <!-- médaillon blanc : le logo reste lisible sur fond clair comme sombre -->
+  <circle cx="548" cy="546" r="540" fill="#fff"/>
+
+  <!-- soleil -->
+  <g fill="url(#ray)">
+    <polygon points="155,343 278,330 276,385"/><polygon points="200,225 318,265 293,308"/>
+    <polygon points="290,130 383,210 340,243"/><polygon points="418,78 408,197 460,185"/>
+    <polygon points="528,97 496,185 535,190"/><polygon points="627,108 558,196 598,218"/>
+    <polygon points="718,224 643,262 665,292"/><polygon points="178,465 280,407 292,455"/>
+  </g>
+  <circle cx="470" cy="375" r="175" fill="url(#sun)"/>
+  <path d="M338 300 C 365 238 430 205 490 212" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="14" stroke-linecap="round"/>
+
+  <polygon points="430,350 700,300 748,300 748,575 458,570 218,545" fill="#fff"/>
+  <!-- grand arc vert (droite) -->
+  <path d="M527 95 C690 45 940 75 1018 330 C1045 440 1035 560 980 640 C985 590 992 560 960 522 C975 460 975 400 955 340 C915 190 760 85 527 95 Z" fill="url(#arcR)"/>
+
+
+  <!-- toit + cheminée -->
+  <polygon points="738,288 811,288 811,378 740,300" fill="#14532D"/>
+  <path d="M458 568 L720 295 L918 507 L858 507 L716 358 L545 543 Z" fill="url(#roof)"/>
+  
+
+  <!-- panneaux solaires -->
+  <polygon points="430,350 700,300 458,566 218,543" fill="url(#panel)" stroke="#fff" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M565.0 325.0L338.0 554.5M359.3 414.3L619.3 388.7M288.7 478.7L538.7 477.3" stroke="#fff" stroke-width="7" fill="none"/>
+  <path d="M430 350 L700 300 L640 358 L395 408 Z" fill="#fff" opacity=".16"/>
+
+  <!-- feuille gauche + bande basse -->
+  <path d="M153 418 C60 520 55 700 160 840 C250 960 380 1002 470 965 C520 945 560 905 585 893 C520 880 420 850 350 810 C250 750 175 660 150 520 C148 480 150 450 153 418 Z" fill="url(#leafL)"/>
+  <path d="M365 1002 C500 975 580 925 700 915 C840 900 950 780 1025 572 C1005 740 930 860 790 930 C660 990 480 1010 365 1002 Z" fill="url(#swoosh)"/>
+  <path d="M500 1027 C650 1000 800 960 918 848 C880 930 760 1000 640 1015 C590 1022 540 1028 500 1027 Z" fill="url(#oSw)"/>
+
+  <!-- trois piliers : financement / assurance / paiement mobile -->
+  <g stroke="#fff" stroke-width="14" stroke-linejoin="round">
+    <path d="M168 538 C 230 556 370 548 420 585 C 455 610 462 650 470 700 C 482 760 500 800 535 845 C 480 835 400 825 340 800 C 240 760 175 665 168 538 Z" fill="url(#gBlob)"/>
+    <path d="M463 612 C 520 560 640 528 758 543 C 700 570 678 615 668 690 C 655 790 640 850 603 883 C 560 835 505 810 480 760 C 465 705 470 650 463 612 Z" fill="url(#bBlob)"/>
+    <path d="M722 600 C 745 545 860 510 940 527 C 975 535 975 575 962 620 C 945 700 905 750 868 790 C 800 850 690 880 600 905 C 660 840 705 760 712 690 C 715 650 710 625 722 600 Z" fill="url(#oBlob)"/>
+  </g>
+
+</svg>
