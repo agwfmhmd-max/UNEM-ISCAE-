@@ -53,6 +53,8 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 #manualView .mv-grid{flex:1;min-height:0;overflow:hidden}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:200;padding:11px 16px;border-radius:12px;font-weight:800;font-size:.85rem;box-shadow:0 10px 30px rgba(15,23,42,.25);display:none;max-width:92vw;text-align:center}
 #toast.show{display:block}
+.btn.fav{background:#fff1f2;color:#be123c;padding:11px 14px;font-size:1rem;line-height:1}.btn.fav.on{background:#e11d48;color:#fff}
+.schedule .actions .fav{margin-inline-start:auto}
 </style>
 </head>
 <body>
@@ -114,7 +116,7 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 <div id="toast"></div>
 <div class="viewer" id="viewer">
   <div class="viewer-box">
-    <div class="viewer-head"><b id="viewerTitle">الجدول الدراسي</b><div class="vh-actions"><button class="btn primary" id="dlViewer" style="display:none">⬇️ تنزيل</button><button class="btn ghost" id="closeViewer">✕ إغلاق</button></div></div>
+    <div class="viewer-head"><b id="viewerTitle">الجدول الدراسي</b><div class="vh-actions"><button class="btn primary" id="dlViewer" style="display:none">⬇️ تنزيل</button><button class="btn fav" id="favViewer" style="display:none" aria-label="المفضلة" title="المفضلة">♡</button><button class="btn ghost" id="closeViewer">✕ إغلاق</button></div></div>
     <iframe id="frame" title="Study schedule PDF"></iframe>
   </div>
 </div>
@@ -135,7 +137,7 @@ async function loadSchedules(){
   showStatus('status','⏳ جاري تحميل الجداول...','info');
   const {data,error}=await sb.from('study_schedules').select('*').eq('is_active',true).order('academic_year',{ascending:false}).order('specialization').order('level').order('group_name');
   if(error){showStatus('status','تعذر تحميل الجداول: '+error.message,'err');return}
-  schedules=data||[]; populateFilters(); renderResults(); clearStatus('status'); 
+  schedules=data||[]; populateFilters(); renderResults(); clearStatus('status'); openFromParam();
 }
 function populateGroups(){
   const sSel=$('spec').value,lSel=$('level').value,old=$('group').value;
@@ -166,7 +168,7 @@ function renderResults(){
     <div class="schedule-head"><span class="badge">${esc(x.specialization)} · ${esc(x.level)}${x.group_name?' · '+esc(x.group_name):''}</span><span style="font-size:.7rem;color:#94a3b8">${esc(x.academic_year||'')}</span></div>
     <h3>${esc(x.title||'جدول دراسي')}</h3>
     <div class="meta">${x.rows&&x.rows.length?`✏️ ${x.rows.length} حصة مدخلة يدوياً`:'📄 جدول PDF رسمي'}${x.updated_at?' · آخر تحديث '+new Date(x.updated_at).toLocaleDateString('fr-FR'):''}</div>
-    <div class="actions"><button class="btn gold" onclick="viewSchedule('${esc(x.id)}')">📋 عرض الجدول</button><button class="btn primary" onclick="downloadSchedule('${esc(x.id)}')">⬇️ تنزيل</button></div>
+    <div class="actions"><button class="btn gold" onclick="viewSchedule('${esc(x.id)}')">📋 عرض الجدول</button><button class="btn primary" onclick="downloadSchedule('${esc(x.id)}')">⬇️ تنزيل</button><button class="btn fav${isFavSchedule(x.id)?' on':''}" data-fav-id="${esc(x.id)}" onclick="toggleFavSchedule('${esc(x.id)}')" aria-pressed="${isFavSchedule(x.id)}" aria-label="المفضلة" title="${isFavSchedule(x.id)?'إزالة من المفضلة':'إضافة إلى المفضلة'}">${isFavSchedule(x.id)?'♥':'♡'}</button></div>
   </article>`).join('');
 }
 const sp=v=>String(v??'').replace(/\s+/g,' ').trim();
@@ -177,7 +179,7 @@ function resetViewer(){
   const mv=$('manualView');if(mv)mv.remove();
   $('frame').style.display='';
 }
-function setViewerDl(id){currentId=id||null;$('dlViewer').style.display=id?'':'none'}
+function setViewerDl(id){currentId=id||null;$('dlViewer').style.display=id?'':'none';paintViewerFav()}
 window.openPdf=(url,title)=>{
   if(!url)return alert('لا يوجد ملف PDF لهذا الجدول.');
   resetViewer();$('viewerTitle').textContent=title;$('frame').src=url;$('viewer').classList.add('open');
@@ -340,6 +342,44 @@ window.downloadSchedule=async id=>{
   finally{_dlBusy=false}
 };
 $('dlViewer').onclick=()=>{if(currentId)downloadSchedule(currentId)};
+
+/* ===== المفضلة — نفس مفتاح التخزين المستخدم في الصفحة الرئيسية ===== */
+const FAV_KEY='unem_favorites_v1';
+function favLoad(){try{const a=JSON.parse(localStorage.getItem(FAV_KEY)||'[]');return Array.isArray(a)?a:[]}catch(_){return []}}
+function favSave(l){try{localStorage.setItem(FAV_KEY,JSON.stringify(l));return true}catch(_){return false}}
+const favKey=id=>'s:'+String(id);
+function isFavSchedule(id){return favLoad().some(i=>i&&i.key===favKey(id))}
+function paintFavButtons(){
+  document.querySelectorAll('[data-fav-id]').forEach(b=>{const on=isFavSchedule(b.getAttribute('data-fav-id'));b.classList.toggle('on',on);b.textContent=on?'♥':'♡';b.setAttribute('aria-pressed',on);b.title=on?'إزالة من المفضلة':'إضافة إلى المفضلة'});
+  paintViewerFav();
+}
+function paintViewerFav(){
+  const b=$('favViewer');if(!b)return;
+  if(!currentId){b.style.display='none';return}
+  const on=isFavSchedule(currentId);b.style.display='';b.classList.toggle('on',on);b.textContent=on?'♥':'♡';b.setAttribute('aria-pressed',on);b.title=on?'إزالة من المفضلة':'إضافة إلى المفضلة';
+}
+window.toggleFavSchedule=id=>{
+  const x=schedules.find(a=>String(a.id)===String(id));if(!x)return;
+  let list=favLoad();const key=favKey(id),idx=list.findIndex(i=>i&&i.key===key);
+  if(idx>=0){list.splice(idx,1);if(!favSave(list)){toast('❌ تعذر الحفظ على هذا الجهاز.','err');return}toast('تمت الإزالة من المفضلة','ok')}
+  else{
+    list.unshift({key,kind:'schedule',savedAt:Date.now(),schedule:{id:x.id,title:x.title||'',specialization:x.specialization||'',level:x.level||'',group_name:x.group_name||'',academic_year:x.academic_year||'',file_url:x.file_url||'',hasRows:!!(x.rows&&x.rows.length),rows:(x.rows&&x.rows.length&&x.rows.length<=400)?x.rows:undefined}});
+    if(!favSave(list)){toast('❌ تعذر الحفظ على هذا الجهاز.','err');return}toast('تمت الإضافة إلى المفضلة ❤️','ok');
+  }
+  paintFavButtons();
+};
+$('favViewer').onclick=()=>{if(currentId)toggleFavSchedule(currentId)};
+window.addEventListener('storage',e=>{if(e.key===FAV_KEY)paintFavButtons()});
+let _openedFromParam=false;
+function openFromParam(){
+  if(_openedFromParam)return;
+  let id=null;try{id=new URLSearchParams(location.search).get('open')}catch(_){}
+  if(!id)return;
+  _openedFromParam=true;
+  try{history.replaceState(null,'',location.pathname)}catch(_){}
+  if(schedules.some(a=>String(a.id)===String(id)))viewSchedule(id);
+  else toast('هذا الجدول لم يعد متاحاً.','err');
+}
 
 loadSchedules();initAdmin();
 </script>
