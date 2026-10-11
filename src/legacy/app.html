@@ -8857,8 +8857,8 @@ body.dark-mode .usa-btn.p{background:linear-gradient(135deg,#047857,#10b981)}
   ];
   function specFromName(name){var n=norm(name);for(var i=0;i<SPEC_MAP.length;i++){if(SPEC_MAP[i][0].test(n))return SPEC_MAP[i][1];}return '';}
   function parseHeader(text){
-    var m=String(text).match(/Profil\s*:\s*(.+?)\s*:?\s*$/);
-    var raw=(m?m[1]:String(text).replace(/^.*Profil\s*:/,'')).replace(/\s*:\s*$/,'').trim();
+    var m=String(text).match(/Profil\s*:\s*(.+)$/);
+    var raw=(m?m[1]:String(text).replace(/^.*Profil\s*:/,'')).replace(/[^\u0020-\u024F\u2019]+/g,' ').replace(/\(cid:\d+\)/g,' ').replace(/(?:\s*:\s*)+$/,'').replace(/\s+/g,' ').trim().replace(/(?:\s*:\s*)+$/,'').trim();
     var level='',rest=raw;
     var lm=raw.match(/^(\d)\s*(?:ère|ere|ème|eme|e|re|er)?\s*ann[ée]e\s+(.*)$/i);
     if(lm){level='L'+lm[1];rest=lm[2];}
@@ -8883,20 +8883,30 @@ body.dark-mode .usa-btn.p{background:linear-gradient(135deg,#047857,#10b981)}
   /* items: [{str,x,y,w}] — y يزيد نحو الأعلى (إحداثيات PDF) */
   function parsePage(items,pageNum){
     var its=items.filter(function(i){return i.str&&i.str.trim();});
-    var headerItem=its.filter(function(i){return /Profil\s*:/.test(i.str);})[0];
-    if(!headerItem)return null;
-    var hdr=parseHeader(headerItem.str);
+    var headerItem=its.filter(function(i){return /Profil\s*:/i.test(i.str);})[0];
+    /* PDF.js قد يعيد سطر Profil كعدة عناصر منفصلة؛ نجمع العناصر الموجودة على السطر نفسه. */
+    var headerText=headerItem?its.filter(function(i){return Math.abs(i.y-headerItem.y)<4;}).sort(function(a,b){return a.x-b.x;}).map(function(i){return i.str;}).join(' '):its.map(function(i){return i.str;}).join(' ');
+    if(!/Profil\s*:/i.test(headerText))return null;
+    var hdr=parseHeader(headerText);
     var yearItem=its.filter(function(i){return /^\s*\d{4}\s*\/\s*\d{4}\s*$/.test(i.str);})[0];
     var year=yearItem?yearItem.str.replace(/\s/g,'').replace('/','-'):'';
-    var semItem=its.filter(function(i){return /Semestres?\s+(Impairs?|Pairs?)/i.test(i.str);})[0];
-    var semester=semItem?(/impair/i.test(semItem.str)?'impair':'pair'):'';
+    var semester='';
+    var semItem=its.filter(function(i){return /Semestres?\s*(Impairs?|Pairs?)/i.test(i.str);})[0];
+    if(semItem)semester=/impair/i.test(semItem.str)?'impair':'pair';
+    else{
+      /* PDF.js قد يقسم «Semestres Impairs» إلى عدة عناصر: نجمع نص الصفحة كاملاً ونبحث فيه */
+      var allTxt=its.slice().sort(function(a,b){return Math.abs(b.y-a.y)>3?b.y-a.y:a.x-b.x;}).map(function(i){return i.str;}).join(' ').replace(/\s+/g,'');
+      var sm=allTxt.match(/Semestres?(Impairs?|Pairs?)/i);
+      if(sm)semester=/^impair/i.test(sm[1])?'impair':'pair';
+    }
     // رؤوس الأيام
     var dayCols=[];
-    DAYS.forEach(function(d){var it=its.filter(function(i){return i.str.trim().toUpperCase()===d;})[0];if(it)dayCols.push({day:d,cx:it.x+it.w/2,y:it.y});});
+    DAYS.forEach(function(d){var it=its.filter(function(i){return norm(i.str).toUpperCase()===d || new RegExp('(?:^|\\s)'+d+'(?:$|\\s)','i').test(String(i.str||'').trim());})[0];if(it)dayCols.push({day:d,cx:it.x+it.w/2,y:it.y});});
     if(!dayCols.length)return null;
     var headerY=dayCols[0].y;
     // تسميات الأوقات
-    var times=its.filter(function(i){return /^\d{1,2}h\s*-\s*\d{1,2}h$/.test(i.str.trim())&&i.y<headerY;}).sort(function(a,b){return b.y-a.y;});
+    var timePattern=/^\d{1,2}h(?:\d{2})?\s*-\s*\d{1,2}h(?:\d{2})?$/i;
+    var times=its.filter(function(i){return timePattern.test(i.str.replace(/\s+/g,'').trim())&&i.y<headerY;}).sort(function(a,b){return b.y-a.y;});
     if(!times.length)return null;
     var rowH=times.length>1?(times[0].y-times[1].y):60;
     var minY=times[times.length-1].y-rowH+6;
@@ -8904,7 +8914,7 @@ body.dark-mode .usa-btn.p{background:linear-gradient(135deg,#047857,#10b981)}
     its.forEach(function(i){
       if(i.y>=headerY-2)return;               // ما فوق رؤوس الأيام
       if(i.y<minY)return;                     // تذييل الصفحة
-      if(/^\d{1,2}h\s*-\s*\d{1,2}h$/.test(i.str.trim()))return;
+      if(timePattern.test(i.str.replace(/\s+/g,'').trim()))return;
       var cx=i.x+i.w/2,best=0,bd=1e9;
       dayCols.forEach(function(c,k){var d=Math.abs(c.cx-cx);if(d<bd){bd=d;best=k;}});
       if(i.x+i.w<dayCols[0].cx-60)return;     // عمود التوقيت
@@ -8947,7 +8957,25 @@ function status(id,msg,type){var e=$('#'+id);if(!e)return;if(!msg){e.className='
 function curYear(){var d=new Date(),y=d.getFullYear(),m=d.getMonth();var s=m>=8?y:y-1;return s+'-'+(s+1);}
 function opts(list,sel,withEmpty){return (withEmpty?'<option value="">'+withEmpty+'</option>':'')+list.map(function(x){var v=Array.isArray(x)?x[0]:x,t=Array.isArray(x)?x[0]+' — '+x[1]:x;return '<option value="'+esc(v)+'"'+(v===sel?' selected':'')+'>'+esc(t)+'</option>';}).join('');}
 function semTag(t){t=String(t||'');return /impair/i.test(t)?'i':(/\bpairs?\b/i.test(t)?'p':'');}
+/* تحويل الفصل المكتوب في ملف PDF إلى رمز قاعدة البيانات S1..S6؛ لا نعتمد على العنوان وحده عند النشر. */
+function semesterOptionsForLevel(level){var l=String(level||'').toUpperCase();return ({L1:['S1','S2'],L2:['S3','S4'],L3:['S5','S6'],M1:['S1','S2'],M2:['S3','S4']})[l]||[];}
+function inferSemester(level,title){var opts=semesterOptionsForLevel(level),tag=semTag(title);if(!opts.length||!tag)return '';return tag==='i'?opts[0]:opts[1];}
+function validSemester(level,semester){return semesterOptionsForLevel(level).indexOf(String(semester||'').toUpperCase())!==-1;}
+function semesterForRecord(x){return String((x&&x.semester)||inferSemester(x&&x.level,x&&x.title)||'').toUpperCase();}
 function grp(g){return String(g||'').trim().toUpperCase();}
+/* نوع الفصل الافتراضي عند عدم قدرة الموقع على قراءته من PDF: i = فردي، p = زوجي */
+function defaultSemKind(){
+  var el=$('#usa-sem-default'),v=el?el.value:'auto';
+  if(v==='i'||v==='p')return v;
+  var m=new Date().getMonth();           // سبتمبر..يناير = فردي، فبراير..أغسطس = زوجي
+  return (m>=8||m===0)?'i':'p';
+}
+function resolveSemester(level,sem,title){
+  if(validSemester(level,sem))return String(sem).toUpperCase();
+  var inf=inferSemester(level,title);if(inf)return inf;
+  var o=semesterOptionsForLevel(level);if(!o.length)return '';
+  return defaultSemKind()==='i'?o[0]:o[1];
+}
 
 /* ---------- تحميل pdf.js عند الحاجة ---------- */
 var pdfReady=null;
@@ -9016,7 +9044,7 @@ function render(){
   '<div class="usa-card"><h3>📤 رفع جداول جديدة من ملف PDF</h3>'+
   '<p class="usa-hint">ارفع ملف الجداول الرسمي (مثل «Emplois-20-10-2025.pdf» الذي يحوي عدة جداول). يقرأ الموقع كل صفحة تلقائياً: التخصص والمستوى والمجموعة والسنة والفصل وكل حصة (اليوم، الوقت، المادة، القاعة، الأستاذ). ستراجع النتيجة وتعدّلها قبل النشر.</p>'+
   '<div class="usa-grid"><div class="usa-f"><label>السنة الجامعية</label><input id="usa-year" placeholder="2025-2026" value="'+curYear()+'"></div>'+
-  '<div class="usa-f" style="grid-column:span 2"><label>ملف PDF</label><input id="usa-file" type="file" accept=".pdf,application/pdf"></div></div>'+
+  '<div class="usa-f"><label>الفصل إن لم يُقرأ تلقائياً</label><select id="usa-sem-default"><option value="auto">تلقائي (حسب التاريخ)</option><option value="i">فردي (S1 / S3 / S5)</option><option value="p">زوجي (S2 / S4 / S6)</option></select></div><div class="usa-f" style="grid-column:span 2"><label>ملف PDF</label><input id="usa-file" type="file" accept=".pdf,application/pdf"></div></div>'+
   '<label class="usa-chk"><input type="checkbox" id="usa-save-pdf" checked><span>حفظ ملف PDF الأصلي وربطه بكل جدول (يفتح مباشرة على صفحة الجدول)</span></label>'+
   '<label class="usa-chk"><input type="checkbox" id="usa-replace" checked><span>استبدال الجدول الموجود عند التطابق (نفس السنة والتخصص والمستوى والمجموعة والفصل) بدل إنشاء نسخة مكررة</span></label>'+
   '<div class="usa-actions"><button type="button" class="usa-btn p" id="usa-analyze">🔍 تحليل الملف</button></div>'+
@@ -9094,6 +9122,7 @@ function openEditor(id){
   '<div class="usa-f" style="grid-column:1/-1"><label>العنوان</label><input id="ue-title" value="'+esc(x.title)+'"></div>'+
   '<div class="usa-f"><label>التخصص</label><select id="ue-spec">'+opts(SPECS.map(function(s){return s[0];}),x.specialization)+'</select></div>'+
   '<div class="usa-f"><label>المستوى</label><select id="ue-level">'+opts(LEVELS,x.level)+'</select></div>'+
+  '<div class="usa-f"><label>الفصل</label><select id="ue-sem">'+opts(semesterOptionsForLevel(x.level),semesterForRecord(x),'— الفصل —')+'</select></div>'+
   '<div class="usa-f"><label>المجموعة</label><input id="ue-group" value="'+esc(x.group_name||'')+'" placeholder="G1 / FP — أو فارغ"></div>'+
   '<div class="usa-f"><label>السنة الجامعية</label><input id="ue-year" value="'+esc(x.academic_year)+'"></div></div>'+
   '<label class="usa-chk"><input type="checkbox" id="ue-active"'+(x.is_active?' checked':'')+'><span>منشور ومرئي للطلبة</span></label>'+
@@ -9101,6 +9130,7 @@ function openEditor(id){
   '<div id="ue-grid"></div><div id="ue-st" class="usa-status"></div>';
   mountRows($('#ue-rows'),x.rows||[]);
   $('#ue-prev').onclick=function(){$('#ue-grid').innerHTML=gridHtml(readRows($('#ue-rows')));};
+  $('#ue-level').onchange=function(){var l=$('#ue-level').value,cur=$('#ue-sem').value;var o=semesterOptionsForLevel(l);$('#ue-sem').innerHTML=opts(o,o.indexOf(cur)>=0?cur:'','— الفصل —');};
   $('#ue-cancel').onclick=function(){box.style.display='none';state.editing=null;};
   $('#ue-save').onclick=saveEditor;
   box.scrollIntoView({behavior:'smooth',block:'start'});
@@ -9111,7 +9141,10 @@ async function saveEditor(){
   if(!/^\d{4}-\d{4}$/.test(year))return status('ue-st','❌ السنة يجب أن تكون بصيغة 2025-2026.','err');
   if(!title)return status('ue-st','❌ أدخل عنواناً للجدول.','err');
   var rows=readRows($('#ue-rows'));
-  var r=await client().from('study_schedules').update({title:title,specialization:spec,level:level,group_name:g||null,academic_year:year,is_active:$('#ue-active').checked,rows:rows}).eq('id',id);
+  var sem=$('#ue-sem').value;if(sem&&!validSemester(level,sem))return status('ue-st','❌ اختر فصلاً دراسياً يتوافق مع المستوى '+level+'.','err');
+  var upd={title:title,specialization:spec,level:level,group_name:g||null,academic_year:year,is_active:$('#ue-active').checked,rows:rows};
+  var pr=await client().from('study_schedules').select('semester').limit(1);if(!pr.error&&sem)upd.semester=sem;
+  var r=await client().from('study_schedules').update(upd).eq('id',id);
   if(r.error)return status('ue-st','❌ '+r.error.message,'err');
   status('ue-st','✅ تم حفظ التعديلات ('+rows.length+' حصة).','ok');loadExisting();
 }
@@ -9133,13 +9166,15 @@ async function analyze(){
       var r=P.parsePage(tc.items.map(function(i){return {str:i.str,x:i.transform[4],y:i.transform[5],w:i.width};}),n);
       if(r){out.push(r);if(!year&&r.year)year=r.year;}else skipped.push(n);
     }
-    if(!out.length)throw new Error('لم يتم العثور على أي جدول في هذا الملف. تأكد أنه ملف الجداول الرسمي.');
+    if(!out.length)throw new Error('لم يتم التعرّف على صفحات الجداول داخل PDF. تأكد أن الملف يحتوي على نص قابل للقراءة، وأن عناوين Profil وأيام الأسبوع وأوقات الحصص ظاهرة. إذا كان الملف ممسوحاً ضوئياً كصور، فلن يمكن استخراجه بهذه الطريقة.');
     if(year)$('#usa-year').value=year;
     state.file=f;
     state.items=out.map(function(r){
       var h=r.header,sem=r.semester==='impair'?'Semestres impairs':(r.semester==='pair'?'Semestres pairs':'');
-      return {page:r.page,include:!!(h.spec&&h.level),title:h.raw+(sem?' — '+sem:''),spec:h.spec,level:h.level,group:h.group,rows:r.rows,warnings:r.warnings,match:null,open:false};
+      var title=h.raw+(sem?' — '+sem:'');
+      return {page:r.page,include:!!(h.spec&&h.level),title:title,spec:h.spec,level:h.level,semester:(r.semester?inferSemester(h.level,title):''),group:h.group,rows:r.rows,warnings:r.warnings,match:null,open:false};
     });
+    state.items.forEach(function(it){if(it.level&&!validSemester(it.level,it.semester))it.semester=resolveSemester(it.level,'',it.title);});
     computeMatches();renderPreview();
     var total=state.items.reduce(function(a,i){return a+i.rows.length;},0),warns=state.items.reduce(function(a,i){return a+i.warnings.length;},0),unk=state.items.filter(function(i){return !i.spec||!i.level;}).length;
     status('usa-st-up','✅ تم العثور على '+out.length+' جدول و '+total+' حصة.'+(skipped.length?'\nصفحات تم تخطيها (ليست جداول): '+skipped.join('، '):'')+(unk?'\n⚠️ '+unk+' جدول يحتاج تحديد التخصص/المستوى يدوياً.':'')+(warns?'\n⚠️ '+warns+' خلية بصيغة غير معتادة — راجعها في المعاينة.':'')+'\nراجع النتيجة ثم اضغط «نشر».',(unk||warns)?'warn':'ok');
@@ -9149,7 +9184,7 @@ async function analyze(){
 function computeMatches(){
   var y=(($('#usa-year')||{}).value||'').trim();
   state.items.forEach(function(it){
-    var m=state.existing.filter(function(x){return x.academic_year===y&&x.specialization===it.spec&&x.level===it.level&&grp(x.group_name)===grp(it.group)&&semTag(x.title)===semTag(it.title);})[0];
+    var m=state.existing.filter(function(x){return x.academic_year===y&&x.specialization===it.spec&&x.level===it.level&&grp(x.group_name)===grp(it.group)&&semesterForRecord(x)===String(it.semester||'').toUpperCase();})[0];
     it.match=m?m.id:null;
   });
 }
@@ -9161,7 +9196,7 @@ function renderPreview(){
   state.items.map(function(it,i){
     var tag=!it.spec||!it.level?'<span class="usa-tag bad">يحتاج تحديد التخصص/المستوى</span>':(it.match?'<span class="usa-tag rep">سيُستبدل الموجود</span>':'<span class="usa-tag new">جديد</span>');
     return '<div class="usa-item'+(it.include?'':' off')+'" data-i="'+i+'"><div class="usa-item-head"><input type="checkbox" data-f="include"'+(it.include?' checked':'')+'><div>'+
-    '<div class="usa-item-fields"><input data-f="title" value="'+esc(it.title)+'" aria-label="العنوان"><select data-f="spec" aria-label="التخصص">'+opts(SPECS.map(function(s){return s[0];}),it.spec,'— التخصص —')+'</select><select data-f="level" aria-label="المستوى">'+opts(LEVELS,it.level,'— المستوى —')+'</select><input data-f="group" value="'+esc(it.group)+'" placeholder="المجموعة" aria-label="المجموعة"></div>'+
+    '<div class="usa-item-fields"><input data-f="title" value="'+esc(it.title)+'" aria-label="العنوان"><select data-f="spec" aria-label="التخصص">'+opts(SPECS.map(function(s){return s[0];}),it.spec,'— التخصص —')+'</select><select data-f="level" aria-label="المستوى">'+opts(LEVELS,it.level,'— المستوى —')+'</select><select data-f="semester" aria-label="الفصل الدراسي">'+opts(semesterOptionsForLevel(it.level),it.semester,'— الفصل الدراسي —')+'</select><input data-f="group" value="'+esc(it.group)+'" placeholder="المجموعة" aria-label="المجموعة"></div>'+
     '<div class="usa-item-meta">'+tag+'<span class="usa-tag">صفحة '+it.page+'</span><span class="usa-tag">'+it.rows.length+' حصة</span>'+(it.warnings.length?'<span class="usa-tag bad">⚠️ '+it.warnings.length+' للمراجعة</span>':'')+'<button type="button" class="usa-btn s" data-act="toggle">'+(it.open?'إخفاء الحصص':'عرض / تعديل الحصص')+'</button></div></div></div>'+
     (it.open?'<div class="usa-detail">'+(it.warnings.length?'<div class="usa-status warn show">خلايا غير معتادة:\n'+esc(it.warnings.join('\n'))+'</div>':'')+gridHtml(it.rows)+'<div class="usa-rows-box" style="margin-top:10px"></div></div>':'')+'</div>';
   }).join('')+'</div><div class="usa-actions"><button type="button" class="usa-btn p" id="up-publish">🚀 نشر المحدد ('+inc+')</button><button type="button" class="usa-btn" id="up-cancel">إلغاء</button></div><div id="usa-st-pub" class="usa-status"></div>';
@@ -9175,7 +9210,7 @@ function renderPreview(){
     var it=state.items[+el.dataset.i],f=e.target.dataset.f;
     it[f]=f==='include'?e.target.checked:e.target.value;
     if(f==='group')it.group=e.target.value.trim();
-    if(e.type==='change'&&f!=='title'){if(f==='spec'||f==='level'||f==='group'||f==='include'){if(!it.spec||!it.level)it.include=false;computeMatches();syncRowsFromDom();renderPreview();}}
+    if(e.type==='change'&&f!=='title'){if(f==='spec'||f==='level'||f==='semester'||f==='group'||f==='include'){if(f==='level'&&!validSemester(it.level,it.semester))it.semester='';if(f==='spec'||f==='level'){if(!it.spec||!it.level)it.include=false;}computeMatches();syncRowsFromDom();renderPreview();}}
   };
   box.onclick=function(e){
     var b=e.target.closest('[data-act="toggle"]');if(!b)return;
@@ -9194,38 +9229,73 @@ async function publish(){
   var sb=client(),year=$('#usa-year').value.trim(),sel=state.items.filter(function(i){return i.include;});
   if(!/^\d{4}-\d{4}$/.test(year))return status('usa-st-pub','❌ السنة الجامعية يجب أن تكون بصيغة 2025-2026.','err');
   if(!sel.length)return status('usa-st-pub','حدّد جدولاً واحداً على الأقل للنشر.','warn');
-  var bad=sel.filter(function(i){return !i.spec||!i.level||!i.title.trim();});
-  if(bad.length)return status('usa-st-pub','❌ أكمل التخصص والمستوى والعنوان لكل جدول محدد.','err');
+  sel.forEach(function(i){if(i.level&&!validSemester(i.level,i.semester))i.semester=resolveSemester(i.level,i.semester,i.title);});
+  computeMatches();
+  var bad=sel.filter(function(i){return !i.spec||!i.level||!i.title.trim()||!validSemester(i.level,i.semester);});
+  if(bad.length){renderPreview();return status('usa-st-pub','❌ جداول تحتاج تصحيحاً (التخصص أو المستوى أو العنوان): صفحة '+bad.map(function(i){return i.page;}).join('، ')+'. اختر القيم الصحيحة ثم أعد النشر.','err');}
   var btn=$('#up-publish');btn.disabled=true;
   try{
     var ss=await sb.auth.getSession(),session=ss&&ss.data&&ss.data.session;
     if(!session)throw new Error('يجب تسجيل الدخول بحساب المشرف الرئيسي.');
-    var url=null,pid=null,warnUp='';
+    var url=null,pid=null,pdfWarn='';
     if($('#usa-save-pdf').checked&&state.file){
+     try{
       status('usa-st-pub','⏳ رفع ملف PDF الأصلي...','info');
-      try{
-        var f=state.file,first=sel[0];
-        var sign=await fetch('/api/public/cloudinary/sign',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({section:'schedules',fileName:f.name,fileSize:f.size,academicYear:year,specialization:first.spec,level:first.level,group:''})});
-        var sd=await sign.json();if(!sign.ok)throw new Error(sd.error||'تعذر الحصول على تصريح الرفع.');
-        var fd=new FormData();fd.append('file',f,f.name);fd.append('api_key',sd.apiKey);fd.append('timestamp',sd.timestamp);fd.append('signature',sd.signature);fd.append('folder',sd.folder);fd.append('public_id',sd.publicId);
-        var up=await fetch(sd.uploadUrl,{method:'POST',body:fd}),ud=await up.json();
-        if(!up.ok||!ud.secure_url)throw new Error((ud.error&&ud.error.message)||'فشل رفع PDF.');
-        url=ud.secure_url;pid=ud.public_id||sd.publicId;
-      }catch(e){warnUp='\n⚠️ لم يُحفظ ملف PDF الأصلي ('+(e.message||e)+') — تم حفظ الجداول المقروءة فقط.';}
+      var f=state.file,first=sel[0];
+      if(!/\.pdf$/i.test(f.name)||f.size===0)throw new Error('ملف PDF غير صالح أو فارغ. اختر ملف الجداول الأصلي من جديد.');
+      var sign;
+      try {
+        sign=await fetch((typeof unemApi==='function'?unemApi('/api/public/cloudinary/sign'):'/api/public/cloudinary/sign'),{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({section:'schedules',fileName:f.name,fileSize:f.size,academicYear:year,specialization:first.spec,level:first.level,group:''})});
+      } catch(signNetworkError) {
+        throw new Error('تعذر الاتصال بخادم تجهيز رفع PDF. تأكد من فتح المنصة عبر رابط Vercel المنشور، وأن مسار /api/public/cloudinary/sign منشور ويعمل. التفاصيل: '+(signNetworkError&&signNetworkError.message||'Failed to fetch'));
+      }
+      var sd=await sign.json().catch(function(){return null;});
+      if(!sign.ok)throw new Error((sd&&sd.error)||'تعذر الحصول على تصريح رفع PDF. تحقق من صلاحية المشرف وإعدادات الخادم.');
+      if(!sd||!sd.uploadUrl||!sd.apiKey||!sd.timestamp||!sd.signature||!sd.folder||!sd.publicId)throw new Error('استجابة تصريح الرفع غير مكتملة. تحقق من إعدادات Cloudinary في الخادم.');
+      var fd=new FormData();fd.append('file',f,f.name);fd.append('api_key',sd.apiKey);fd.append('timestamp',sd.timestamp);fd.append('signature',sd.signature);fd.append('folder',sd.folder);fd.append('public_id',sd.publicId);
+      var up;
+      try { up=await fetch(sd.uploadUrl,{method:'POST',body:fd}); }
+      catch(uploadNetworkError) {
+        throw new Error('تم تجهيز طلب الرفع، لكن تعذر الاتصال بخدمة Cloudinary لرفع ملف PDF. تحقق من اتصال الإنترنت وإعدادات الرفع الموقّع. التفاصيل: '+(uploadNetworkError&&uploadNetworkError.message||'Failed to fetch'));
+      }
+      var ud=await up.json().catch(function(){return null;});
+      if(!up.ok||!ud||!ud.secure_url){
+        var uploadError=(ud&&ud.error&&ud.error.message)||(ud&&ud.error)||'فشل رفع PDF إلى Cloudinary.';
+        if(/pdf|zip|not allowed|untrusted/i.test(String(uploadError)))uploadError+=' — قد يلزم تفعيل Allow delivery of PDF and ZIP files من إعدادات Security في Cloudinary.';
+        throw new Error(uploadError);
+      }
+      url=ud.secure_url;pid=ud.public_id||sd.publicId;
+     }catch(pdfErr){url=null;pid=null;pdfWarn='\n⚠️ تم نشر الجداول لكن تعذر حفظ ملف PDF الأصلي: '+(pdfErr&&pdfErr.message||pdfErr);}
     }
+    var probe=await sb.from('study_schedules').select('semester').limit(1),hasSem=!probe.error;
+    if(!hasSem)pdfWarn+='\n⚠️ عمود semester غير موجود في قاعدة البيانات، فتم الحفظ بدونه. نفّذ ملف SQL «20261011_study_schedules_semester.sql» في Supabase لإضافته.';
     var ins=0,upd=0,replace=$('#usa-replace').checked;
     for(var k=0;k<sel.length;k++){
       var it=sel[k];status('usa-st-pub','⏳ حفظ الجداول '+(k+1)+' / '+sel.length+'...','info');
-      var rec={academic_year:year,specialization:it.spec,level:it.level,group_name:it.group?grp(it.group):null,title:it.title.trim(),rows:it.rows,is_active:true};
+      var rec={academic_year:year,specialization:it.spec,level:it.level,semester:String(it.semester).toUpperCase(),group_name:it.group?grp(it.group):null,title:it.title.trim(),rows:it.rows,is_active:true};
+      if(!hasSem)delete rec.semester;
       if(url){rec.file_url=url+'#page='+it.page;rec.file_name=state.file.name;rec.cloudinary_public_id=pid;}
       var m=replace&&it.match?it.match:null,res;
-      if(m){res=await sb.from('study_schedules').update(rec).eq('id',m);if(res.error)throw res.error;upd++;}
-      else{rec.uploaded_by=session.user.id;if(!url){rec.file_url=null;}res=await sb.from('study_schedules').insert(rec);if(res.error)throw res.error;ins++;}
+      try {
+        if(m){res=await sb.from('study_schedules').update(rec).eq('id',m);if(res.error)throw res.error;upd++;}
+        else{rec.uploaded_by=session.user.id;if(!url){rec.file_url=null;}res=await sb.from('study_schedules').insert(rec);
+          if(res.error&&(res.error.code==='23505'||/duplicate key|unique/i.test(res.error.message||''))){
+            var ex2=await sb.from('study_schedules').select('id,group_name').eq('academic_year',year).eq('specialization',it.spec).eq('level',it.level).eq('semester',rec.semester);
+            var hit=(ex2.data||[]).filter(function(x){return grp(x.group_name)===grp(it.group);})[0];
+            if(!hit)throw res.error;
+            delete rec.uploaded_by;if(!url){delete rec.file_url;}
+            res=await sb.from('study_schedules').update(rec).eq('id',hit.id);if(res.error)throw res.error;upd++;
+          }else{if(res.error)throw res.error;ins++;}}
+      } catch(dbError) {
+        var dbMessage=dbError&&dbError.message||String(dbError||'خطأ غير معروف');
+        if(/failed to fetch|networkerror|fetch failed/i.test(dbMessage)) throw new Error('تم رفع ملف PDF'+(url?' إلى Cloudinary':'')+'، لكن تعذر الاتصال بقاعدة بيانات Supabase لحفظ الجداول. تحقق من اتصال الشبكة وإعدادات Supabase ثم أعد المحاولة. التفاصيل: '+dbMessage);
+        throw dbError;
+      }
     }
-    status('usa-st-pub','✅ تم النشر بنجاح: '+ins+' جدول جديد، '+upd+' جدول تم تحديثه.'+warnUp,warnUp?'warn':'ok');
+    status('usa-st-pub','✅ تم النشر بنجاح: '+ins+' جدول جديد، '+upd+' جدول تم تحديثه.'+(url?' وتم حفظ ملف PDF الأصلي.':'')+pdfWarn,pdfWarn?'warn':'ok');
     state.items=[];state.file=null;var fi=$('#usa-file');if(fi)fi.value='';
     await loadExisting();
-    var st=$('#usa-st-pub');if(!st){status('usa-st-up','✅ تم النشر: '+ins+' جديد، '+upd+' محدّث.'+warnUp,warnUp?'warn':'ok');}
+    var st=$('#usa-st-pub');if(!st){status('usa-st-up','✅ تم النشر: '+ins+' جديد، '+upd+' محدّث.'+(url?' وتم حفظ ملف PDF الأصلي.':''),'ok');}
   }catch(e){status('usa-st-pub','❌ '+(e&&e.message||e),'err');var b2=$('#up-publish');if(b2)b2.disabled=false;}
 }
 
