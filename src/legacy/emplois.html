@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<script src="/unem-gate.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>الجداول الدراسية | UNEM ISCAE</title>
@@ -61,53 +60,53 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 <body>
 <div class="page">
 <header class="top">
-  <div class="brand"><div class="logo">📅</div><div><h1 data-tr="pageTitle">الجداول الدراسية</h1><p class="sub" data-tr="subtitle">Emplois du temps — UNEM ISCAE</p></div></div>
-  <div style="display:flex;gap:8px;align-items:center"><button class="back" id="langBtn" type="button">Français</button><a class="back" href="/" data-tr="home">← الرئيسية</a></div>
+  <div class="brand"><div class="logo">📅</div><div><h1>الجداول الدراسية</h1><p class="sub">Emplois du temps — UNEM ISCAE</p></div></div>
+  <a class="back" href="/">← الرئيسية</a>
 </header>
 
 <section class="hero">
-  <h2 data-tr="heroTitle">اعثر على جدولك الدراسي بسهولة</h2>
-  <p data-tr="heroDesc">اختر التخصص والمستوى والمجموعة، ثم افتح الجدول الرسمي المنشور من الإدارة.</p>
+  <h2>اعثر على جدولك الدراسي بسهولة</h2>
+  <p>اختر التخصص والمستوى والمجموعة، ثم افتح الجدول الرسمي المنشور من الإدارة.</p>
 </section>
 
 <section class="card">
   <div class="filters">
-    <div class="field"><label data-tr="spec">التخصص</label><select id="spec"><option value="" data-tr="allSpecs">كل التخصصات</option><option value="BA">BA — Banques et Assurances</option><option value="FC">FC — Finance et Comptabilité</option><option value="TCM">TCM — Techniques Commerciales et Marketing</option><option value="GRH">GRH — Gestion des Ressources Humaines</option><option value="SAE">SAE — Statistique Appliquée à l'Economie</option><option value="IG">IG — Informatique de Gestion</option><option value="DI">DI — Développement Informatique</option><option value="RIT">RIT — Réseaux Informatiques et Télécommunications</option></select></div>
-    <div class="field"><label data-tr="level">المستوى</label><select id="level"><option value="" data-tr="allLevels">كل المستويات</option><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="M1">M1</option><option value="M2">M2</option></select></div>
-    <div class="field"><label data-tr="group">المجموعة</label><select id="group"><option value="" data-tr="allGroups">كل المجموعات</option></select></div>
-    <div class="field"><label data-tr="year">السنة الجامعية</label><select id="year"><option value="" data-tr="allYears">كل السنوات</option></select></div>
+    <div class="field"><label>التخصص</label><select id="spec"><option value="">كل التخصصات</option><option value="BA">BA — Banques et Assurances</option><option value="FC">FC — Finance et Comptabilité</option><option value="TCM">TCM — Techniques Commerciales et Marketing</option><option value="GRH">GRH — Gestion des Ressources Humaines</option><option value="SAE">SAE — Statistique Appliquée à l'Economie</option><option value="IG">IG — Informatique de Gestion</option><option value="DI">DI — Développement Informatique</option><option value="RIT">RIT — Réseaux Informatiques et Télécommunications</option></select></div>
+    <div class="field"><label>المستوى</label><select id="level"><option value="">كل المستويات</option><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="M1">M1</option><option value="M2">M2</option></select></div>
+    <div class="field"><label>المجموعة</label><select id="group"><option value="">كل المجموعات</option></select></div>
+    <div class="field"><label>السنة الجامعية</label><select id="year"><option value="">كل السنوات</option></select></div>
   </div>
-  <div class="actions"><button class="btn primary" id="searchBtn">🔎 <span data-tr="showSchedules">عرض الجداول</span></button><button class="btn ghost" id="resetBtn"><span data-tr="reset">إعادة التعيين</span></button></div>
+  <div class="actions"><button class="btn primary" id="searchBtn">🔎 عرض الجداول</button><button class="btn ghost" id="resetBtn">إعادة التعيين</button></div>
   <div id="status" class="status"></div>
 </section>
 
 <section class="card">
-  <div class="admin-title"><h2 data-tr="published">الجداول المنشورة</h2><span id="count" class="badge">0 جدول</span></div>
+  <div class="admin-title"><h2>الجداول المنشورة</h2><span id="count" class="badge">0 جدول</span></div>
   <div id="results" class="results" style="margin-top:14px"></div>
 </section>
 
 <section class="card admin" id="adminPanel">
-  <div class="admin-title"><h2 data-tr="adminTitle">🛡️ إدارة الجداول — المشرف الرئيسي</h2><button class="btn ghost" id="refreshAdmin"><span data-tr="refresh">تحديث</span></button></div>
-  <p class="hint" data-tr="adminHint">يمكنك رفع PDF جديد، تحديد نطاقه، ثم تعديله يدوياً. الرفع والتعديل محميان بصلاحية <b>admin</b> من Supabase، وليس بمجرد إخفاء الزر في الواجهة.</p>
+  <div class="admin-title"><h2>🛡️ إدارة الجداول — المشرف الرئيسي</h2><button class="btn ghost" id="refreshAdmin">تحديث</button></div>
+  <p class="hint">يمكنك رفع PDF جديد، تحديد نطاقه، ثم تعديله يدوياً. الرفع والتعديل محميان بصلاحية <b>admin</b> من Supabase، وليس بمجرد إخفاء الزر في الواجهة.</p>
   <div class="admin-grid">
-    <div class="field"><label data-tr="spec">التخصص</label><select id="aSpec"><option value="BA">BA</option><option value="FC">FC</option><option value="TCM">TCM</option><option value="GRH">GRH</option><option value="SAE">SAE</option><option value="IG">IG</option><option value="DI">DI</option><option value="RIT">RIT</option></select></div>
-    <div class="field"><label data-tr="level">المستوى</label><select id="aLevel"><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="M1">M1</option><option value="M2">M2</option></select></div>
-    <div class="field"><label data-tr="group">المجموعة</label><input id="aGroup" placeholder="G1 / G2 / FP — اتركها فارغة إذا لا توجد" data-tr-ph="groupExample"></div>
-    <div class="field"><label data-tr="year">السنة الجامعية</label><input id="aYear" placeholder="2025-2026"></div>
-    <div class="field" style="grid-column:span 2"><label><span data-tr="scheduleTitle">عنوان الجدول</span></label><input id="aTitle" placeholder="مثال: 1ère Année Informatique de Gestion G1" data-tr-ph="titleExample"></div>
-    <div class="field" style="grid-column:span 2"><label><span data-tr="pdfFile">ملف PDF</span></label><input id="aFile" type="file" accept=".pdf,application/pdf"></div>
+    <div class="field"><label>التخصص</label><select id="aSpec"><option value="BA">BA</option><option value="FC">FC</option><option value="TCM">TCM</option><option value="GRH">GRH</option><option value="SAE">SAE</option><option value="IG">IG</option><option value="DI">DI</option><option value="RIT">RIT</option></select></div>
+    <div class="field"><label>المستوى</label><select id="aLevel"><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="M1">M1</option><option value="M2">M2</option></select></div>
+    <div class="field"><label>المجموعة</label><input id="aGroup" placeholder="G1 / G2 / FP — اتركها فارغة إذا لا توجد"></div>
+    <div class="field"><label>السنة الجامعية</label><input id="aYear" placeholder="2025-2026"></div>
+    <div class="field" style="grid-column:span 2"><label>عنوان الجدول</label><input id="aTitle" placeholder="مثال: 1ère Année Informatique de Gestion G1"></div>
+    <div class="field" style="grid-column:span 2"><label>ملف PDF</label><input id="aFile" type="file" accept="application/pdf,.pdf"></div>
   </div>
-  <div class="actions"><button class="btn primary" id="uploadBtn">☁️ <span data-tr="upload">رفع ونشر الجدول</span></button></div>
+  <div class="actions"><button class="btn primary" id="uploadBtn">☁️ رفع ونشر الجدول</button></div>
   <div id="uploadStatus" class="status"></div>
 
   <div class="manual">
-    <h3 style="margin:0 0 5px" data-tr="manualEditor">✏️ المحرر اليدوي</h3>
-    <p class="hint" data-tr="manualHint">اختر جدولاً من القائمة ثم عدّل الحصص أو أضفها. البيانات اليدوية تحفظ داخل قاعدة البيانات مع رابط PDF الأصلي.</p>
+    <h3 style="margin:0 0 5px">✏️ المحرر اليدوي</h3>
+    <p class="hint">اختر جدولاً من القائمة ثم عدّل الحصص أو أضفها. البيانات اليدوية تحفظ داخل قاعدة البيانات مع رابط PDF الأصلي.</p>
     <div class="admin-list" id="adminList"></div>
     <div id="editor" style="display:none">
-      <div class="field" style="margin:12px 0"><label data-tr="scheduleTitle">العنوان</label><input id="eTitle" data-tr-ph="titleExample"></div>
+      <div class="field" style="margin:12px 0"><label>العنوان</label><input id="eTitle"></div>
       <div id="rows"></div>
-      <div class="actions"><button class="btn blue" id="addRow">＋ <span data-tr="addClass">إضافة حصة</span></button><button class="btn primary" id="saveEdit">💾 <span data-tr="save">حفظ التعديلات</span></button><button class="btn ghost" id="cancelEdit"><span data-tr="cancel">إلغاء</span></button></div>
+      <div class="actions"><button class="btn blue" id="addRow">＋ إضافة حصة</button><button class="btn primary" id="saveEdit">💾 حفظ التعديلات</button><button class="btn ghost" id="cancelEdit">إلغاء</button></div>
       <div id="editStatus" class="status"></div>
     </div>
   </div>
@@ -117,7 +116,7 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 <div id="toast"></div>
 <div class="viewer" id="viewer">
   <div class="viewer-box">
-    <div class="viewer-head"><b id="viewerTitle">الجدول الدراسي</b><div class="vh-actions"><button class="btn primary" id="dlViewer" style="display:none"><span data-tr="download">⬇️ تنزيل</span></button><button class="btn fav" id="favViewer" style="display:none" aria-label="المفضلة" title="المفضلة">♡</button><button class="btn ghost" id="closeViewer"><span data-tr="close">✕ إغلاق</span></button></div></div>
+    <div class="viewer-head"><b id="viewerTitle">الجدول الدراسي</b><div class="vh-actions"><button class="btn primary" id="dlViewer" style="display:none">⬇️ تنزيل</button><button class="btn fav" id="favViewer" style="display:none" aria-label="المفضلة" title="المفضلة">♡</button><button class="btn ghost" id="closeViewer">✕ إغلاق</button></div></div>
     <iframe id="frame" title="Study schedule PDF"></iframe>
   </div>
 </div>
@@ -126,35 +125,30 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 const SUPABASE_URL='https://cbaswqaufawdsvadizyi.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNiYXN3cWF1ZmF3ZHN2YWRpenlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mzg1MTQsImV4cCI6MjA5MzQxNDUxNH0.tv-u05JTkUFFkdYgR4gUyRb0TZKtDEwEwRQLRQSljHU';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const $=id=>document.getElementById(id);
-let LANG=localStorage.getItem('unem_lang')==='fr'?'fr':'ar';
-const SCHED_I18N={ar:{home:'← الرئيسية',subtitle:'Emplois du temps — UNEM ISCAE',pageTitle:'الجداول الدراسية',heroTitle:'اعثر على جدولك الدراسي بسهولة',heroDesc:'اختر التخصص والمستوى والمجموعة، ثم افتح الجدول الرسمي المنشور من الإدارة.',spec:'التخصص',allSpecs:'كل التخصصات',level:'المستوى',allLevels:'كل المستويات',group:'المجموعة',allGroups:'كل المجموعات',year:'السنة الجامعية',allYears:'كل السنوات',showSchedules:'عرض الجداول',reset:'إعادة التعيين',published:'الجداول المنشورة',adminTitle:'🛡️ إدارة الجداول — المشرف الرئيسي',adminHint:'يمكنك رفع PDF جديد، تحديد نطاقه، ثم تعديله يدوياً. الرفع والتعديل محميان بصلاحية admin من Supabase.',manualHint:'اختر جدولاً من القائمة ثم عدّل الحصص أو أضفها. البيانات اليدوية تحفظ في قاعدة البيانات مع رابط PDF الأصلي.',refresh:'تحديث',scheduleTitle:'عنوان الجدول',pdfFile:'ملف PDF',upload:'رفع ونشر الجدول',manualEditor:'المحرر اليدوي',addClass:'إضافة حصة',save:'حفظ التعديلات',cancel:'إلغاء',download:'⬇️ تنزيل',close:'✕ إغلاق',groupExample:'G1 / G2 / FP — اتركها فارغة إذا لا توجد',titleExample:'مثال: 1ère Année Informatique de Gestion G1',scheduleDefault:'الجدول الدراسي',edit:'تعديل',delete:'حذف',genericSchedule:'جدول',noAdminSchedules:'لا توجد جداول بعد.',uploadFailed:'فشل رفع ملف PDF.',saved:'✅ تم حفظ التعديلات.',unemTitle:'الاتحاد الوطني لطلبة موريتانيا — UNEM',unemSubtitle:'المعهد العالي للمحاسبة وإدارة المؤسسات',downloadFrom:'تم إعداد هذا الجدول عبر منصة UNEM ISCAE',loading:'⏳ جاري تحميل الجداول...',loadError:'تعذر تحميل الجداول: ',groups:'كل المجموعات',years:'كل السنوات',count:n=>n+' جدول',noMatch:'لا يوجد جدول منشور يطابق الاختيارات الحالية.',manualCount:n=>'✏️ '+n+' حصة مدخلة يدوياً',pdfOfficial:'📄 جدول PDF رسمي',lastUpdate:'آخر تحديث ',view:'📋 عرض الجدول',addedRows:'لا توجد حصص مدخلة لهذا الجدول.',noPdf:'لا يوجد ملف PDF لهذا الجدول.',noSchedule:'لا يوجد جدول متاح للعرض.',listError:'تعذر تحميل قائمة الإدارة.',validPdf:'❌ اختر ملف PDF صالحاً.',maxFile:'❌ الحد الأقصى 60MB.',yearFormat:'❌ السنة يجب أن تكون مثل 2025-2026.',uploading:'⏳ جاري التحقق والرفع...',adminLogin:'يجب تسجيل الدخول بحساب المشرف الرئيسي.',signError:'تعذر الحصول على تصريح الرفع.',uploadSuccess:'✅ تم رفع ونشر الجدول بنجاح.',deleteQ:'هل تريد حذف هذا الجدول من النشر؟',day:'اليوم',time:'الوقت',subject:'المادة',room:'القاعة',teacher:'الأستاذ',favAdd:'إضافة إلى المفضلة',favRemove:'إزالة من المفضلة',favFail:'❌ تعذر الحفظ على هذا الجهاز.',favRemoved:'تمت الإزالة من المفضلة',favAdded:'تمت الإضافة إلى المفضلة ❤️',preparing:'⏳ جاري تحضير الملف للتنزيل...',openOriginal:'تم فتح الملف الأصلي (تعذر إضافة التوقيع تلقائياً).',downloadSuccess:'✅ تم تنزيل الجدول بنجاح.',noFile:'لا يوجد ملف متاح لهذا الجدول.',downloadFail:'فشل التنزيل',loadLib:'تعذر تحميل مكتبة التنزيل، تحقق من الاتصال',fetchPdf:'تعذر جلب ملف PDF',gone:'هذا الجدول لم يعد متاحاً.',notAvailable:'هذا الجدول لم يعد متاحاً.'},fr:{home:'← Accueil',subtitle:'Emplois du temps — UNEM ISCAE',pageTitle:'Emplois du temps',heroTitle:'Trouvez facilement votre emploi du temps',heroDesc:'Choisissez la filière, le niveau et le groupe, puis consultez le planning officiel publié par l’administration.',spec:'Filière',allSpecs:'Toutes les filières',level:'Niveau',allLevels:'Tous les niveaux',group:'Groupe',allGroups:'Tous les groupes',year:'Année universitaire',allYears:'Toutes les années',showSchedules:'Afficher les emplois du temps',reset:'Réinitialiser',published:'Emplois du temps publiés',adminTitle:'🛡️ Gestion des emplois du temps — administrateur principal',adminHint:'Publiez un nouveau PDF, définissez son périmètre et modifiez-le manuellement. Les opérations sont protégées par le rôle admin de Supabase.',manualHint:'Choisissez un emploi du temps dans la liste, puis modifiez ou ajoutez des cours. Les données sont enregistrées avec le lien PDF d’origine.',refresh:'Actualiser',scheduleTitle:'Titre de l’emploi du temps',pdfFile:'Fichier PDF',upload:'Publier l’emploi du temps',manualEditor:'Éditeur manuel',addClass:'Ajouter un cours',save:'Enregistrer les modifications',cancel:'Annuler',download:'⬇️ Télécharger',close:'✕ Fermer',groupExample:'G1 / G2 / FP — laisser vide si aucun groupe',titleExample:'Ex. : 1ère année Informatique de gestion — G1',scheduleDefault:'Emploi du temps',edit:'Modifier',delete:'Supprimer',genericSchedule:'Planning',noAdminSchedules:'Aucun emploi du temps pour le moment.',uploadFailed:'Échec du téléversement du fichier PDF.',saved:'✅ Modifications enregistrées.',unemTitle:'Union Nationale des Étudiants de Mauritanie — UNEM',unemSubtitle:'Institut Supérieur de Comptabilité et d’Administration des Entreprises',downloadFrom:'Document préparé sur la plateforme UNEM ISCAE',loading:'⏳ Chargement des emplois du temps...',loadError:'Impossible de charger les emplois du temps : ',groups:'Tous les groupes',years:'Toutes les années',count:n=>n+' emploi(s) du temps',noMatch:'Aucun emploi du temps publié ne correspond aux critères sélectionnés.',manualCount:n=>'✏️ '+n+' cours saisi(s) manuellement',pdfOfficial:'📄 Emploi du temps officiel (PDF)',lastUpdate:'Dernière mise à jour : ',view:'📋 Consulter',addedRows:'Aucun cours n’a été saisi pour cet emploi du temps.',noPdf:'Aucun fichier PDF pour cet emploi du temps.',noSchedule:'Aucun emploi du temps disponible.',listError:'Impossible de charger la liste de gestion.',validPdf:'❌ Sélectionnez un fichier PDF valide.',maxFile:'❌ Taille maximale : 60 Mo.',yearFormat:'❌ L’année doit respecter le format 2025-2026.',uploading:'⏳ Vérification et téléversement...',adminLogin:'Connectez-vous avec le compte de l’administrateur principal.',signError:'Impossible d’obtenir l’autorisation de téléversement.',uploadSuccess:'✅ Emploi du temps publié avec succès.',deleteQ:'Supprimer cet emploi du temps de la publication ?',day:'Jour',time:'Horaire',subject:'Matière',room:'Salle',teacher:'Enseignant',favAdd:'Ajouter aux favoris',favRemove:'Retirer des favoris',favFail:'❌ Impossible d’enregistrer sur cet appareil.',favRemoved:'Retiré des favoris',favAdded:'Ajouté aux favoris ❤️',preparing:'⏳ Préparation du fichier...',openOriginal:'Fichier original ouvert (signature automatique indisponible).',downloadSuccess:'✅ Emploi du temps téléchargé.',noFile:'Aucun fichier disponible pour cet emploi du temps.',downloadFail:'Échec du téléchargement',loadLib:'Impossible de charger la bibliothèque de téléchargement. Vérifiez la connexion.',fetchPdf:'Impossible de récupérer le fichier PDF.',gone:'Cet emploi du temps n’est plus disponible.',notAvailable:'Cet emploi du temps n’est plus disponible.'}};
-const tr=(k,...a)=>{const v=SCHED_I18N[LANG][k]??SCHED_I18N.ar[k]??k;return typeof v==='function'?v(...a):v};
-function applyScheduleLanguage(){document.documentElement.lang=LANG;document.documentElement.dir=LANG==='ar'?'rtl':'ltr';document.querySelectorAll('[data-tr]').forEach(e=>{e.textContent=tr(e.dataset.tr)});document.querySelectorAll('[data-tr-ph]').forEach(e=>e.placeholder=tr(e.dataset.trPh));document.querySelectorAll('[data-tr-title]').forEach(e=>e.title=tr(e.dataset.trTitle));$('langBtn').textContent=LANG==='ar'?'Français':'العربية';const mv=$('manualView');if(mv)mv.style.direction=LANG==='ar'?'rtl':'ltr';document.title=tr('pageTitle')+' | UNEM ISCAE';}
-$('langBtn').onclick=()=>{LANG=LANG==='ar'?'fr':'ar';localStorage.setItem('unem_lang',LANG);applyScheduleLanguage();populateFilters();populateGroups();renderResults();if($('adminPanel').classList.contains('show'))loadAdminList();};
 let schedules=[], editingId=null;
 
+const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function showStatus(id,msg,type='info'){const e=$(id);e.textContent=msg;e.className='status show '+type}
 function clearStatus(id){$(id).className='status'}
 function currentYear(){const y=new Date().getFullYear();return `${y}-${y+1}`}
 
 async function loadSchedules(){
-  showStatus('status',tr('loading'),'info');
+  showStatus('status','⏳ جاري تحميل الجداول...','info');
   const {data,error}=await sb.from('study_schedules').select('*').eq('is_active',true).order('academic_year',{ascending:false}).order('specialization').order('level').order('group_name');
-  if(error){showStatus('status',tr('loadError')+error.message,'err');return}
+  if(error){showStatus('status','تعذر تحميل الجداول: '+error.message,'err');return}
   schedules=data||[]; populateFilters(); renderResults(); clearStatus('status'); openFromParam();
 }
 function populateGroups(){
   const sSel=$('spec').value,lSel=$('level').value,old=$('group').value;
   const groups=[...new Set(schedules.filter(x=>x.is_active!==false&&(!sSel||x.specialization===sSel)&&(!lSel||x.level===lSel)).map(x=>x.group_name).filter(Boolean))].sort();
-  $('group').innerHTML='<option value="">'+tr('allGroups')+'</option>'+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  $('group').innerHTML='<option value="">كل المجموعات</option>'+groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
   $('group').value=groups.includes(old)?old:'';
 }
 function populateFilters(){
   const years=[...new Set(schedules.filter(x=>x.is_active!==false).map(x=>x.academic_year).filter(Boolean))].sort().reverse();
   const oldY=$('year').value;
-  $('year').innerHTML='<option value="">'+tr('allYears')+'</option>'+years.map(y=>`<option value="${esc(y)}">${esc(y)}</option>`).join('');
+  $('year').innerHTML='<option value="">كل السنوات</option>'+years.map(y=>`<option value="${esc(y)}">${esc(y)}</option>`).join('');
   if(years.includes(oldY))$('year').value=oldY;
   populateGroups();
 }
@@ -168,13 +162,13 @@ function filtered(){
     &&(!y||String(x.academic_year||'').trim()===y));
 }
 function renderResults(){
-  const data=filtered();$('count').textContent=tr('count',data.length);
-  if(!data.length){$('results').innerHTML=`<div class="empty" style="grid-column:1/-1"><i>📅</i>${tr('noMatch')}</div>`;return}
+  const data=filtered();$('count').textContent=`${data.length} جدول`;
+  if(!data.length){$('results').innerHTML='<div class="empty" style="grid-column:1/-1"><i>📅</i>لا يوجد جدول منشور يطابق الاختيارات الحالية.</div>';return}
   $('results').innerHTML=data.map(x=>`<article class="schedule">
     <div class="schedule-head"><span class="badge">${esc(x.specialization)} · ${esc(x.level)}${x.group_name?' · '+esc(x.group_name):''}</span><span style="font-size:.7rem;color:#94a3b8">${esc(x.academic_year||'')}</span></div>
-    <h3>${esc(x.title||tr('scheduleDefault'))}</h3>
-    <div class="meta">${x.rows&&x.rows.length?tr('manualCount',x.rows.length):tr('pdfOfficial')}${x.updated_at?' · '+tr('lastUpdate')+new Date(x.updated_at).toLocaleDateString(LANG==='fr'?'fr-FR':'ar'):''}</div>
-    <div class="actions"><button class="btn gold" onclick="viewSchedule('${esc(x.id)}')">${tr('view')}</button><button class="btn primary" onclick="downloadSchedule('${esc(x.id)}')">${tr('download')}</button><button class="btn fav${isFavSchedule(x.id)?' on':''}" data-fav-id="${esc(x.id)}" onclick="toggleFavSchedule('${esc(x.id)}')" aria-pressed="${isFavSchedule(x.id)}" aria-label="${tr(isFavSchedule(x.id)?'favRemove':'favAdd')}" title="${tr(isFavSchedule(x.id)?'favRemove':'favAdd')}">${isFavSchedule(x.id)?'♥':'♡'}</button></div>
+    <h3>${esc(x.title||'جدول دراسي')}</h3>
+    <div class="meta">${x.rows&&x.rows.length?`✏️ ${x.rows.length} حصة مدخلة يدوياً`:'📄 جدول PDF رسمي'}${x.updated_at?' · آخر تحديث '+new Date(x.updated_at).toLocaleDateString('fr-FR'):''}</div>
+    <div class="actions"><button class="btn gold" onclick="viewSchedule('${esc(x.id)}')">📋 عرض الجدول</button><button class="btn primary" onclick="downloadSchedule('${esc(x.id)}')">⬇️ تنزيل</button><button class="btn fav${isFavSchedule(x.id)?' on':''}" data-fav-id="${esc(x.id)}" onclick="toggleFavSchedule('${esc(x.id)}')" aria-pressed="${isFavSchedule(x.id)}" aria-label="المفضلة" title="${isFavSchedule(x.id)?'إزالة من المفضلة':'إضافة إلى المفضلة'}">${isFavSchedule(x.id)?'♥':'♡'}</button></div>
   </article>`).join('');
 }
 const sp=v=>String(v??'').replace(/\s+/g,' ').trim();
@@ -187,22 +181,21 @@ function resetViewer(){
 }
 function setViewerDl(id){currentId=id||null;$('dlViewer').style.display=id?'':'none';paintViewerFav()}
 window.openPdf=(url,title)=>{
-  if(!url)return alert(tr('noPdf'));
+  if(!url)return alert('لا يوجد ملف PDF لهذا الجدول.');
   resetViewer();$('viewerTitle').textContent=title;$('frame').src=url;$('viewer').classList.add('open');
   const m=schedules.find(a=>a.file_url===url);setViewerDl(m?m.id:null);
 };
 const DAY_ORDER={'السبت':0,'الأحد':1,'الاحد':1,'الاثنين':2,'الإثنين':2,'الثلاثاء':3,'الأربعاء':4,'الاربعاء':4,'الخميس':5,'الجمعة':6,
   'samedi':0,'dimanche':1,'lundi':2,'mardi':3,'mercredi':4,'jeudi':5,'vendredi':6};
 const dayIdx=d=>{const k=sp(d).toLowerCase();return k in DAY_ORDER?DAY_ORDER[k]:99};
-const dayLabel=d=>LANG==='ar'?d:({'السبت':'Samedi','الأحد':'Dimanche','الاحد':'Dimanche','الاثنين':'Lundi','الإثنين':'Lundi','الثلاثاء':'Mardi','الأربعاء':'Mercredi','الاربعاء':'Mercredi','الخميس':'Jeudi','الجمعة':'Vendredi'}[d]||d);
 const timeKey=t=>{const m=String(t||'').match(/(\d{1,2})\s*[:hH]\s*(\d{2})?/);return m?(+m[1])*60+(+(m[2]||0)):9999};
 const hueOf=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
 function gridHTML(rows){
   const clean=(rows||[]).map(r=>({day:sp(r.day),time:sp(r.time),subject:sp(r.subject),room:sp(r.room),teacher:sp(r.teacher)}));
   const days=[...new Set(clean.map(r=>r.day))].sort((a,b)=>dayIdx(a)-dayIdx(b));
   const times=[...new Set(clean.map(r=>r.time))].sort((a,b)=>timeKey(a)-timeKey(b)||a.localeCompare(b));
-  const head=`<tr><th class="c0">${tr('day')} / ${tr('time')}</th>${times.map(t=>`<th dir="ltr">${esc(t||'—')}</th>`).join('')}</tr>`;
-  const body=days.map(d=>`<tr><th class="dy">${esc(dayLabel(d||'—'))}</th>${times.map(t=>`<td>${clean.filter(r=>r.day===d&&r.time===t).map(r=>{const h=hueOf(r.subject||'x');return `<div class="ent" style="background:hsl(${h},70%,94%);border-right-color:hsl(${h},55%,42%)"><b>${esc(r.subject||'—')}</b>${r.room?`<span>📍 ${esc(r.room)}</span>`:''}${r.teacher?`<span>👤 ${esc(r.teacher)}</span>`:''}</div>`}).join('')}</td>`).join('')}</tr>`).join('');
+  const head=`<tr><th class="c0">اليوم / الوقت</th>${times.map(t=>`<th dir="ltr">${esc(t||'—')}</th>`).join('')}</tr>`;
+  const body=days.map(d=>`<tr><th class="dy">${esc(d||'—')}</th>${times.map(t=>`<td>${clean.filter(r=>r.day===d&&r.time===t).map(r=>{const h=hueOf(r.subject||'x');return `<div class="ent" style="background:hsl(${h},70%,94%);border-right-color:hsl(${h},55%,42%)"><b>${esc(r.subject||'—')}</b>${r.room?`<span>📍 ${esc(r.room)}</span>`:''}${r.teacher?`<span>👤 ${esc(r.teacher)}</span>`:''}</div>`}).join('')}</td>`).join('')}</tr>`).join('');
   return `<table class="tt"><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 function metaText(x){return [x.specialization,x.level,x.group_name,x.academic_year].filter(Boolean).join(' · ')}
@@ -223,10 +216,10 @@ function layoutManual(){
 window.showManual=id=>{
   const x=schedules.find(a=>String(a.id)===String(id));if(!x)return;
   resetViewer();
-  $('viewerTitle').textContent=x.title||tr('scheduleDefault');
+  $('viewerTitle').textContent=x.title||'الجدول الدراسي';
   $('frame').src='about:blank';$('frame').style.display='none';
   const box=document.createElement('div');box.id='manualView';
-  box.innerHTML=`<div class="mv-inner"><div><h2 style="margin:0;font-size:1.25rem;color:#0f5132">${esc(x.title||'')}</h2><p style="margin:2px 0 0;color:#64748b;font-size:.8rem">${esc(metaText(x))}</p></div><div class="mv-grid">${(x.rows||[]).length?gridHTML(x.rows):`<div class="empty">${tr('addedRows')}</div>`}</div></div>`;
+  box.innerHTML=`<div class="mv-inner"><div><h2 style="margin:0;font-size:1.25rem;color:#0f5132">${esc(x.title||'')}</h2><p style="margin:2px 0 0;color:#64748b;font-size:.8rem">${esc(metaText(x))}</p></div><div class="mv-grid">${(x.rows||[]).length?gridHTML(x.rows):'<div class="empty">لا توجد حصص مدخلة لهذا الجدول.</div>'}</div></div>`;
   $('viewer').querySelector('.viewer-box').appendChild(box);
   $('viewer').classList.add('open');setViewerDl(x.id);
   layoutManual();
@@ -234,8 +227,8 @@ window.showManual=id=>{
 window.viewSchedule=id=>{
   const x=schedules.find(a=>String(a.id)===String(id));if(!x)return;
   if(x.rows&&x.rows.length)showManual(id);
-  else if(x.file_url)openPdf(x.file_url,x.title||tr('scheduleDefault'));
-  else alert(tr('noSchedule'));
+  else if(x.file_url)openPdf(x.file_url,x.title||'جدول دراسي');
+  else alert('لا يوجد جدول متاح للعرض.');
 };
 window.addEventListener('resize',()=>{if($('viewer').classList.contains('open'))layoutManual()});
 $('closeViewer').onclick=()=>{$('viewer').classList.remove('open');resetViewer();$('frame').src='about:blank'};
@@ -254,26 +247,33 @@ async function initAdmin(){
 }
 async function loadAdminList(){
   const {data,error}=await sb.from('study_schedules').select('*').order('academic_year',{ascending:false}).order('specialization').order('level').order('group_name');
-  const list=$('adminList');if(error){list.innerHTML=`<div class="empty">${tr('listError')}</div>`;return}
+  const list=$('adminList');if(error){list.innerHTML='<div class="empty">تعذر تحميل قائمة الإدارة.</div>';return}
   schedules=data||[];populateFilters();renderResults();
-  list.innerHTML=schedules.length?schedules.map(x=>`<div class="admin-row"><div><b>${esc(x.title||tr('genericSchedule'))}</b><small>${esc(x.specialization)} · ${esc(x.level)}${x.group_name?' · '+esc(x.group_name):''} · ${esc(x.academic_year||'')}</small></div><div class="row-actions"><button class="btn blue" onclick="editSchedule('${esc(x.id)}')">✏️ ${tr('edit')}</button>${x.file_url?`<button class="btn ghost" onclick="openPdf('${esc(x.file_url)}','${esc(x.title||'')}')">PDF</button>`:''}<button class="btn danger" onclick="deleteSchedule('${esc(x.id)}')">${tr('delete')}</button></div></div>`).join(''):`<div class="empty">${tr('noAdminSchedules')}</div>`;
+  list.innerHTML=schedules.length?schedules.map(x=>`<div class="admin-row"><div><b>${esc(x.title||'جدول')}</b><small>${esc(x.specialization)} · ${esc(x.level)}${x.group_name?' · '+esc(x.group_name):''} · ${esc(x.academic_year||'')}</small></div><div class="row-actions"><button class="btn blue" onclick="editSchedule('${esc(x.id)}')">✏️ تعديل</button>${x.file_url?`<button class="btn ghost" onclick="openPdf('${esc(x.file_url)}','${esc(x.title||'')}')">PDF</button>`:''}<button class="btn danger" onclick="deleteSchedule('${esc(x.id)}')">حذف</button></div></div>`).join(''):'<div class="empty">لا توجد جداول بعد.</div>';
 }
 async function uploadSchedule(){
   clearStatus('uploadStatus');const file=$('aFile').files[0];
-  if(!file||!/\.pdf$/i.test(file.name))return showStatus('uploadStatus',tr('validPdf'),'err');
-  if(file.size>60*1024*1024)return showStatus('uploadStatus',tr('maxFile'),'err');
+  if(!file)return showStatus('uploadStatus','❌ اختر ملف الجدول بصيغة PDF أولاً.','err');
+  // Some mobile browsers report an empty/incorrect MIME type; validate by extension and MIME.
+  const isPdfName=/\.pdf$/i.test(file.name);
+  const isPdfMime=!file.type||file.type==='application/pdf'||file.type==='application/x-pdf';
+  if(!isPdfName||!isPdfMime)return showStatus('uploadStatus','❌ الملف غير مقبول. اختر ملفاً بامتداد PDF، ثم أعد المحاولة.','err');
+  if(file.size===0)return showStatus('uploadStatus','❌ الملف فارغ؛ اختر نسخة سليمة من ملف الجدول.','err');
+  if(file.size>60*1024*1024)return showStatus('uploadStatus','❌ حجم الملف يتجاوز الحد الأقصى المسموح به (60MB).','err');
   const year=$('aYear').value.trim(),spec=$('aSpec').value,level=$('aLevel').value,group=$('aGroup').value.trim(),title=$('aTitle').value.trim()||`${spec} ${level}${group?' '+group:''}`;
-  if(!/^\d{4}-\d{4}$/.test(year))return showStatus('uploadStatus',tr('yearFormat'),'err');
-  showStatus('uploadStatus',tr('uploading'),'info');
+  if(!/^\d{4}-\d{4}$/.test(year))return showStatus('uploadStatus','❌ السنة يجب أن تكون مثل 2025-2026.','err');
+  showStatus('uploadStatus','⏳ جاري التحقق والرفع...','info');
   try{
-    const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error(tr('adminLogin'));
+    const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error('يجب تسجيل الدخول بحساب المشرف الرئيسي.');
     const sign=await fetch('/api/public/cloudinary/sign',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({section:'schedules',fileName:file.name,fileSize:file.size,academicYear:year,specialization:spec,level,group})});
-    const sd=await sign.json();if(!sign.ok)throw new Error(sd.error||tr('signError'));
+    let sd;try{sd=await sign.json()}catch(_){throw new Error('تعذر قراءة استجابة خادم الرفع. تأكد من نشر مسار /api/public/cloudinary/sign على Vercel.')}
+    if(!sign.ok)throw new Error(sd.error||`تعذر الحصول على تصريح الرفع (HTTP ${sign.status}).`);
+    if(!sd.apiKey||!sd.timestamp||!sd.signature||!sd.uploadUrl||!sd.folder||!sd.publicId)throw new Error('إعدادات الرفع التي أعادها الخادم غير مكتملة. راجع دالة Cloudinary signing على Vercel.');
     const fd=new FormData();fd.append('file',file,file.name);fd.append('api_key',sd.apiKey);fd.append('timestamp',sd.timestamp);fd.append('signature',sd.signature);fd.append('folder',sd.folder);fd.append('public_id',sd.publicId);
-    const up=await fetch(sd.uploadUrl,{method:'POST',body:fd});const ud=await up.json();if(!up.ok||!ud.secure_url)throw new Error(ud.error?.message||tr('uploadFailed'));
+    const up=await fetch(sd.uploadUrl,{method:'POST',body:fd});let ud;try{ud=await up.json()}catch(_){throw new Error('استجابة Cloudinary غير صالحة أثناء رفع PDF.')};if(!up.ok||!ud.secure_url)throw new Error(ud.error?.message||`فشل رفع PDF إلى Cloudinary (HTTP ${up.status}).`);
     const {error}=await sb.from('study_schedules').insert({academic_year:year,specialization:spec,level,group_name:group||null,title,file_url:ud.secure_url,cloudinary_public_id:ud.public_id||sd.publicId,file_name:file.name,rows:[],is_active:true,uploaded_by:session.user.id});
     if(error)throw error;
-    showStatus('uploadStatus',tr('uploadSuccess'),'ok');$('aFile').value='';await loadAdminList();await loadSchedules();
+    showStatus('uploadStatus','✅ تم رفع ونشر الجدول بنجاح.','ok');$('aFile').value='';await loadAdminList();await loadSchedules();
   }catch(e){showStatus('uploadStatus','❌ '+e.message,'err')}
 }
 $('uploadBtn').onclick=uploadSchedule;$('refreshAdmin').onclick=loadAdminList;
@@ -281,14 +281,14 @@ $('uploadBtn').onclick=uploadSchedule;$('refreshAdmin').onclick=loadAdminList;
 window.editSchedule=id=>{
  const x=schedules.find(a=>a.id===id);if(!x)return;editingId=id;$('editor').style.display='block';$('eTitle').value=x.title||'';renderEditorRows(x.rows||[]);$('editStatus').className='status';window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})
 }
-function renderEditorRows(rows){$('rows').innerHTML=rows.map((r,i)=>`<div class="manual-row" data-i="${i}"><input placeholder="${tr('day')}" value="${esc(r.day)}"><input placeholder="${tr('time')}" value="${esc(r.time)}"><input class="wide" placeholder="${tr('subject')}" value="${esc(r.subject)}"><input placeholder="${tr('room')}" value="${esc(r.room)}"><input placeholder="${tr('teacher')}" value="${esc(r.teacher)}"><button class="btn danger" onclick="this.parentElement.remove()">✕</button></div>`).join('')}
-$('addRow').onclick=()=>{const d=document.createElement('div');d.className='manual-row';d.innerHTML=`<input placeholder="${tr('day')}"><input placeholder="${tr('time')}"><input class="wide" placeholder="${tr('subject')}"><input placeholder="${tr('room')}"><input placeholder="${tr('teacher')}"><button class="btn danger" onclick="this.parentElement.remove()">✕</button>`;$('rows').appendChild(d)}
+function renderEditorRows(rows){$('rows').innerHTML=rows.map((r,i)=>`<div class="manual-row" data-i="${i}"><input placeholder="اليوم" value="${esc(r.day)}"><input placeholder="الوقت" value="${esc(r.time)}"><input class="wide" placeholder="المادة" value="${esc(r.subject)}"><input placeholder="القاعة" value="${esc(r.room)}"><input placeholder="الأستاذ" value="${esc(r.teacher)}"><button class="btn danger" onclick="this.parentElement.remove()">✕</button></div>`).join('')}
+$('addRow').onclick=()=>{const d=document.createElement('div');d.className='manual-row';d.innerHTML='<input placeholder="اليوم"><input placeholder="الوقت"><input class="wide" placeholder="المادة"><input placeholder="القاعة"><input placeholder="الأستاذ"><button class="btn danger" onclick="this.parentElement.remove()">✕</button>';$('rows').appendChild(d)}
 $('cancelEdit').onclick=()=>{$('editor').style.display='none';editingId=null}
-$('saveEdit').onclick=async()=>{if(!editingId)return;clearStatus('editStatus');const rows=[...$('rows').querySelectorAll('.manual-row')].map(r=>{const i=r.querySelectorAll('input');return{day:i[0].value.trim(),time:i[1].value.trim(),subject:i[2].value.trim(),room:i[3].value.trim(),teacher:i[4].value.trim()}}).filter(r=>r.day||r.time||r.subject||r.room||r.teacher);const title=$('eTitle').value.trim()||tr('scheduleDefault');const {error}=await sb.from('study_schedules').update({title,rows,updated_at:new Date().toISOString()}).eq('id',editingId);if(error){showStatus('editStatus','❌ '+error.message,'err');return}showStatus('editStatus',tr('saved'),'ok');await loadAdminList();await loadSchedules()}
-window.deleteSchedule=async id=>{if(!confirm(tr('deleteQ')))return;const {error}=await sb.from('study_schedules').delete().eq('id',id);if(error)alert('❌ '+error.message);else{await loadAdminList();await loadSchedules()}}
+$('saveEdit').onclick=async()=>{if(!editingId)return;clearStatus('editStatus');const rows=[...$('rows').querySelectorAll('.manual-row')].map(r=>{const i=r.querySelectorAll('input');return{day:i[0].value.trim(),time:i[1].value.trim(),subject:i[2].value.trim(),room:i[3].value.trim(),teacher:i[4].value.trim()}}).filter(r=>r.day||r.time||r.subject||r.room||r.teacher);const title=$('eTitle').value.trim()||'جدول دراسي';const {error}=await sb.from('study_schedules').update({title,rows,updated_at:new Date().toISOString()}).eq('id',editingId);if(error){showStatus('editStatus','❌ '+error.message,'err');return}showStatus('editStatus','✅ تم حفظ التعديلات.','ok');await loadAdminList();await loadSchedules()}
+window.deleteSchedule=async id=>{if(!confirm('هل تريد حذف هذا الجدول من النشر؟'))return;const {error}=await sb.from('study_schedules').delete().eq('id',id);if(error)alert('❌ '+error.message);else{await loadAdminList();await loadSchedules()}}
 /* ===== تنزيل الجداول مع توقيع المنصة وشعار UNEM ===== */
 const _loaded={};
-function loadScript(src){return _loaded[src]||(_loaded[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>{delete _loaded[src];rej(new Error(tr('loadLib')))};document.head.appendChild(s)}))}
+function loadScript(src){return _loaded[src]||(_loaded[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>{delete _loaded[src];rej(new Error('تعذر تحميل مكتبة التنزيل، تحقق من الاتصال'))};document.head.appendChild(s)}))}
 let _toastT;
 function toast(msg,type='info'){const t=$('toast');t.textContent=msg;t.className='show status '+type;t.style.display='block';clearTimeout(_toastT);_toastT=setTimeout(()=>{t.style.display='none'},type==='info'?20000:4500)}
 function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
@@ -297,8 +297,8 @@ function fileBase(x){return 'emploi_'+([x.specialization,x.level,x.group_name,x.
 async function exportManual(x){
   await Promise.all([loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')]);
   const root=document.createElement('div');root.id='exportRoot';
-  root.style.cssText='position:fixed;left:0;top:0;z-index:-9999;width:1123px;height:794px;background:#fff;direction:'+ (LANG==='ar'?'rtl':'ltr') + ';font-family:Cairo,Inter,sans-serif;display:flex;flex-direction:column;box-sizing:border-box;padding:22px 28px;color:#0f172a';
-  root.innerHTML=`<div style="display:flex;align-items:center;gap:16px;border-bottom:3px solid #0f5132;padding-bottom:10px;margin-bottom:12px"><img src="${LOGO}" style="width:70px;height:70px"><div style="flex:1"><div style="font-size:24px;font-weight:900;color:#0f5132">${esc(x.title||tr('scheduleDefault'))}</div><div style="font-size:14px;color:#64748b;margin-top:3px">${esc(metaText(x))}</div></div><div dir="ltr" style="font-size:13px;font-weight:800;color:#64748b">UNEM ISCAE</div></div><div class="ex-grid" style="flex:1;min-height:0;overflow:hidden">${gridHTML(x.rows)}</div><div style="display:flex;align-items:center;justify-content:center;gap:10px;border-top:1px solid #e2e8f0;margin-top:10px;padding-top:8px;font-size:13px;color:#475569"><img src="${LOGO}" style="width:34px;height:34px"><span style="font-weight:800">${tr('unemTitle')}</span><span>•</span><span dir="ltr" style="font-weight:800;color:#0f5132">${SITE}</span></div>`;
+  root.style.cssText='position:fixed;left:0;top:0;z-index:-9999;width:1123px;height:794px;background:#fff;direction:rtl;font-family:Cairo,Inter,sans-serif;display:flex;flex-direction:column;box-sizing:border-box;padding:22px 28px;color:#0f172a';
+  root.innerHTML=`<div style="display:flex;align-items:center;gap:16px;border-bottom:3px solid #0f5132;padding-bottom:10px;margin-bottom:12px"><img src="${LOGO}" style="width:70px;height:70px"><div style="flex:1"><div style="font-size:24px;font-weight:900;color:#0f5132">${esc(x.title||'جدول دراسي')}</div><div style="font-size:14px;color:#64748b;margin-top:3px">${esc(metaText(x))}</div></div><div dir="ltr" style="font-size:13px;font-weight:800;color:#64748b">UNEM ISCAE</div></div><div class="ex-grid" style="flex:1;min-height:0;overflow:hidden">${gridHTML(x.rows)}</div><div style="display:flex;align-items:center;justify-content:center;gap:10px;border-top:1px solid #e2e8f0;margin-top:10px;padding-top:8px;font-size:13px;color:#475569"><img src="${LOGO}" style="width:34px;height:34px"><span style="font-weight:800">الاتحاد الوطني لطلبة موريتانيا — UNEM</span><span>•</span><span dir="ltr" style="font-weight:800;color:#0f5132">${SITE}</span></div>`;
   document.body.appendChild(root);
   try{
     try{await document.fonts.ready}catch(_){}
@@ -321,7 +321,7 @@ async function exportManual(x){
 }
 async function stampPdf(x){
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
-  const resp=await fetch(x.file_url);if(!resp.ok)throw new Error(tr('fetchPdf'));
+  const resp=await fetch(x.file_url);if(!resp.ok)throw new Error('تعذر جلب ملف PDF');
   const buf=await resp.arrayBuffer();
   const {PDFDocument,rgb,StandardFonts}=PDFLib;
   const pdf=await PDFDocument.load(buf,{ignoreEncryption:true});
@@ -338,14 +338,14 @@ window.downloadSchedule=async id=>{
   const x=schedules.find(a=>String(a.id)===String(id));if(!x)return;
   if(_dlBusy)return;_dlBusy=true;
   try{
-    toast(tr('preparing'),'info');
+    toast('⏳ جاري تحضير الملف للتنزيل...','info');
     if(x.rows&&x.rows.length)await exportManual(x);
     else if(x.file_url){
       try{await stampPdf(x)}
-      catch(e){window.open(x.file_url,'_blank');toast(tr('openOriginal'),'info');_dlBusy=false;return}
-    }else throw new Error(tr('noFile'));
-    toast(tr('downloadSuccess'),'ok');
-  }catch(e){toast('❌ '+(e.message||tr('downloadFail')),'err')}
+      catch(e){window.open(x.file_url,'_blank');toast('تم فتح الملف الأصلي (تعذر إضافة التوقيع تلقائياً).','info');_dlBusy=false;return}
+    }else throw new Error('لا يوجد ملف متاح لهذا الجدول.');
+    toast('✅ تم تنزيل الجدول بنجاح.','ok');
+  }catch(e){toast('❌ '+(e.message||'فشل التنزيل'),'err')}
   finally{_dlBusy=false}
 };
 $('dlViewer').onclick=()=>{if(currentId)downloadSchedule(currentId)};
@@ -357,21 +357,21 @@ function favSave(l){try{localStorage.setItem(FAV_KEY,JSON.stringify(l));return t
 const favKey=id=>'s:'+String(id);
 function isFavSchedule(id){return favLoad().some(i=>i&&i.key===favKey(id))}
 function paintFavButtons(){
-  document.querySelectorAll('[data-fav-id]').forEach(b=>{const on=isFavSchedule(b.getAttribute('data-fav-id'));b.classList.toggle('on',on);b.textContent=on?'♥':'♡';b.setAttribute('aria-pressed',on);b.title=tr(on?'favRemove':'favAdd')});
+  document.querySelectorAll('[data-fav-id]').forEach(b=>{const on=isFavSchedule(b.getAttribute('data-fav-id'));b.classList.toggle('on',on);b.textContent=on?'♥':'♡';b.setAttribute('aria-pressed',on);b.title=on?'إزالة من المفضلة':'إضافة إلى المفضلة'});
   paintViewerFav();
 }
 function paintViewerFav(){
   const b=$('favViewer');if(!b)return;
   if(!currentId){b.style.display='none';return}
-  const on=isFavSchedule(currentId);b.style.display='';b.classList.toggle('on',on);b.textContent=on?'♥':'♡';b.setAttribute('aria-pressed',on);b.title=tr(on?'favRemove':'favAdd');
+  const on=isFavSchedule(currentId);b.style.display='';b.classList.toggle('on',on);b.textContent=on?'♥':'♡';b.setAttribute('aria-pressed',on);b.title=on?'إزالة من المفضلة':'إضافة إلى المفضلة';
 }
 window.toggleFavSchedule=id=>{
   const x=schedules.find(a=>String(a.id)===String(id));if(!x)return;
   let list=favLoad();const key=favKey(id),idx=list.findIndex(i=>i&&i.key===key);
-  if(idx>=0){list.splice(idx,1);if(!favSave(list)){toast('❌ '+tr('favFail'),'err');return}toast(tr('favRemoved'),'ok')}
+  if(idx>=0){list.splice(idx,1);if(!favSave(list)){toast('❌ تعذر الحفظ على هذا الجهاز.','err');return}toast('تمت الإزالة من المفضلة','ok')}
   else{
     list.unshift({key,kind:'schedule',savedAt:Date.now(),schedule:{id:x.id,title:x.title||'',specialization:x.specialization||'',level:x.level||'',group_name:x.group_name||'',academic_year:x.academic_year||'',file_url:x.file_url||'',hasRows:!!(x.rows&&x.rows.length),rows:(x.rows&&x.rows.length&&x.rows.length<=400)?x.rows:undefined}});
-    if(!favSave(list)){toast('❌ '+tr('favFail'),'err');return}toast(tr('favAdded'),'ok');
+    if(!favSave(list)){toast('❌ تعذر الحفظ على هذا الجهاز.','err');return}toast('تمت الإضافة إلى المفضلة ❤️','ok');
   }
   paintFavButtons();
 };
@@ -385,10 +385,10 @@ function openFromParam(){
   _openedFromParam=true;
   try{history.replaceState(null,'',location.pathname)}catch(_){}
   if(schedules.some(a=>String(a.id)===String(id)))viewSchedule(id);
-  else toast(tr('gone'),'err');
+  else toast('هذا الجدول لم يعد متاحاً.','err');
 }
 
-applyScheduleLanguage();loadSchedules();initAdmin();
+loadSchedules();initAdmin();
 </script>
 
 <footer class="mda-footer" style="text-align:center;padding:14px 0 6px;color:#64748b;font-size:.72rem;">
