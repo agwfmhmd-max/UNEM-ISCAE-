@@ -97,6 +97,11 @@ export async function signCloudinaryParams(
     .join("");
 }
 
+/** رسالة موحّدة عند غياب إعدادات Cloudinary على الخادم */
+export function cloudinaryNotConfiguredMessage(): string {
+  return "❌ إعدادات Cloudinary غير مكتملة على الخادم.";
+}
+
 export function readCloudinaryEnv():
   | { cloudName: string; apiKey: string; apiSecret: string }
   | null {

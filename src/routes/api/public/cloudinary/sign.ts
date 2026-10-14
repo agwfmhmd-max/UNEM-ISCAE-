@@ -9,6 +9,7 @@ import {
   corsOptions,
   json,
   normalizeSubjectCode,
+  cloudinaryNotConfiguredMessage,
   readCloudinaryEnv,
   signCloudinaryParams,
 } from "@/lib/unem-server";
@@ -45,7 +46,7 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
 
         const env = readCloudinaryEnv();
         if (!env) {
-          return json({ error: "❌ إعدادات Cloudinary غير مكتملة على الخادم." }, 500);
+          return json({ error: cloudinaryNotConfiguredMessage() }, 500);
         }
 
         let body: Record<string, unknown>;
