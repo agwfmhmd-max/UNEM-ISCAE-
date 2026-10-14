@@ -9,7 +9,6 @@ import {
   corsOptions,
   json,
   normalizeSubjectCode,
-  cloudinaryNotConfiguredMessage,
   readCloudinaryEnv,
   signCloudinaryParams,
 } from "@/lib/unem-server";
@@ -29,6 +28,7 @@ const LEVELS = ["L1", "L2", "L3"];
 const SEMESTERS = ["S1", "S2", "S3", "S4", "S5", "S6"];
 const MAX_SIZE = 60 * 1024 * 1024; // 60 MB
 
+
 export const Route = createFileRoute("/api/public/cloudinary/sign")({
   server: {
     handlers: {
@@ -39,9 +39,13 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
         const { caller } = auth;
         const token = bearerToken(request);
 
+        if (caller.role !== "admin" && caller.role !== "uploader") {
+          return json({ error: "❌ ليس لديك صلاحية لرفع الملفات." }, 403);
+        }
+
         const env = readCloudinaryEnv();
         if (!env) {
-          return json({ error: cloudinaryNotConfiguredMessage() }, 500);
+          return json({ error: "❌ إعدادات Cloudinary غير مكتملة على الخادم." }, 500);
         }
 
         let body: Record<string, unknown>;
@@ -53,31 +57,7 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
 
         const fileName = String(body["fileName"] ?? "");
         const fileSize = Number(body["fileSize"] ?? 0);
-        let section = String(body["section"] ?? "documents").toLowerCase();
-        // توافق مع الواجهات القديمة/المخزّنة في الكاش: طلب جدول دراسي يحمل السنة الجامعية
-        // والتخصص ولا يحمل مادة ولا فصلاً ولا نوع ملف — يُعامل كجدول بدل أن يُرفض كمستند عادي
-        // (كان يظهر حينها الخطأ المضلّل «فصل غير صالح»).
-        if (
-          !body["section"] &&
-          body["academicYear"] &&
-          body["specialization"] &&
-          !body["semester"] &&
-          !body["subject"] &&
-          !body["subjectCode"] &&
-          !body["fileTypeSlug"] &&
-          !body["fileType"]
-        ) {
-          section = "schedules";
-        }
-        const canUploadDocuments =
-          caller.role === "admin" ||
-          caller.role === "uploader" ||
-          caller.permissions.upload_files === true;
-        const canManageSchedules =
-          caller.role === "admin" || caller.permissions.manage_schedules === true;
-        if (section === "schedules" ? !canManageSchedules : !canUploadDocuments) {
-          return json({ error: "❌ ليس لديك الصلاحية لرفع هذا النوع من الملفات." }, 403);
-        }
+        const section = String(body["section"] ?? "documents").toLowerCase();
 
         // نوع الملف الفعلي (PDF / Word / PowerPoint / Excel / صورة)
         const typeInfo = fileTypeInfo(fileName);
@@ -123,43 +103,11 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
            قسم النتائج (Résultats): لا يعتمد على المواد ولا أنواع المستندات.
            admin و uploader فقط (تم التحقق أعلاه).
            --------------------------------------------------------------- */
-        if (section === "schedules") {
-          const academicYear = String(body["academicYear"] ?? "").trim();
-          const scheduleSpec = String(body["specialization"] ?? "")
-            .trim()
-            .toUpperCase();
-          const scheduleLevel = String(body["level"] ?? "")
-            .trim()
-            .toUpperCase();
-          if (!/^\d{4}-\d{4}$/.test(academicYear))
-            return json({ error: "❌ السنة الجامعية غير صالحة." }, 400);
-          if (![...SPECS.filter((x) => x !== "COMMON"), "DI", "RIT"].includes(scheduleSpec))
-            return json({ error: "❌ تخصص الجدول غير صالح." }, 400);
-          if (![...LEVELS, "M1", "M2"].includes(scheduleLevel))
-            return json({ error: "❌ مستوى الجدول غير صالح." }, 400);
-          const folder = ["UNEM_ISCAE/SCHEDULES", academicYear, scheduleSpec, scheduleLevel].join(
-            "/",
-          );
-          return json({
-            ...(await buildSignature(folder, "schedule")),
-            section: "schedules",
-            academicYear,
-            specialization: scheduleSpec,
-            level: scheduleLevel,
-          });
-        }
-
         if (section === "results") {
           const academicYear = String(body["academicYear"] ?? "").trim();
-          const major = String(body["major"] ?? "")
-            .trim()
-            .toUpperCase();
-          const resLevel = String(body["level"] ?? "")
-            .trim()
-            .toUpperCase();
-          const resSemester = String(body["semester"] ?? "")
-            .trim()
-            .toUpperCase();
+          const major = String(body["major"] ?? "").trim().toUpperCase();
+          const resLevel = String(body["level"] ?? "").trim().toUpperCase();
+          const resSemester = String(body["semester"] ?? "").trim().toUpperCase();
           if (!/^\d{4}-\d{4}$/.test(academicYear)) {
             return json({ error: "❌ السنة الجامعية غير صالحة (مثال: 2024-2025)." }, 400);
           }
@@ -189,6 +137,49 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
           });
         }
 
+        /* ---------------------------------------------------------------
+           قسم الجداول الدراسية (Emplois du temps): PDF أو صورة JPG/PNG.
+           لا يعتمد على المواد ولا أنواع المستندات. admin و uploader فقط.
+           --------------------------------------------------------------- */
+        if (section === "schedules") {
+          const schAcademicYear = String(body["academicYear"] ?? "").trim();
+          const schSpec = String(body["specialization"] ?? "").trim().toUpperCase();
+          const schLevel = String(body["level"] ?? "").trim().toUpperCase();
+          const schSemester = String(body["semester"] ?? "").trim().toUpperCase();
+          const schGroup = String(body["group"] ?? "").trim().toUpperCase();
+          if (!/^\d{4}-\d{4}$/.test(schAcademicYear)) {
+            return json({ error: "❌ السنة الجامعية غير صالحة (مثال: 2026-2027)." }, 400);
+          }
+          if (!/^[A-Z0-9_]{1,20}$/.test(schSpec)) {
+            return json({ error: "❌ التخصص غير صالح." }, 400);
+          }
+          if (!/^(L[1-3]|M[1-2])$/.test(schLevel)) {
+            return json({ error: "❌ المستوى غير صالح." }, 400);
+          }
+          if (schSemester && !SEMESTERS.includes(schSemester)) {
+            return json({ error: "❌ الفصل غير صالح." }, 400);
+          }
+          if (schGroup && !/^[A-Z0-9_]{1,10}$/.test(schGroup)) {
+            return json({ error: "❌ المجموعة غير صالحة." }, 400);
+          }
+          const schFolder = [
+            "UNEM_ISCAE/SCHEDULES",
+            schAcademicYear,
+            schSpec,
+            schLevel,
+            schSemester || "ALL",
+          ].join("/");
+          return json({
+            ...(await buildSignature(schFolder, "schedule")),
+            section: "schedules",
+            academicYear: schAcademicYear,
+            specialization: schSpec,
+            level: schLevel,
+            semester: schSemester,
+            group: schGroup,
+          });
+        }
+
         // الماستر: MASTER_FC / M1 / M2 تُطبَّع إلى مفاتيح التخزين (FC + L1/L2) قبل أي تحقق
         const scopeKeys = normalizeMasterScope(
           String(body["specialization"] ?? ""),
@@ -212,6 +203,7 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
         const subjectCode = isMasterCycle ? masterStorageCode(plainSubjectCode) : plainSubjectCode;
         const fileTypeSlug = String(body["fileTypeSlug"] ?? body["fileType"] ?? "").trim();
 
+
         if (!SPECS.includes(specialization)) return json({ error: "❌ تخصص غير صالح." }, 400);
         if (!LEVELS.includes(level)) return json({ error: "❌ مستوى غير صالح." }, 400);
         if (!SEMESTERS.includes(semester)) return json({ error: "❌ فصل غير صالح." }, 400);
@@ -224,10 +216,7 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
           );
         }
         if (!plainSubjectCode) return json({ error: "❌ يجب اختيار المادة." }, 400);
-        if (
-          isMasterCycle &&
-          (!MASTER_SPECS.includes(specialization) || (level !== "L1" && level !== "L2"))
-        ) {
+        if (isMasterCycle && (!MASTER_SPECS.includes(specialization) || (level !== "L1" && level !== "L2"))) {
           return json({ error: "❌ تخصص أو مستوى الماستر غير صالح." }, 400);
         }
         if (isMasterCycle && !subjectName) {
@@ -266,9 +255,7 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
           }
           if (!allowedMaster) {
             return json(
-              {
-                error: `❌ المادة المختارة غير موجودة ضمن Master ${specialization} / ${semester}.`,
-              },
+              { error: `❌ المادة المختارة غير موجودة ضمن Master ${specialization} / ${semester}.` },
               400,
             );
           }
@@ -328,6 +315,7 @@ export const Route = createFileRoute("/api/public/cloudinary/sign")({
           fileTypeName: type.name,
           fileTypeSlug: type.slug,
         });
+
       },
     },
   },
