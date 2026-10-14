@@ -6,10 +6,10 @@ import {
   fetchDocumentRow,
   corsOptions,
   json,
+  cloudinaryNotConfiguredMessage,
   readCloudinaryEnv,
   signCloudinaryParams,
 } from "@/lib/unem-server";
-
 
 async function destroyCloudinaryAsset(
   publicId: string,
@@ -44,8 +44,12 @@ export const Route = createFileRoute("/api/public/cloudinary/destroy")({
         const auth = await authenticateCaller(request);
         if ("error" in auth) return auth.error;
 
-        const canDelete = auth.caller.role === "admin";
-        const canUpload = canDelete || auth.caller.role === "uploader";
+        const canDelete =
+          auth.caller.role === "admin" || auth.caller.permissions.delete_files === true;
+        const canUpload =
+          canDelete ||
+          auth.caller.role === "uploader" ||
+          auth.caller.permissions.upload_files === true;
         if (!canUpload) {
           return json({ error: "❌ ليس لديك صلاحية لحذف الملفات." }, 403);
         }
@@ -54,7 +58,7 @@ export const Route = createFileRoute("/api/public/cloudinary/destroy")({
         if (!token) return json({ error: "❌ جلسة غير صالحة." }, 401);
 
         const env = readCloudinaryEnv();
-        if (!env) return json({ error: "❌ إعدادات Cloudinary غير مكتملة على الخادم." }, 500);
+        if (!env) return json({ error: cloudinaryNotConfiguredMessage() }, 500);
 
         let body: Record<string, unknown>;
         try {
@@ -69,9 +73,7 @@ export const Route = createFileRoute("/api/public/cloudinary/destroy")({
         // حالة خاصة: تنظيف ملف يتيم (نجح رفعه إلى Cloudinary وفشل تسجيله في قاعدة البيانات).
         // مسموح لمن يملك صلاحية الرفع، ولا يمس أي سجل في قاعدة البيانات.
         if (!documentId && orphanPublicId) {
-          const orphanType = ["raw", "image", "video"].includes(
-            String(body["resourceType"] ?? ""),
-          )
+          const orphanType = ["raw", "image", "video"].includes(String(body["resourceType"] ?? ""))
             ? String(body["resourceType"])
             : "raw";
           const ok = await destroyCloudinaryAsset(orphanPublicId, orphanType, env);
