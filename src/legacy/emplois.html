@@ -91,6 +91,7 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
   <div class="admin-grid">
     <div class="field"><label>التخصص</label><select id="aSpec"><option value="BA">BA</option><option value="FC">FC</option><option value="TCM">TCM</option><option value="GRH">GRH</option><option value="SAE">SAE</option><option value="IG">IG</option><option value="DI">DI</option><option value="RIT">RIT</option></select></div>
     <div class="field"><label>المستوى</label><select id="aLevel"><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="M1">M1</option><option value="M2">M2</option></select></div>
+    <div class="field"><label>الفصل</label><select id="aSem"></select></div>
     <div class="field"><label>المجموعة</label><input id="aGroup" placeholder="G1 / G2 / FP — اتركها فارغة إذا لا توجد"></div>
     <div class="field"><label>السنة الجامعية</label><input id="aYear" placeholder="2025-2026"></div>
     <div class="field" style="grid-column:span 2"><label>عنوان الجدول</label><input id="aTitle" placeholder="مثال: 1ère Année Informatique de Gestion G1"></div>
@@ -129,6 +130,8 @@ let schedules=[], editingId=null;
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const SEM_BY_LEVEL={L1:['S1','S2'],L2:['S3','S4'],L3:['S5','S6'],M1:['S1','S2'],M2:['S3','S4']};
+function fillSem(){const l=$('aLevel').value,o=SEM_BY_LEVEL[l]||[],old=$('aSem').value;$('aSem').innerHTML='<option value="">— الفصل —</option>'+o.map(x=>`<option>${x}</option>`).join('');if(o.includes(old))$('aSem').value=old}
 function showStatus(id,msg,type='info'){const e=$(id);e.textContent=msg;e.className='status show '+type}
 function clearStatus(id){$(id).className='status'}
 function currentYear(){const y=new Date().getFullYear();return `${y}-${y+1}`}
@@ -275,13 +278,15 @@ async function uploadSchedule(){
   showStatus('uploadStatus','⏳ جاري التحقق والرفع...','info');
   try{
     const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error('يجب تسجيل الدخول بحساب المشرف الرئيسي.');
-    const sign=await fetch('/api/public/cloudinary/sign',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({section:'schedules',fileName:file.name,fileSize:file.size,academicYear:year,specialization:spec,level,group})});
+    const semester=$('aSem').value;if(!semester)throw new Error('اختر الفصل الدراسي.');
+    const sign=await fetch('/api/public/cloudinary/sign',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({section:'schedules',fileName:file.name,fileSize:file.size,academicYear:year,specialization:spec,level,semester,group})});
     let sd;try{sd=await sign.json()}catch(_){throw new Error('تعذر قراءة استجابة خادم الرفع. تأكد من نشر مسار /api/public/cloudinary/sign على Vercel.')}
-    if(!sign.ok)throw new Error(sd.error||`تعذر الحصول على تصريح الرفع (HTTP ${sign.status}).`);
+    if(!sign.ok){if(/فصل غير صالح|المادة|نوع الملف غير مرتبط/.test(sd.error||''))throw new Error('الخادم على Vercel ما زال بالنسخة القديمة التي لا تدعم رفع الجداول. انشر آخر نسخة من المشروع (ملف src/routes/api/public/cloudinary/sign.ts) ثم أعد المحاولة. — '+sd.error);throw new Error(sd.error||`تعذر الحصول على تصريح الرفع (HTTP ${sign.status}).`)}
     if(!sd.apiKey||!sd.timestamp||!sd.signature||!sd.uploadUrl||!sd.folder||!sd.publicId)throw new Error('إعدادات الرفع التي أعادها الخادم غير مكتملة. راجع دالة Cloudinary signing على Vercel.');
     const fd=new FormData();fd.append('file',file,file.name);fd.append('api_key',sd.apiKey);fd.append('timestamp',sd.timestamp);fd.append('signature',sd.signature);fd.append('folder',sd.folder);fd.append('public_id',sd.publicId);
     const up=await fetch(sd.uploadUrl,{method:'POST',body:fd});let ud;try{ud=await up.json()}catch(_){throw new Error('استجابة Cloudinary غير صالحة أثناء رفع PDF.')};if(!up.ok||!ud.secure_url)throw new Error(ud.error?.message||`فشل رفع PDF إلى Cloudinary (HTTP ${up.status}).`);
-    const {error}=await sb.from('study_schedules').insert({academic_year:year,specialization:spec,level,group_name:group||null,title,file_url:ud.secure_url,cloudinary_public_id:ud.public_id||sd.publicId,file_name:file.name,rows:[],is_active:true,uploaded_by:session.user.id});
+    const probe=await sb.from('study_schedules').select('semester').limit(1);
+    const {error}=await sb.from('study_schedules').insert({academic_year:year,specialization:spec,level,...(probe.error?{}:{semester}),group_name:group||null,title,file_url:ud.secure_url,cloudinary_public_id:ud.public_id||sd.publicId,file_name:file.name,rows:[],is_active:true,uploaded_by:session.user.id});
     if(error)throw error;
     showStatus('uploadStatus','✅ تم رفع ونشر الجدول بنجاح.','ok');$('aFile').value='';await loadAdminList();await loadSchedules();
   }catch(e){showStatus('uploadStatus','❌ '+e.message,'err')}
@@ -410,5 +415,5 @@ loadSchedules();initAdmin();
   <div class="mda-sign" title="MDA" aria-label="MDA — Mohamed Dah Agove"><svg class="mda-seal" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="rgba(0,0,0,.22)" stroke="#f5b942" stroke-width="3"/><circle cx="50" cy="50" r="43" fill="none" stroke="#f5b942" stroke-width=".9" stroke-dasharray="1.2 2.6"/><circle cx="50" cy="50" r="38.5" fill="none" stroke="#f5b942" stroke-width="1"/><path d="M50 21l2.6 4.2L50 29.4l-2.6-4.2z" fill="#f5b942"/><text x="50" y="61" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="27" font-weight="700" fill="#fff7e0" letter-spacing="-.5">MDA</text><path d="M30 70h40" stroke="#f5b942" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="77" r="1.7" fill="#f5b942"/></svg></div>
 </footer>
 
-</body>
+<script>try{fillSem();document.getElementById('aLevel').addEventListener('change',fillSem)}catch(e){}</script></body>
 </html>
