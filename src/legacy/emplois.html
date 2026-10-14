@@ -286,13 +286,13 @@ async function uploadSchedule(){
   try{
     const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error(tr('adminLogin'));
     const sign=await fetch('/api/public/cloudinary/sign',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({section:'schedules',fileName:file.name,fileSize:file.size,academicYear:year,specialization:spec,level,group})});
-    const sd=await sign.json();if(!sign.ok)throw new Error(sd.error||tr('signError'));
+    const sd=await sign.json().catch(()=>({}));if(!sign.ok)throw new Error(sd.error||tr('signError'));
     const fd=new FormData();fd.append('file',file,file.name);fd.append('api_key',sd.apiKey);fd.append('timestamp',sd.timestamp);fd.append('signature',sd.signature);fd.append('folder',sd.folder);fd.append('public_id',sd.publicId);
     const up=await fetch(sd.uploadUrl,{method:'POST',body:fd});const ud=await up.json();if(!up.ok||!ud.secure_url)throw new Error(ud.error?.message||tr('uploadFailed'));
     const {error}=await sb.from('study_schedules').insert({academic_year:year,specialization:spec,level,group_name:group||null,title,file_url:ud.secure_url,cloudinary_public_id:ud.public_id||sd.publicId,file_name:file.name,rows:[],is_active:true,uploaded_by:session.user.id});
     if(error)throw error;
     showStatus('uploadStatus',tr('uploadSuccess'),'ok');$('aFile').value='';await loadAdminList();await loadSchedules();
-  }catch(e){showStatus('uploadStatus','❌ '+e.message,'err')}
+  }catch(e){showStatus('uploadStatus','❌ '+String((e&&e.message)||e).replace(/^[❌\s]+/u,''),'err')}
 }
 $('uploadBtn').onclick=uploadSchedule;$('refreshAdmin').onclick=loadAdminList;
 
