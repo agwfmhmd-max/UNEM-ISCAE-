@@ -56,6 +56,12 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 .btn.fav{background:#fff1f2;color:#be123c;padding:11px 14px;font-size:1rem;line-height:1}.btn.fav.on{background:#e11d48;color:#fff}
 .schedule .actions .fav{margin-inline-start:auto}
 html[dir="ltr"] #manualView{direction:ltr}
+.dl{display:grid;gap:12px;padding:2px 2px 14px}.dl-day h4{margin:0 0 6px;background:#0f5132;color:#fff;border-radius:10px;padding:7px 12px;font-size:.9rem;letter-spacing:.03em}
+.dl-item{display:flex;gap:10px;align-items:stretch;border-radius:10px;border-inline-start:5px solid;padding:8px 10px;margin-bottom:6px}
+.dl-t{flex:none;min-width:92px;font-weight:900;font-size:.82rem;color:#0f172a;align-self:center;text-align:center;background:rgba(255,255,255,.7);border-radius:8px;padding:5px 4px}
+.dl-b{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:start}.dl-b b{font-size:.95rem;overflow-wrap:anywhere}.dl-b span{font-size:.78rem;color:#475569;overflow-wrap:anywhere}
+.viewer-head{flex-wrap:wrap;gap:8px}.viewer-head>b{flex:1 1 200px;min-width:0;overflow-wrap:anywhere;line-height:1.35}
+@media(max-width:600px){.viewer{padding:8px}.viewer-head{padding:10px 12px}.viewer-head>b{font-size:.95rem}.viewer-head .vh-actions{flex-wrap:wrap;width:100%}.viewer-head .vh-actions .btn{padding:8px 10px;font-size:.8rem}.viewer-head .vh-actions .btn.fav{padding:8px 11px}}
 html[dir="ltr"] .tt .ent{border-right:0;border-left:4px solid;text-align:left}
 html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
 </style>
@@ -64,7 +70,7 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
 <div class="page">
 <header class="top">
   <div class="brand"><div class="logo">📅</div><div><h1 data-i18n="h1">الجداول الدراسية</h1><p class="sub">Emplois du temps — UNEM ISCAE</p></div></div>
-  <div style="display:flex;align-items:center;gap:8px"><button type="button" class="back" id="langBtn" aria-label="Langue / اللغة" title="Langue / اللغة" style="border:0;cursor:pointer;font:inherit;font-weight:900">FR</button><a class="back" href="/" data-i18n="back">← الرئيسية</a></div>
+  <div style="display:flex;align-items:center;gap:8px"><button type="button" class="back" id="adminBtn" aria-label="Admin" title="Admin" style="border:0;cursor:pointer;font:inherit;font-weight:900">🛡️</button><button type="button" class="back" id="langBtn" aria-label="Langue / اللغة" title="Langue / اللغة" style="border:0;cursor:pointer;font:inherit;font-weight:900">FR</button><a class="back" href="/" data-i18n="back">← الرئيسية</a></div>
 </header>
 
 <section class="hero">
@@ -88,32 +94,20 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
   <div id="results" class="results" style="margin-top:14px"></div>
 </section>
 
-<section class="card admin" id="adminPanel">
-  <div class="admin-title"><h2>🛡️ إدارة الجداول — المشرف الرئيسي</h2><button class="btn ghost" id="refreshAdmin">تحديث</button></div>
-  <p class="hint">يمكنك رفع PDF جديد، تحديد نطاقه، ثم تعديله يدوياً. الرفع والتعديل محميان بصلاحية <b>admin</b> من Supabase، وليس بمجرد إخفاء الزر في الواجهة.</p>
-  <div class="admin-grid">
-    <div class="field"><label>التخصص</label><select id="aSpec"><option value="BA">BA</option><option value="FC">FC</option><option value="TCM">TCM</option><option value="GRH">GRH</option><option value="SAE">SAE</option><option value="IG">IG</option><option value="DI">DI</option><option value="RIT">RIT</option></select></div>
-    <div class="field"><label>المستوى</label><select id="aLevel"><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="M1">M1</option><option value="M2">M2</option></select></div>
-    <div class="field"><label>الفصل</label><select id="aSem"></select></div>
-    <div class="field"><label>المجموعة</label><input id="aGroup" placeholder="G1 / G2 / FP — اتركها فارغة إذا لا توجد"></div>
-    <div class="field"><label>السنة الجامعية</label><input id="aYear" placeholder="2025-2026"></div>
-    <div class="field" style="grid-column:span 2"><label>عنوان الجدول</label><input id="aTitle" placeholder="مثال: 1ère Année Informatique de Gestion G1"></div>
-    <div class="field" style="grid-column:span 2"><label>ملف PDF</label><input id="aFile" type="file" accept="application/pdf,.pdf,image/png,image/jpeg,.png,.jpg,.jpeg"></div>
+<section class="card" id="loginCard" style="display:none">
+  <div class="admin-title"><h2 data-i18n="adm_login_h">🛡️ دخول المشرف</h2><button class="btn ghost" id="loginClose" type="button" data-i18n="btn_close">✕ إغلاق</button></div>
+  <p class="hint" data-i18n="adm_login_p">سجّل دخولك بحساب المشرف الرئيسي لإدارة الجداول (رفع، تعديل، حذف).</p>
+  <div class="admin-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="field"><label data-i18n="adm_email">البريد الإلكتروني</label><input id="admEmail" type="email" autocomplete="username" dir="ltr" style="width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:11px;font:inherit"></div>
+    <div class="field"><label data-i18n="adm_pass">كلمة المرور</label><input id="admPass" type="password" autocomplete="current-password" dir="ltr" style="width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:11px;font:inherit"></div>
   </div>
-  <div class="actions"><button class="btn primary" id="uploadBtn">☁️ رفع ونشر الجدول</button></div>
-  <div id="uploadStatus" class="status"></div>
+  <div class="actions"><button class="btn primary" id="admLoginBtn" type="button" data-i18n="adm_login_btn">دخول</button></div>
+  <div id="loginStatus" class="status"></div>
+</section>
 
-  <div class="manual">
-    <h3 style="margin:0 0 5px">✏️ المحرر اليدوي</h3>
-    <p class="hint">اختر جدولاً من القائمة ثم عدّل الحصص أو أضفها. البيانات اليدوية تحفظ داخل قاعدة البيانات مع رابط PDF الأصلي.</p>
-    <div class="admin-list" id="adminList"></div>
-    <div id="editor" style="display:none">
-      <div class="field" style="margin:12px 0"><label>العنوان</label><input id="eTitle"></div>
-      <div id="rows"></div>
-      <div class="actions"><button class="btn blue" id="addRow">＋ إضافة حصة</button><button class="btn primary" id="saveEdit">💾 حفظ التعديلات</button><button class="btn ghost" id="cancelEdit">إلغاء</button></div>
-      <div id="editStatus" class="status"></div>
-    </div>
-  </div>
+<section class="card admin" id="adminPanel">
+  <div class="admin-title"><h2>🛡️ إدارة الجداول — المشرف الرئيسي</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><span id="admWho" class="badge"></span><button class="btn ghost" id="admLogout" type="button">تسجيل الخروج</button></div></div>
+  <div id="usa-host"></div>
 </section>
 </div>
 
@@ -133,8 +127,6 @@ let schedules=[], editingId=null;
 
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const SEM_BY_LEVEL={L1:['S1','S2'],L2:['S3','S4'],L3:['S5','S6'],M1:['S1','S2'],M2:['S3','S4']};
-function fillSem(){const l=$('aLevel').value,o=SEM_BY_LEVEL[l]||[],old=$('aSem').value;$('aSem').innerHTML='<option value="">— الفصل —</option>'+o.map(x=>`<option>${x}</option>`).join('');if(o.includes(old))$('aSem').value=old}
 function showStatus(id,msg,type='info'){const e=$(id);e.textContent=msg;e.className='status show '+type}
 function clearStatus(id){$(id).className='status'}
 function currentYear(){const y=new Date().getFullYear();return `${y}-${y+1}`}
@@ -193,7 +185,7 @@ dl_prep:'⏳ جاري تحضير الملف للتنزيل...',dl_img_open:'تم
 fetch_pdf:'تعذر جلب ملف PDF',fetch_img:'تعذر جلب الصورة',bad_img:'صورة غير صالحة',
 fav_save_err:'❌ تعذر الحفظ على هذا الجهاز.',fav_removed:'تمت الإزالة من المفضلة',fav_added:'تمت الإضافة إلى المفضلة ❤️',gone:'هذا الجدول لم يعد متاحاً.',
 share_btn:'🔗 مشاركة',share_text:'الجدول الدراسي',share_copied:'✅ تم نسخ رابط الجدول.',share_fail:'تعذر نسخ الرابط. انسخه يدوياً:',
-exp_footer:'الاتحاد الوطني لطلبة موريتانيا — UNEM',exp_title:'جدول دراسي',img_alt:'الجدول الدراسي'},
+exp_footer:'الاتحاد الوطني لطلبة موريتانيا — UNEM',exp_title:'جدول دراسي',img_alt:'الجدول الدراسي',adm_login_h:'🛡️ دخول المشرف',adm_login_p:'سجّل دخولك بحساب المشرف الرئيسي لإدارة الجداول (رفع، تعديل، حذف).',adm_email:'البريد الإلكتروني',adm_pass:'كلمة المرور',adm_login_btn:'دخول'},
 fr:{title:'Emplois du temps | UNEM ISCAE',h1:'Emplois du temps',back:'← Accueil',hero_h:'Trouvez facilement votre emploi du temps',hero_p:"Choisissez la filière, le niveau et le groupe, puis ouvrez l'emploi du temps officiel publié par l'administration.",
 f_spec:'Filière',f_level:'Niveau',f_group:'Groupe',f_year:'Année universitaire',all_specs:'Toutes les filières',all_levels:'Tous les niveaux',all_groups:'Tous les groupes',all_years:'Toutes les années',
 btn_search:'🔎 Afficher les emplois du temps',btn_reset:'Réinitialiser',published:'Emplois du temps publiés',viewer_default:'Emploi du temps',btn_download:'⬇️ Télécharger',btn_share:'🔗 Partager',btn_close:'✕ Fermer',btn_view:"📋 Voir l'emploi du temps",
@@ -204,7 +196,7 @@ dl_prep:'⏳ Préparation du fichier à télécharger...',dl_img_open:"Image d'o
 fetch_pdf:'Impossible de récupérer le fichier PDF',fetch_img:"Impossible de récupérer l'image",bad_img:'Image invalide',
 fav_save_err:"❌ Impossible d'enregistrer sur cet appareil.",fav_removed:'Retiré des favoris',fav_added:'Ajouté aux favoris ❤️',gone:"Cet emploi du temps n'est plus disponible.",
 share_btn:'🔗 Partager',share_text:'Emploi du temps',share_copied:"✅ Lien de l'emploi du temps copié.",share_fail:'Impossible de copier le lien. Copiez-le manuellement :',
-exp_footer:'Union Nationale des Étudiants de Mauritanie — UNEM',exp_title:'Emploi du temps',img_alt:'Emploi du temps'}
+exp_footer:'Union Nationale des Étudiants de Mauritanie — UNEM',exp_title:'Emploi du temps',img_alt:'Emploi du temps',adm_login_h:'🛡️ Connexion administrateur',adm_login_p:"Connectez-vous avec le compte administrateur principal pour gérer les emplois du temps (ajout, modification, suppression).",adm_email:'E-mail',adm_pass:'Mot de passe',adm_login_btn:'Se connecter'}
 };
 let LANG=(function(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}catch(_){return 'ar'}})();
 const t=(k,v)=>{let r=(I18N[LANG]&&I18N[LANG][k])||I18N.ar[k]||k;if(v)for(const a in v)r=r.replace('{'+a+'}',v[a]);return r};
@@ -248,8 +240,24 @@ const DAY_ORDER={'السبت':0,'الأحد':1,'الاحد':1,'الاثنين':2
 const dayIdx=d=>{const k=sp(d).toLowerCase();return k in DAY_ORDER?DAY_ORDER[k]:99};
 const timeKey=t=>{const m=String(t||'').match(/(\d{1,2})\s*[:hH]\s*(\d{2})?/);return m?(+m[1])*60+(+(m[2]||0)):9999};
 const hueOf=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+function normTime(v){
+  const t=String(v==null?'':v).trim();if(!t)return '';
+  const m=t.replace(/[–—−]/g,'-').match(/^(\d{1,2})\s*(?:[hH:])?\s*:?\s*(\d{2})?\s*-\s*(\d{1,2})\s*(?:[hH:])?\s*:?\s*(\d{2})?$/);
+  if(!m)return t.replace(/\s+/g,'');
+  const h1=+m[1],h2=+m[3];if(h1>24||h2>24)return t.replace(/\s+/g,'');
+  const p=n=>(n<10?'0':'')+n,wm=m[2]!=null||m[4]!=null;
+  return p(h1)+'h'+(wm?(m[2]||'00'):'')+'-'+p(h2)+'h'+(wm?(m[4]||'00'):'');
+}
+const normDay=d=>{const x=sp(d);return /^[A-Za-zÀ-ÿ]+$/.test(x)?x.toUpperCase():x};
+function cleanRows(rows){return (rows||[]).map(r=>({day:normDay(r.day),time:normTime(sp(r.time)),subject:sp(r.subject),room:sp(r.room),teacher:sp(r.teacher)}))}
+function dayListHTML(rows){
+  const clean=cleanRows(rows).filter(r=>r.day||r.time||r.subject);
+  const days=[...new Set(clean.map(r=>r.day))].sort((a,b)=>dayIdx(a.toLowerCase())-dayIdx(b.toLowerCase()));
+  return `<div class="dl">${days.map(d=>{const list=clean.filter(r=>r.day===d).sort((a,b)=>timeKey(a.time)-timeKey(b.time)||a.time.localeCompare(b.time));
+    return `<section class="dl-day"><h4>${esc(d||'—')}</h4>${list.map(r=>{const h=hueOf(r.subject||'x');return `<div class="dl-item" style="background:hsl(${h},70%,95%);border-inline-start-color:hsl(${h},55%,42%)"><div class="dl-t" dir="ltr">${esc(r.time||'—')}</div><div class="dl-b"><b>${esc(r.subject||'—')}</b>${r.room?`<span>📍 ${esc(r.room)}</span>`:''}${r.teacher?`<span>👤 ${esc(r.teacher)}</span>`:''}</div></div>`}).join('')}</section>`}).join('')}</div>`;
+}
 function gridHTML(rows){
-  const clean=(rows||[]).map(r=>({day:sp(r.day),time:sp(r.time),subject:sp(r.subject),room:sp(r.room),teacher:sp(r.teacher)}));
+  const clean=cleanRows(rows);
   const days=[...new Set(clean.map(r=>r.day))].sort((a,b)=>dayIdx(a)-dayIdx(b));
   const times=[...new Set(clean.map(r=>r.time))].sort((a,b)=>timeKey(a)-timeKey(b)||a.localeCompare(b));
   const head=`<tr><th class="c0">${t('day_time')}</th>${times.map(t=>`<th dir="ltr">${esc(t||'—')}</th>`).join('')}</tr>`;
@@ -266,8 +274,11 @@ function fitGrid(wrap,max,min){
 }
 function layoutManual(){
   const box=$('manualView');if(!box)return;
+  const mobNow=window.innerWidth<700;
+  if(currentId&&(box.dataset.mode==='list')!==mobNow){showManual(currentId);return}
   const inner=box.firstElementChild,wrap=inner.querySelector('.mv-grid');
   inner.style.height=box.clientHeight+'px';
+  if(box.dataset.mode==='list'){wrap.style.overflow='auto';return}
   const small=window.innerWidth<600;
   if(!fitGrid(wrap,small?14:18,5))wrap.style.overflow='auto';
 }
@@ -277,7 +288,8 @@ window.showManual=id=>{
   $('viewerTitle').textContent=x.title||t('viewer_default');
   $('frame').src='about:blank';$('frame').style.display='none';
   const box=document.createElement('div');box.id='manualView';
-  box.innerHTML=`<div class="mv-inner"><div><h2 style="margin:0;font-size:1.25rem;color:#0f5132">${esc(x.title||'')}</h2><p style="margin:2px 0 0;color:#64748b;font-size:.8rem">${esc(metaText(x))}</p></div><div class="mv-grid">${(x.rows||[]).length?gridHTML(x.rows):`<div class="empty">${t('no_rows')}</div>`}</div></div>`;
+  const mob=window.innerWidth<700;box.dataset.mode=mob?'list':'grid';
+  box.innerHTML=`<div class="mv-inner"><div><h2 style="margin:0;font-size:1.25rem;color:#0f5132">${esc(x.title||'')}</h2><p style="margin:2px 0 0;color:#64748b;font-size:.8rem">${esc(metaText(x))}</p></div><div class="mv-grid">${(x.rows||[]).length?(mob?dayListHTML(x.rows):gridHTML(x.rows)):`<div class="empty">${t('no_rows')}</div>`}</div></div>`;
   $('viewer').querySelector('.viewer-box').appendChild(box);
   $('viewer').classList.add('open');setViewerDl(x.id);
   layoutManual();
@@ -297,56 +309,53 @@ $('resetBtn').onclick=()=>{['spec','level','group','year'].forEach(id=>$(id).val
 ['spec','level'].forEach(id=>$(id).addEventListener('change',()=>{populateGroups();renderResults()}));
 ['group','year'].forEach(id=>$(id).addEventListener('change',renderResults));
 
+/* ===== دخول المشرف وإدارة الجداول (الوحدة المشتركة /unem-schedules-admin.js) ===== */
 async function getRole(){
   try{const {data,error}=await sb.rpc('get_my_role');if(error)return 'user';return String(data||'user').toLowerCase()}catch(_){return 'user'}
 }
+let _admMounted=false;
+function loadAdminModule(){
+  if(window.UNEMSchedAdmin)return Promise.resolve();
+  return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='/unem-schedules-admin.js?v=28';sc.onload=res;sc.onerror=()=>rej(new Error('load'));document.head.appendChild(sc)});
+}
+async function showAdminPanel(session){
+  try{await loadAdminModule()}catch(_){showStatus('loginStatus','❌ تعذر تحميل وحدة الإدارة (/unem-schedules-admin.js). تأكد من نشر آخر نسخة من المشروع.','err');$('loginCard').style.display='block';return}
+  $('loginCard').style.display='none';$('adminPanel').classList.add('show');
+  $('admWho').textContent=(session&&session.user&&session.user.email)||'';
+  if(!_admMounted){_admMounted=true;window.UNEMSchedAdmin.mount($('usa-host'),{sb:sb,api:p=>p,onChange:()=>{loadSchedules()}})}
+}
+function hideAdminPanel(){$('adminPanel').classList.remove('show');_admMounted=false;$('usa-host').innerHTML='';$('admWho').textContent=''}
 async function initAdmin(){
-  const role=await getRole(); if(role!=='admin')return;
-  $('adminPanel').classList.add('show'); $('aYear').value=currentYear(); await loadAdminList();
+  let session=null;try{const r=await sb.auth.getSession();session=r&&r.data&&r.data.session}catch(_){}
+  if(!session)return;
+  if(await getRole()==='admin')await showAdminPanel(session);
 }
-async function loadAdminList(){
-  const {data,error}=await sb.from('study_schedules').select('*').order('academic_year',{ascending:false}).order('specialization').order('level').order('group_name');
-  const list=$('adminList');if(error){list.innerHTML='<div class="empty">تعذر تحميل قائمة الإدارة.</div>';return}
-  schedules=data||[];populateFilters();renderResults();
-  list.innerHTML=schedules.length?schedules.map(x=>`<div class="admin-row"><div><b>${esc(x.title||'جدول')}</b><small>${esc(x.specialization)} · ${esc(x.level)}${x.group_name?' · '+esc(x.group_name):''} · ${esc(x.academic_year||'')}</small></div><div class="row-actions"><button class="btn blue" onclick="editSchedule('${esc(x.id)}')">✏️ تعديل</button>${x.file_url?`<button class="btn ghost" onclick="openPdf('${esc(x.file_url)}','${esc(x.title||'')}')">PDF</button>`:''}<button class="btn danger" onclick="deleteSchedule('${esc(x.id)}')">حذف</button></div></div>`).join(''):'<div class="empty">لا توجد جداول بعد.</div>';
-}
-async function uploadSchedule(){
-  clearStatus('uploadStatus');const file=$('aFile').files[0];
-  if(!file)return showStatus('uploadStatus','❌ اختر ملف الجدول بصيغة PDF أولاً.','err');
-  // Some mobile browsers report an empty/incorrect MIME type; validate by extension and MIME.
-  const isPdfName=/\.(pdf|jpe?g|png)$/i.test(file.name);
-  const isPdfMime=!file.type||/^(application\/(x-)?pdf|image\/(jpeg|png))$/.test(file.type);
-  if(!isPdfName||!isPdfMime)return showStatus('uploadStatus','❌ الملف غير مقبول. المسموح: PDF أو JPG أو PNG.','err');
-  if(file.size===0)return showStatus('uploadStatus','❌ الملف فارغ؛ اختر نسخة سليمة من ملف الجدول.','err');
-  if(file.size>60*1024*1024)return showStatus('uploadStatus','❌ حجم الملف يتجاوز الحد الأقصى المسموح به (60MB).','err');
-  const year=$('aYear').value.trim(),spec=$('aSpec').value,level=$('aLevel').value,group=$('aGroup').value.trim(),title=$('aTitle').value.trim()||`${spec} ${level}${group?' '+group:''}`;
-  if(!/^\d{4}-\d{4}$/.test(year))return showStatus('uploadStatus','❌ السنة يجب أن تكون مثل 2025-2026.','err');
-  showStatus('uploadStatus','⏳ جاري التحقق والرفع...','info');
+async function adminLogin(){
+  clearStatus('loginStatus');
+  const email=$('admEmail').value.trim(),password=$('admPass').value;
+  if(!email||!password)return showStatus('loginStatus','❌ أدخل البريد وكلمة المرور.','err');
+  const btn=$('admLoginBtn');btn.disabled=true;showStatus('loginStatus','⏳ ...','info');
   try{
-    const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error('يجب تسجيل الدخول بحساب المشرف الرئيسي.');
-    const semester=$('aSem').value;if(!semester)throw new Error('اختر الفصل الدراسي.');
-    const sign=await fetch('/api/public/cloudinary/sign',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({section:'schedules',fileName:file.name,fileSize:file.size,academicYear:year,specialization:spec,level,semester,group})});
-    let sd;try{sd=await sign.json()}catch(_){throw new Error('تعذر قراءة استجابة خادم الرفع. تأكد من نشر مسار /api/public/cloudinary/sign على Vercel.')}
-    if(!sign.ok){if(/فصل غير صالح|المادة|نوع الملف غير مرتبط/.test(sd.error||''))throw new Error('الخادم على Vercel ما زال بالنسخة القديمة التي لا تدعم رفع الجداول. انشر آخر نسخة من المشروع (ملف src/routes/api/public/cloudinary/sign.ts) ثم أعد المحاولة. — '+sd.error);throw new Error(sd.error||`تعذر الحصول على تصريح الرفع (HTTP ${sign.status}).`)}
-    if(!sd.apiKey||!sd.timestamp||!sd.signature||!sd.uploadUrl||!sd.folder||!sd.publicId)throw new Error('إعدادات الرفع التي أعادها الخادم غير مكتملة. راجع دالة Cloudinary signing على Vercel.');
-    const fd=new FormData();fd.append('file',file,file.name);fd.append('api_key',sd.apiKey);fd.append('timestamp',sd.timestamp);fd.append('signature',sd.signature);fd.append('folder',sd.folder);fd.append('public_id',sd.publicId);
-    const up=await fetch(sd.uploadUrl,{method:'POST',body:fd});let ud;try{ud=await up.json()}catch(_){throw new Error('استجابة Cloudinary غير صالحة أثناء رفع PDF.')};if(!up.ok||!ud.secure_url)throw new Error(ud.error?.message||`فشل رفع PDF إلى Cloudinary (HTTP ${up.status}).`);
-    const probe=await sb.from('study_schedules').select('semester').limit(1);
-    const {error}=await sb.from('study_schedules').insert({academic_year:year,specialization:spec,level,...(probe.error?{}:{semester}),group_name:group||null,title,file_url:ud.secure_url,cloudinary_public_id:ud.public_id||sd.publicId,file_name:file.name,rows:[],is_active:true,uploaded_by:session.user.id});
+    const {data,error}=await sb.auth.signInWithPassword({email,password});
     if(error)throw error;
-    showStatus('uploadStatus','✅ تم رفع ونشر الجدول بنجاح.','ok');$('aFile').value='';await loadAdminList();await loadSchedules();
-  }catch(e){showStatus('uploadStatus','❌ '+e.message,'err')}
+    const role=await getRole();
+    if(role!=='admin'){await sb.auth.signOut();throw new Error('هذا الحساب ليس حساب المشرف الرئيسي، لا يملك صلاحية إدارة الجداول.')}
+    $('admPass').value='';clearStatus('loginStatus');
+    await showAdminPanel(data.session);
+    $('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){showStatus('loginStatus','❌ '+(/invalid login/i.test(e.message||'')?'البريد أو كلمة المرور غير صحيحة.':(e.message||e)),'err')}
+  finally{btn.disabled=false}
 }
-$('uploadBtn').onclick=uploadSchedule;$('refreshAdmin').onclick=loadAdminList;
-
-window.editSchedule=id=>{
- const x=schedules.find(a=>a.id===id);if(!x)return;editingId=id;$('editor').style.display='block';$('eTitle').value=x.title||'';renderEditorRows(x.rows||[]);$('editStatus').className='status';window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})
-}
-function renderEditorRows(rows){$('rows').innerHTML=rows.map((r,i)=>`<div class="manual-row" data-i="${i}"><input placeholder="اليوم" value="${esc(r.day)}"><input placeholder="الوقت" value="${esc(r.time)}"><input class="wide" placeholder="المادة" value="${esc(r.subject)}"><input placeholder="القاعة" value="${esc(r.room)}"><input placeholder="الأستاذ" value="${esc(r.teacher)}"><button class="btn danger" onclick="this.parentElement.remove()">✕</button></div>`).join('')}
-$('addRow').onclick=()=>{const d=document.createElement('div');d.className='manual-row';d.innerHTML='<input placeholder="اليوم"><input placeholder="الوقت"><input class="wide" placeholder="المادة"><input placeholder="القاعة"><input placeholder="الأستاذ"><button class="btn danger" onclick="this.parentElement.remove()">✕</button>';$('rows').appendChild(d)}
-$('cancelEdit').onclick=()=>{$('editor').style.display='none';editingId=null}
-$('saveEdit').onclick=async()=>{if(!editingId)return;clearStatus('editStatus');const rows=[...$('rows').querySelectorAll('.manual-row')].map(r=>{const i=r.querySelectorAll('input');return{day:i[0].value.trim(),time:i[1].value.trim(),subject:i[2].value.trim(),room:i[3].value.trim(),teacher:i[4].value.trim()}}).filter(r=>r.day||r.time||r.subject||r.room||r.teacher);const title=$('eTitle').value.trim()||'جدول دراسي';const {error}=await sb.from('study_schedules').update({title,rows,updated_at:new Date().toISOString()}).eq('id',editingId);if(error){showStatus('editStatus','❌ '+error.message,'err');return}showStatus('editStatus','✅ تم حفظ التعديلات.','ok');await loadAdminList();await loadSchedules()}
-window.deleteSchedule=async id=>{if(!confirm('هل تريد حذف هذا الجدول من النشر؟'))return;const {error}=await sb.from('study_schedules').delete().eq('id',id);if(error)alert('❌ '+error.message);else{await loadAdminList();await loadSchedules()}}
+$('admLoginBtn').onclick=adminLogin;
+$('admPass').addEventListener('keydown',e=>{if(e.key==='Enter')adminLogin()});
+$('loginClose').onclick=()=>{$('loginCard').style.display='none'};
+$('admLogout').onclick=async()=>{try{await sb.auth.signOut()}catch(_){}hideAdminPanel();await loadSchedules()};
+$('adminBtn').onclick=async()=>{
+  if($('adminPanel').classList.contains('show')){$('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});return}
+  let session=null;try{const r=await sb.auth.getSession();session=r&&r.data&&r.data.session}catch(_){}
+  if(session&&await getRole()==='admin'){await showAdminPanel(session);$('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});return}
+  $('loginCard').style.display='block';$('loginCard').scrollIntoView({behavior:'smooth',block:'start'});
+};
 /* ===== تنزيل الجداول مع توقيع المنصة وشعار UNEM ===== */
 const _loaded={};
 function loadScript(src){return _loaded[src]||(_loaded[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>{delete _loaded[src];rej(new Error('تعذر تحميل مكتبة التنزيل، تحقق من الاتصال'))};document.head.appendChild(s)}))}
@@ -499,5 +508,5 @@ loadSchedules();initAdmin();
   <div class="mda-sign" title="MDA" aria-label="MDA — Mohamed Dah Agove"><svg class="mda-seal" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="rgba(0,0,0,.22)" stroke="#f5b942" stroke-width="3"/><circle cx="50" cy="50" r="43" fill="none" stroke="#f5b942" stroke-width=".9" stroke-dasharray="1.2 2.6"/><circle cx="50" cy="50" r="38.5" fill="none" stroke="#f5b942" stroke-width="1"/><path d="M50 21l2.6 4.2L50 29.4l-2.6-4.2z" fill="#f5b942"/><text x="50" y="61" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="27" font-weight="700" fill="#fff7e0" letter-spacing="-.5">MDA</text><path d="M30 70h40" stroke="#f5b942" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="77" r="1.7" fill="#f5b942"/></svg></div>
 </footer>
 
-<script>try{fillSem();document.getElementById('aLevel').addEventListener('change',fillSem)}catch(e){}</script></body>
+</body>
 </html>
