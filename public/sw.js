@@ -1,6 +1,6 @@
 // UNEM ISCAE Service Worker
 // ملاحظة: التطبيق يقرأ رقم الإصدار من CACHE_NAME لعرض رسالة التحديث المناسبة.
-const CACHE_NAME = 'unem-iscae-v27';
+const CACHE_NAME = 'unem-iscae-v28';
 const PRECACHE = ['/', '/manifest.json', '/icon-192.png'];
 
 self.addEventListener('install', (event) => {
