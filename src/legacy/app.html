@@ -2848,6 +2848,20 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
 </div>
 <button class="btn-submit" onclick="createCommonSubject()" style="margin-bottom:12px;" type="button">➕ إضافة مادة مشتركة</button>
 <div id="cs-list" style="font-size:0.88rem;text-align:right;"></div>
+<h3 style="margin-top:20px;">🔗 مواد مشتركة بين تخصصات محددة</h3>
+<p class="dt-hint">اربط المادة نفسها في تخصصات تختارها: يرى طلاب كل تخصص في المجموعة نفس الملفات في تلك المادة بدون تكرار، حتى لو رُفع الملف على تخصص واحد فقط. لا يُنسخ ولا يُنقل أي ملف.</p>
+<input id="sg-name" placeholder="اسم المجموعة (اختياري)" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:10px;border:2px solid var(--border-color);border-radius:10px;font-family:inherit;font-weight:600;background:var(--bg-color);color:var(--text-primary);" type="text"/>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+<select id="sg-spec" onchange="onSgSpecChange()" style="padding:10px;border:2px solid var(--border-color);border-radius:10px;font-weight:700;background:var(--bg-color);color:var(--text-primary);"><option value="">--- التخصص ---</option><option value="BA">BA</option><option value="FC">FC</option><option value="TCM">TCM</option><option value="GRH">GRH</option><option value="SAE">SAE</option><option value="IG">IG</option></select>
+<select disabled="" id="sg-level" onchange="onSgLevelChange()" style="padding:10px;border:2px solid var(--border-color);border-radius:10px;font-weight:700;background:var(--bg-color);color:var(--text-primary);"><option value="">--- المستوى ---</option></select>
+<select disabled="" id="sg-semester" onchange="onSgSemesterChange()" style="padding:10px;border:2px solid var(--border-color);border-radius:10px;font-weight:700;background:var(--bg-color);color:var(--text-primary);"><option value="">--- الفصل ---</option></select>
+<select disabled="" id="sg-subject" style="padding:10px;border:2px solid var(--border-color);border-radius:10px;font-weight:700;background:var(--bg-color);color:var(--text-primary);"><option value="">--- المادة ---</option></select>
+</div>
+<button class="btn-submit" onclick="addSharedGroupMember()" style="margin-bottom:10px;background:transparent;color:var(--primary-color);border:2px solid var(--border-color);" type="button">➕ إضافة هذه المادة إلى المجموعة</button>
+<div id="sg-pending" style="font-size:0.88rem;text-align:right;"></div>
+<button class="btn-submit" id="sg-save-btn" onclick="saveSharedGroup()" style="margin-bottom:8px;" type="button">💾 حفظ المجموعة</button>
+<button class="btn-submit" id="sg-cancel-btn" onclick="resetSharedGroupEditor()" style="margin-bottom:12px;background:transparent;color:var(--primary-color);border:2px solid var(--border-color);display:none;" type="button">إلغاء التعديل</button>
+<div id="sg-list" style="font-size:0.88rem;text-align:right;"></div>
 <h3 style="margin-top:20px;">🎓 إدارة مواد الماستر (Master FC / Master IG)</h3>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
 <select id="ms-spec" style="padding:10px;border:2px solid var(--border-color);border-radius:10px;font-weight:700;background:var(--bg-color);color:var(--text-primary);"><option value="IG">Master IG</option><option value="FC">Master FC</option></select>
@@ -3599,7 +3613,10 @@ html body header.main-header .hdr-actions .theme-btn[style*="display: none"],htm
                 return code ? code === String(masterStorageCode(currentSubjectName)).toLowerCase() : doc.source === 'github' && isExplicitMasterGithubFile(doc);
             }
             if (/^m_/.test(code)) return false;
-            return !code || wanted.includes(code);
+            if (!code || wanted.includes(code)) return true;
+            // مادة مشتركة بين تخصصات محددة: ملفات بقية أعضاء المجموعة مسموحة أيضاً
+            const shared = sharedTargetsFor(currentSpecialization, currentLevel, currentSemester, currentSubjectName);
+            return shared.some(t => t.codes.includes(code));
         }
 
         let allFiles =[]; let currentSpecialization = ''; let currentLevel = ''; let currentSemester = ''; let currentBranch = 'main'; 
@@ -5001,6 +5018,11 @@ function closeAnalyticsDashboard() {
 
         let documentTypes = FALLBACK_DOCUMENT_TYPES.slice();
         let commonSubjects = [];
+        // مواد مشتركة بين تخصصات محددة (جدولا shared_subject_groups / shared_subject_members)
+        let sharedSubjectGroups = [];
+        let sharedGroupsVersion = 0;
+        let sgPending = [];
+        let sgEditingId = null;
 
         function typeSlug(value) {
             return String(value || '').toLowerCase().normalize('NFD')
@@ -5029,6 +5051,7 @@ function closeAnalyticsDashboard() {
                     .eq('is_active', true).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
                 if (!error && Array.isArray(data)) masterSubjects = data;
             } catch (e) { console.warn('master_subjects', e); }
+            await loadSharedSubjectGroups();
             renderCategoryGrid();
             renderTypesAdminLists();
             refreshUploadTypeOptions();
@@ -5223,6 +5246,139 @@ function closeAnalyticsDashboard() {
             return commonSubjects.some(c => typeSlug(c.subject_code) === code || getSafeSubjectCode(c.name) === code);
         }
 
+        /* ==================================================================
+           مواد مشتركة بين تخصصات محددة
+           المشرف الرئيسي يربط مادة (أو أكثر) في تخصصات محددة؛ فيرى طلاب كل تخصص
+           في المجموعة نفس ملفات المادة (GitHub + Cloudinary/Supabase) بدون تكرار،
+           حتى لو رُفع الملف على تخصص واحد فقط. لا يُنسخ ولا يُنقل أي ملف.
+           ================================================================== */
+        async function loadSharedSubjectGroups() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('shared_subject_groups')
+                    .select('id,name,sort_order,shared_subject_members(id,specialization,level,semester,subject_name,subject_code)')
+                    .eq('is_active', true)
+                    .order('sort_order', { ascending: true })
+                    .order('created_at', { ascending: true });
+                if (!error && Array.isArray(data)) {
+                    sharedSubjectGroups = data.map(g => ({
+                        id: g.id, name: g.name, members: Array.isArray(g.shared_subject_members) ? g.shared_subject_members : []
+                    }));
+                    sharedGroupsVersion++;
+                    documentsCache = {};
+                }
+            } catch (e) { console.warn('shared_subject_groups', e); }
+        }
+
+        function sharedMemberMatches(m, spec, semester, codes) {
+            if (String(m.specialization || '').toUpperCase() !== spec) return false;
+            if (String(m.semester || '').toUpperCase() !== semester) return false;
+            return subjectCodeVariants(m.subject_name).concat([m.subject_code])
+                .some(c => codes.includes(String(c || '').toLowerCase()));
+        }
+
+        /** المجموعة التي تنتمي إليها مادة معيّنة (أو null) */
+        function sharedGroupOfSubject(spec, semester, subjectName) {
+            if (!sharedSubjectGroups.length || !spec || !semester || !subjectName) return null;
+            const s = storageSpecializationFor(spec).toUpperCase();
+            const sem = String(semester).toUpperCase();
+            const codes = subjectCodeVariants(subjectName).map(c => c.toLowerCase());
+            return sharedSubjectGroups.find(g => (g.members || []).some(m => sharedMemberMatches(m, s, sem, codes))) || null;
+        }
+
+        let sharedTargetsMemo = { key: '', value: [] };
+        /**
+         * أهداف البحث عن الملفات لمادة مشتركة: كل عضو في المجموعة (المادة الحالية أولاً).
+         * تعيد [] إذا لم تكن المادة مشتركة (وبالتالي يبقى السلوك القديم كما هو تماماً).
+         */
+        function sharedTargetsFor(spec, level, semester, subjectName) {
+            if (!sharedSubjectGroups.length || !subjectName) return [];
+            if (isMasterCycle(spec, level)) return [];
+            const memoKey = [sharedGroupsVersion, spec, semester, subjectName].join('|');
+            if (sharedTargetsMemo.key === memoKey) return sharedTargetsMemo.value;
+            let result = [];
+            const group = sharedGroupOfSubject(spec, semester, subjectName);
+            if (group && (group.members || []).length > 1) {
+                const s = storageSpecializationFor(spec).toUpperCase();
+                const sem = String(semester).toUpperCase();
+                const codes = subjectCodeVariants(subjectName).map(c => c.toLowerCase());
+                const all = group.members.map(m => {
+                    const mSpec = String(m.specialization || '').toUpperCase();
+                    const mSem = String(m.semester || '').toUpperCase();
+                    return {
+                        spec: mSpec,
+                        semester: mSem,
+                        level: String(m.level || '').toUpperCase() || (Object.keys(SEMESTERS_BY_LEVEL).find(l => SEMESTERS_BY_LEVEL[l].includes(mSem)) || ''),
+                        name: m.subject_name,
+                        codes: Array.from(new Set(subjectCodeVariants(m.subject_name).concat([m.subject_code]).map(c => String(c || '').toLowerCase()).filter(Boolean))),
+                        branch: branchMap[mSpec.toLowerCase()] || 'main',
+                        isSelf: sharedMemberMatches(m, s, sem, codes)
+                    };
+                });
+                result = all.filter(t => t.isSelf).concat(all.filter(t => !t.isSelf));
+            }
+            sharedTargetsMemo = { key: memoKey, value: result };
+            return result;
+        }
+
+        /** هل يطابق سجل قاعدة البيانات أحد أعضاء المجموعة؟ (التخصص + الفصل + المستوى + رمز المادة) */
+        function rowMatchesSharedTarget(r, t) {
+            const rs = String(r.specialization || '').toUpperCase();
+            if (rs !== t.spec && rs !== 'COMMON') return false;
+            if (String(r.semester || '').toUpperCase() !== t.semester) return false;
+            const lvl = String(r.level || '').toUpperCase();
+            if (lvl && t.level && lvl !== t.level) return false;
+            const code = String(r.subject_code || '').toLowerCase();
+            if (/^m_/.test(code)) return false;
+            if (code) return t.codes.includes(code);
+            return !!r.subject && t.codes.includes(getSafeSubjectCode(r.subject));
+        }
+
+        /** مصدر الملف (التخصص الذي يحتويه فعلياً) — يُستعمل فقط لمنع التكرار بين أعضاء المجموعة */
+        function sharedDocOrigin(d) {
+            return String((d && (d.branch || d.specialization)) || '').toUpperCase();
+        }
+
+        /** ملفات GitHub لفرع آخر دون المساس بـ allFiles (فرع الصفحة الحالية) */
+        const sharedBranchMemCache = {};
+        async function fetchBranchFilesQuiet(branch) {
+            if (branch === currentBranch) {
+                if (allFiles.length === 0) await fetchFilesFromGitHub(currentBranch);
+                return allFiles;
+            }
+            const cacheKey = `github_cache_${branch}`, cacheTimeKey = `github_cache_time_${branch}`;
+            const mem = sharedBranchMemCache[branch];
+            if (mem && (Date.now() - mem.time) < GITHUB_CACHE_TTL) return mem.files;
+            let cached = null, cachedTime = 0;
+            try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); cachedTime = Number(localStorage.getItem(cacheTimeKey) || 0); } catch (_) {}
+            if (Array.isArray(cached) && (Date.now() - cachedTime) < GITHUB_CACHE_TTL) {
+                sharedBranchMemCache[branch] = { time: Date.now(), files: cached };
+                return cached;
+            }
+            try {
+                const treeRes = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/git/trees/${encodeURIComponent(branch)}?recursive=1&v=${Date.now()}`, { cache: 'no-store' });
+                if (treeRes.ok) {
+                    const treeData = await treeRes.json();
+                    if (Array.isArray(treeData.tree)) {
+                        const files = treeData.tree
+                            .filter(item => item && item.type === 'blob' && item.path)
+                            .map(item => ({
+                                type: 'file',
+                                name: String(item.path).split('/').pop(),
+                                path: item.path,
+                                download_url: `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${encodeURIComponent(branch)}/${String(item.path).split('/').map(encodeURIComponent).join('/')}`
+                            }));
+                        unemSafeLocalSet(cacheKey, JSON.stringify(files));
+                        unemSafeLocalSet(cacheTimeKey, String(Date.now()));
+                        sharedBranchMemCache[branch] = { time: Date.now(), files };
+                        return files;
+                    }
+                }
+            } catch (_) {}
+            return Array.isArray(cached) ? cached : [];
+        }
+
         /* ---------- لوحة المشرف: إدارة الأنواع والمواد المشتركة ---------- */
         function typesAdminStatus(msg, ok) {
             const el = document.getElementById('types-admin-status');
@@ -5233,6 +5389,7 @@ function closeAnalyticsDashboard() {
 
         function renderTypesAdminLists() {
             renderMasterSubjectsAdmin();
+            renderSharedGroupsAdmin();
             renderDtTypesList();
             updateDtSubjects();
             const cs = document.getElementById('cs-list');
@@ -5688,6 +5845,174 @@ function closeAnalyticsDashboard() {
             if (error) { typesAdminStatus('❌ ' + error.message, false); return; }
             typesAdminStatus('✅ تم إخفاء المادة المشتركة.', true);
             await loadDynamicRegistries();
+        }
+
+        /* ---------- إدارة المواد المشتركة بين تخصصات محددة (المشرف الرئيسي فقط) ---------- */
+        const sgEl = (id) => document.getElementById(id);
+        const sgKey = (m) => `${String(m.specialization).toUpperCase()}|${String(m.semester).toUpperCase()}|${m.subject_code}`;
+
+        function onSgSpecChange() {
+            const spec = (sgEl('sg-spec') || {}).value || '';
+            setSelectOptions(sgEl('sg-level'), '--- المستوى ---', ['L1', 'L2', 'L3'], !!spec);
+            onSgLevelChange();
+        }
+        function onSgLevelChange() {
+            const level = (sgEl('sg-level') || {}).value || '';
+            setSelectOptions(sgEl('sg-semester'), '--- الفصل ---', semestersForLevel(level), !!level);
+            onSgSemesterChange();
+        }
+        function onSgSemesterChange() {
+            const spec = (sgEl('sg-spec') || {}).value || '';
+            const level = (sgEl('sg-level') || {}).value || '';
+            const semester = (sgEl('sg-semester') || {}).value || '';
+            if (!spec || !level || !semester || !isLevelSemesterValid(level, semester)) {
+                setSelectOptions(sgEl('sg-subject'), '--- المادة ---', [], false);
+                return;
+            }
+            // المواد المشتركة لكل التخصصات لها نظامها الخاص؛ نستبعدها هنا
+            const commonCodes = new Set(commonSubjects.map(c => getSafeSubjectCode(c.name)));
+            const list = subjectsFor(spec, semester).filter(n => !commonCodes.has(getSafeSubjectCode(n)));
+            setSelectOptions(sgEl('sg-subject'), '--- المادة ---', list, list.length > 0);
+        }
+
+        function sgMemberLabel(m) {
+            return `${escapeDtText(m.specialization)} · ${escapeDtText(m.level)}/${escapeDtText(m.semester)} — ${escapeDtText(m.subject_name)}`;
+        }
+
+        function renderSgPending() {
+            const box = sgEl('sg-pending');
+            if (!box) return;
+            box.innerHTML = sgPending.map((m, i) =>
+                `<div class="row-item"><span>${sgMemberLabel(m)}</span><button onclick="removeSharedGroupMember(${i})" type="button">إزالة</button></div>`
+            ).join('') || '<p style="text-align:center;opacity:.7;">لم تُضَف أي مادة إلى المجموعة بعد (أضف مادتين على الأقل).</p>';
+            const cancel = sgEl('sg-cancel-btn');
+            if (cancel) cancel.style.display = sgEditingId ? '' : 'none';
+            const save = sgEl('sg-save-btn');
+            if (save) save.textContent = sgEditingId ? '💾 حفظ تعديلات المجموعة' : '💾 حفظ المجموعة';
+        }
+
+        function renderSharedGroupsAdmin() {
+            const list = sgEl('sg-list');
+            if (list) {
+                list.innerHTML = sharedSubjectGroups.map(g => `<div class="row-item"><span>${escapeDtText(g.name)}<div class="row-meta">${(g.members || []).map(sgMemberLabel).join('<br>')}</div></span><div class="row-actions"><button class="edit" onclick="editSharedGroup('${escapeDtText(g.id)}')" type="button">تعديل</button><button onclick="deleteSharedGroup('${escapeDtText(g.id)}')" type="button">حذف الربط</button></div></div>`).join('')
+                    || '<p style="text-align:center;opacity:.7;">لا توجد مجموعات مواد مشتركة بين تخصصات بعد.</p>';
+            }
+            renderSgPending();
+        }
+
+        function addSharedGroupMember() {
+            if (!isAdmin()) { typesAdminStatus('❌ هذه العملية للمشرف الرئيسي فقط.', false); return; }
+            const spec = String((sgEl('sg-spec') || {}).value || '').toUpperCase();
+            const level = String((sgEl('sg-level') || {}).value || '').toUpperCase();
+            const semester = String((sgEl('sg-semester') || {}).value || '').toUpperCase();
+            const name = String((sgEl('sg-subject') || {}).value || '');
+            if (!spec || !level || !semester || !name) { typesAdminStatus('⚠️ اختر التخصص ثم المستوى ثم الفصل ثم المادة.', false); return; }
+            if (!isLevelSemesterValid(level, semester)) { typesAdminStatus('⚠️ الفصل لا ينتمي إلى المستوى.', false); return; }
+            const member = { specialization: spec, level, semester, subject_name: name, subject_code: getSafeSubjectCode(name) };
+            if (!member.subject_code) { typesAdminStatus('⚠️ اسم المادة غير صالح.', false); return; }
+            if (sgPending.some(m => sgKey(m) === sgKey(member))) { typesAdminStatus('⚠️ هذه المادة مضافة مسبقاً إلى المجموعة.', false); return; }
+            const owner = sharedGroupOfSubject(spec, semester, name);
+            if (owner && owner.id !== sgEditingId) {
+                typesAdminStatus('⚠️ هذه المادة مرتبطة بالفعل بالمجموعة «' + owner.name + '». عدّل تلك المجموعة أو احذف ربطها أولاً.', false);
+                return;
+            }
+            sgPending.push(member);
+            typesAdminStatus('', true);
+            renderSgPending();
+        }
+
+        function removeSharedGroupMember(index) {
+            sgPending.splice(index, 1);
+            renderSgPending();
+        }
+
+        function resetSharedGroupEditor() {
+            sgPending = []; sgEditingId = null;
+            const nameEl = sgEl('sg-name'); if (nameEl) nameEl.value = '';
+            const specEl = sgEl('sg-spec'); if (specEl) specEl.value = '';
+            onSgSpecChange();
+            renderSgPending();
+        }
+
+        function editSharedGroup(id) {
+            if (!isAdmin()) return;
+            const g = sharedSubjectGroups.find(x => String(x.id) === String(id));
+            if (!g) return;
+            sgEditingId = g.id;
+            sgPending = (g.members || []).map(m => ({
+                specialization: String(m.specialization).toUpperCase(), level: String(m.level).toUpperCase(),
+                semester: String(m.semester).toUpperCase(), subject_name: m.subject_name, subject_code: m.subject_code
+            }));
+            const nameEl = sgEl('sg-name'); if (nameEl) nameEl.value = g.name || '';
+            renderSgPending();
+            typesAdminStatus('✏️ تعديل المجموعة «' + g.name + '» — أضف أو أزل موادّ ثم احفظ.', true);
+            const nameInput = sgEl('sg-name'); if (nameInput && nameInput.scrollIntoView) nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function afterSharedGroupsChanged() {
+            await loadSharedSubjectGroups();
+            documentsCache = {};
+            renderSharedGroupsAdmin();
+        }
+
+        async function saveSharedGroup() {
+            if (!isAdmin()) { typesAdminStatus('❌ هذه العملية للمشرف الرئيسي فقط.', false); return; }
+            if (sgPending.length < 2) { typesAdminStatus('⚠️ أضف مادتين على الأقل (من تخصصين أو فصلين مختلفين) لتكوين مجموعة.', false); return; }
+            const typedName = ((sgEl('sg-name') || {}).value || '').trim();
+            const name = typedName || sgPending[0].subject_name;
+            const rowFor = (groupId, m) => ({
+                group_id: groupId, specialization: m.specialization, level: m.level, semester: m.semester,
+                subject_name: m.subject_name, subject_code: m.subject_code
+            });
+            try {
+                if (sgEditingId) {
+                    const g = sharedSubjectGroups.find(x => String(x.id) === String(sgEditingId));
+                    const existing = g ? (g.members || []) : [];
+                    const wanted = new Set(sgPending.map(sgKey));
+                    const have = new Set(existing.map(sgKey));
+                    const removed = existing.filter(m => !wanted.has(sgKey(m)));
+                    const added = sgPending.filter(m => !have.has(sgKey(m)));
+                    let r = await supabaseClient.from('shared_subject_groups').update({ name }).eq('id', sgEditingId);
+                    if (r.error) throw r.error;
+                    if (removed.length) {
+                        r = await supabaseClient.from('shared_subject_members').delete().in('id', removed.map(m => m.id));
+                        if (r.error) throw r.error;
+                    }
+                    if (added.length) {
+                        r = await supabaseClient.from('shared_subject_members').insert(added.map(m => rowFor(sgEditingId, m)));
+                        if (r.error) throw r.error;
+                    }
+                    typesAdminStatus('✅ تم حفظ تعديلات المجموعة. الملفات لم تُنقل ولم تُنسخ.', true);
+                } else {
+                    const ins = await supabaseClient.from('shared_subject_groups')
+                        .insert([{ name, created_by: currentUserId }]).select('id').single();
+                    if (ins.error) throw ins.error;
+                    const groupId = ins.data.id;
+                    const mem = await supabaseClient.from('shared_subject_members').insert(sgPending.map(m => rowFor(groupId, m)));
+                    if (mem.error) {
+                        // تنظيف: لا نترك مجموعة فارغة إذا فشل إدراج الأعضاء
+                        await supabaseClient.from('shared_subject_groups').delete().eq('id', groupId);
+                        throw mem.error;
+                    }
+                    typesAdminStatus('✅ تم ربط المواد: سيرى كل تخصص في المجموعة نفس الملفات بدون تكرار.', true);
+                }
+                resetSharedGroupEditor();
+                await afterSharedGroupsChanged();
+            } catch (e) {
+                const missing = e && (e.code === '42P01' || /shared_subject_/i.test(String(e.message || '')) && /does not exist|schema cache/i.test(String(e.message || '')));
+                const dup = e && String(e.code) === '23505';
+                typesAdminStatus('❌ ' + (dup ? 'إحدى هذه المواد مرتبطة بالفعل بمجموعة أخرى.' : ((e && e.message) || e)) + (missing ? ' — نفّذ ملف SQL: db/20260828090000_shared_subject_groups.sql في Supabase أولاً.' : ''), false);
+            }
+        }
+
+        async function deleteSharedGroup(id) {
+            if (!isAdmin()) return;
+            if (!confirm('حذف هذا الربط؟ لن يُحذف أي ملف؛ سيرجع كل تخصص إلى ملفاته الخاصة فقط.')) return;
+            const { error } = await supabaseClient.from('shared_subject_groups').delete().eq('id', id);
+            if (error) { typesAdminStatus('❌ ' + error.message, false); return; }
+            if (sgEditingId && String(sgEditingId) === String(id)) resetSharedGroupEditor();
+            typesAdminStatus('✅ تم حذف الربط. الملفات بقيت كما هي.', true);
+            await afterSharedGroupsChanged();
         }
 
         function showSubjects(semester) {
@@ -6322,14 +6647,22 @@ function closeAnalyticsDashboard() {
             await ensureCloudinaryCloudName();
             const caseVariants = (v) => Array.from(new Set([String(v), String(v).toUpperCase(), String(v).toLowerCase()]));
             const wanted = documentCodeVariants(currentSpecialization, currentLevel, subjectName).map(c => c.toLowerCase());
+            // مادة مشتركة بين تخصصات محددة؟ (تعيد [] لباقي المواد فيبقى السلوك القديم كما هو)
+            const sharedTargets = sharedTargetsFor(currentSpecialization, currentLevel, currentSemester, subjectName);
+            const specVariants = sharedTargets.length
+                ? Array.from(new Set(sharedTargets.flatMap(t => caseVariants(t.spec))))
+                : caseVariants(storageSpecializationFor(currentSpecialization));
+            const semVariants = sharedTargets.length
+                ? Array.from(new Set(sharedTargets.flatMap(t => caseVariants(t.semester))))
+                : caseVariants(currentSemester);
             try {
                 // المفتاح الأساسي: التخصص + الفصل (الفصل يحدد المستوى حتماً: S1/S2→L1 ...)
                 // نتسامح مع سجلات قديمة حُفظ فيها level خاطئ أو فارغ، دون كسر أي بيانات.
                 const { data, error } = await supabaseClient
                     .from('documents')
                     .select('id,name,original_name,source,cloudinary_url,cloudinary_public_id,cloudinary_resource_type,mime_type,folder,storage_path,file_type,subject,subject_code,specialization,level,semester,status,sort_order,created_at')
-                    .in('specialization', caseVariants(storageSpecializationFor(currentSpecialization)).concat(['COMMON', 'common']))
-                    .in('semester', caseVariants(currentSemester))
+                    .in('specialization', specVariants.concat(['COMMON', 'common']))
+                    .in('semester', semVariants)
                     .order('sort_order', { ascending: true, nullsFirst: false })
                     .order('created_at', { ascending: false });
                 if (error) throw error;
@@ -6340,10 +6673,12 @@ function closeAnalyticsDashboard() {
                     .filter(r => !r.status || r.status === 'active')
                     .filter(r => {
                         const lvl = String(r.level || '').toUpperCase();
+                        if (!masterContext && sharedTargets.length) return true; // يُفحص لكل عضو في المجموعة بالأسفل
                         return masterContext ? lvl === expectedLevel : (!lvl || lvl === expectedLevel);
                     })
                     .filter(r => {
                         const code = String(r.subject_code || '').toLowerCase();
+                        if (!masterContext && sharedTargets.length) return sharedTargets.some(t => rowMatchesSharedTarget(r, t));
                         if (masterContext) return code === strictMasterCode;
                         if (code) return wanted.includes(code) && !/^m_/.test(code);
                         return !!r.subject && wanted.includes(getSafeSubjectCode(r.subject));
@@ -6379,10 +6714,56 @@ function closeAnalyticsDashboard() {
             return performFileFetching(subjectName, cleanSubject);
      }
 
+        /** فلتر ملفات GitHub لمادة محددة (نفس المنطق الأصلي حرفياً) — يُستعمل للمادة الحالية ولأعضاء المجموعة المشتركة */
+        function githubFileMatchesSubject(file, cleanSubject, archiveCase) {
+            // السماح لرموز # و + بالبقاء في اسم المادة
+            const sanitizedSubject = cleanSubject.replace(/[^a-z0-9#+]/g, ' ').replace(/\s+/g, ' ').trim();
+            const subjectKeywords = sanitizedSubject.split(' ');
+                if(file.type !== "file" || !isValidFile(file.name)) return false; 
+                const fName = normalizeText(file.name); 
+                const sanitizedFile = fName.replace(/[^a-z0-9#+]/g, ' ').replace(/\s+/g, ' ').trim();
+
+                if (archiveCase) {
+                    if (!fName.includes("archive")) return false;
+                    if (cleanSubject.includes("s1")) return (fName.includes("s1") || fName.includes("semestre 1")) && !fName.includes("s2") && !fName.includes("s3") && !fName.includes("s4");
+                    if (cleanSubject.includes("s2")) return (fName.includes("s2") || fName.includes("semestre 2")) && !fName.includes("s1") && !fName.includes("s3") && !fName.includes("s4");
+                    if (cleanSubject.includes("s3")) return (fName.includes("s3") || fName.includes("semestre 3")) && !fName.includes("s1") && !fName.includes("s2") && !fName.includes("s4");
+                    if (cleanSubject.includes("s4")) return (fName.includes("s4") || fName.includes("semestre 4")) && !fName.includes("s3") && !fName.includes("s5");
+                    if (cleanSubject.includes("s5")) return (fName.includes("s5") || fName.includes("semestre 5")) && !fName.includes("s4") && !fName.includes("s6");
+                    if (cleanSubject.includes("s6")) return (fName.includes("s6") || fName.includes("semestre 6")) && !fName.includes("s5");
+                    return false;
+                }
+                if (fName.startsWith("archive s")) return false;
+
+                // حل مشكلة مادة C# و Langage C
+                if (cleanSubject === 'c#') return sanitizedFile.includes('c#') || sanitizedFile.includes('c sharp');
+                if (cleanSubject === 'langage c') return fName.includes('langage') && fName.match(/\bc\b/) && !fName.includes('sql') && !fName.includes('base de donnee') && !sanitizedFile.includes('c#');
+
+                const subRom = sanitizedSubject.match(/\b(i|ii|iii|iv|v|vi)\b/)?.[0]; const fileRom = sanitizedFile.match(/\b(i|ii|iii|iv|v|vi)\b/)?.[0];
+                if (subRom) { if (fileRom !== subRom) return false; } else { if (fileRom) return false; }
+
+                const stopWords =['de', 'du', 'des', 'la', 'le', 'les', 'et', 'en', 'a', 'au', 'aux', 'l', 'd', 'pour', 'sur', 'dans'];
+                const distinctKeywords = subjectKeywords.filter(w => !stopWords.includes(w) && w.length > 1);
+
+                if (distinctKeywords.length > 0) {
+                    const baseKeywords = distinctKeywords.map(w => w.endsWith('s') ? w.slice(0, -1) : w);
+                    if (!baseKeywords.every(k => sanitizedFile.includes(k)) || !new RegExp(baseKeywords.join('.{0,35}')).test(sanitizedFile)) return false;
+                    
+                    // قائمة الممنوعات لضمان عدم تسرب أي ملفات لمادة أخرى
+                    for (let word of ['assurance', 'approfondie', 'bancaire', 'international', 'internationale', 'islamique', 'portefeuille', 'tresorerie', 'patrimoine', 'financiere', 'financieres', 'commerciale', 'commerciales', 'descriptive', 'appliquee', 'analytique', 'nationale', 'statistique', 'c#', 'java', 'web', 'python', 'php', 'reseaux']) {
+                        if (sanitizedFile.includes(word) && !sanitizedSubject.includes(word)) return false;
+                    }
+                    return true;
+                }
+                return sanitizedFile.includes(sanitizedSubject);
+        }
+
      async function performFileFetching(subjectName, cleanSubject) {
             // السماح لرموز # و + بالبقاء في اسم المادة
             const sanitizedSubject = cleanSubject.replace(/[^a-z0-9#+]/g, ' ').replace(/\s+/g, ' ').trim(); 
             const subjectKeywords = sanitizedSubject.split(' ');
+            // مادة مشتركة بين تخصصات محددة؟ ([] لباقي المواد → السلوك القديم كما هو)
+            const sharedTargets = sharedTargetsFor(currentSpecialization, currentLevel, currentSemester, subjectName);
             
             if(allFiles.length === 0) await fetchFilesFromGitHub(currentBranch);
             
@@ -6417,61 +6798,71 @@ function closeAnalyticsDashboard() {
                         );
                     }
                 }
+                // مادة مشتركة: ملفات Supabase Storage لبقية أعضاء المجموعة
+                for (const t of sharedTargets.filter(x => !x.isSelf)) {
+                    const tBase = `${t.spec}/${t.level}/${t.semester}`;
+                    for (const code of subjectCodeVariants(t.name)) {
+                        const folderPath = `${tBase}/${code}`;
+                        const { data } = await supabaseClient.storage.from('pdf-files').list(folderPath);
+                        if (data && data.length > 0) {
+                            supabaseFiles = supabaseFiles.concat(
+                                data.filter(f => isValidFile(f.name)).map(f => ({
+                                    id: null, name: f.name, original_name: f.name, type: 'file', source: 'supabase',
+                                    subject: t.name, subject_code: getSafeSubjectCode(t.name),
+                                    specialization: t.spec, level: t.level, semester: t.semester,
+                                    file_type: null, fileType: null,
+                                    github_url: null, github_path: null,
+                                    cloudinary_url: null, cloudinary_public_id: null, cloudinary_resource_type: null,
+                                    path: `${folderPath}/${f.name}`
+                                }))
+                            );
+                        }
+                    }
+                }
                 supabaseFiles.forEach(d => { d.openUrl = getDocumentOpenUrl(d); d.downloadUrl = getDocumentDownloadUrl(d); });
             }
 
 
             // الفلترة الذكية الجديدة
-            const filteredGithub = githubFiles.filter(file => {
-                if(file.type !== "file" || !isValidFile(file.name)) return false; 
-                const fName = normalizeText(file.name); 
-                const sanitizedFile = fName.replace(/[^a-z0-9#+]/g, ' ').replace(/\s+/g, ' ').trim();
-
-                if (isArchiveSpecialCase) {
-                    if (!fName.includes("archive")) return false;
-                    if (cleanSubject.includes("s1")) return (fName.includes("s1") || fName.includes("semestre 1")) && !fName.includes("s2") && !fName.includes("s3") && !fName.includes("s4");
-                    if (cleanSubject.includes("s2")) return (fName.includes("s2") || fName.includes("semestre 2")) && !fName.includes("s1") && !fName.includes("s3") && !fName.includes("s4");
-                    if (cleanSubject.includes("s3")) return (fName.includes("s3") || fName.includes("semestre 3")) && !fName.includes("s1") && !fName.includes("s2") && !fName.includes("s4");
-                    if (cleanSubject.includes("s4")) return (fName.includes("s4") || fName.includes("semestre 4")) && !fName.includes("s3") && !fName.includes("s5");
-                    if (cleanSubject.includes("s5")) return (fName.includes("s5") || fName.includes("semestre 5")) && !fName.includes("s4") && !fName.includes("s6");
-                    if (cleanSubject.includes("s6")) return (fName.includes("s6") || fName.includes("semestre 6")) && !fName.includes("s5");
-                    return false;
-                }
-                if (fName.startsWith("archive s")) return false;
-
-                // حل مشكلة مادة C# و Langage C
-                if (cleanSubject === 'c#') return sanitizedFile.includes('c#') || sanitizedFile.includes('c sharp');
-                if (cleanSubject === 'langage c') return fName.includes('langage') && fName.match(/\bc\b/) && !fName.includes('sql') && !fName.includes('base de donnee') && !sanitizedFile.includes('c#');
-
-                const subRom = sanitizedSubject.match(/\b(i|ii|iii|iv|v|vi)\b/)?.[0]; const fileRom = sanitizedFile.match(/\b(i|ii|iii|iv|v|vi)\b/)?.[0];
-                if (subRom) { if (fileRom !== subRom) return false; } else { if (fileRom) return false; }
-
-                const stopWords =['de', 'du', 'des', 'la', 'le', 'les', 'et', 'en', 'a', 'au', 'aux', 'l', 'd', 'pour', 'sur', 'dans'];
-                const distinctKeywords = subjectKeywords.filter(w => !stopWords.includes(w) && w.length > 1);
-
-                if (distinctKeywords.length > 0) {
-                    const baseKeywords = distinctKeywords.map(w => w.endsWith('s') ? w.slice(0, -1) : w);
-                    if (!baseKeywords.every(k => sanitizedFile.includes(k)) || !new RegExp(baseKeywords.join('.{0,35}')).test(sanitizedFile)) return false;
-                    
-                    // قائمة الممنوعات لضمان عدم تسرب أي ملفات لمادة أخرى
-                    for (let word of ['assurance', 'approfondie', 'bancaire', 'international', 'internationale', 'islamique', 'portefeuille', 'tresorerie', 'patrimoine', 'financiere', 'financieres', 'commerciale', 'commerciales', 'descriptive', 'appliquee', 'analytique', 'nationale', 'statistique', 'c#', 'java', 'web', 'python', 'php', 'reseaux']) {
-                        if (sanitizedFile.includes(word) && !sanitizedSubject.includes(word)) return false;
-                    }
-                    return true;
-                }
-                return sanitizedFile.includes(sanitizedSubject);
-            });
+            const filteredGithub = githubFiles.filter(file => githubFileMatchesSubject(file, cleanSubject, isArchiveSpecialCase));
    
 
             // توحيد شكل ملفات GitHub ثم دمج كل المصادر في قائمة واحدة
             const githubDocs = filteredGithub.map(f => mapGithubFile(f, subjectName));
+            // مادة مشتركة: ملفات GitHub الموجودة في فروع بقية أعضاء المجموعة (بدون نسخ أي شيء)
+            for (const t of sharedTargets.filter(x => !x.isSelf)) {
+                try {
+                    const branchFiles = await fetchBranchFilesQuiet(t.branch);
+                    const tClean = normalizeText(t.name);
+                    const tArchive = tClean.includes('archive') && !!tClean.match(/s[1-6]/);
+                    branchFiles
+                        .map(f => ({ ...f, source: 'github' }))
+                        .filter(f => githubFileMatchesSubject(f, tClean, tArchive))
+                        .forEach(f => {
+                            const d = mapGithubFile(f, t.name);
+                            d.branch = t.branch; d.specialization = t.spec; d.level = t.level; d.semester = t.semester;
+                            githubDocs.push(d);
+                        });
+                } catch (e) { console.warn('shared github branch', t.branch, e); }
+            }
             // دمج كل المصادر مع منع التكرار، ثم تطبيق حارس النطاق النهائي على كل مصدر.
             const seen = new Set();
+            const seenNames = new Map();
+            const sharedMode = sharedTargets.length > 0;
             currentSubjectFiles = [...dbFiles, ...githubDocs, ...supabaseFiles].filter(isDocumentInCurrentScope).filter(d => {
-                const key = `${(d.github_path || d.cloudinary_public_id || d.path || d.name || '')}`.toLowerCase();
+                let key = `${(d.github_path || d.cloudinary_public_id || d.path || d.name || '')}`.toLowerCase();
                 if (!key) return true;
+                // مادة مشتركة: نفس المسار في فرعين مختلفين ليس ملفاً مكرراً بالضرورة
+                if (sharedMode && d.source === 'github') key = `${sharedDocOrigin(d)}|${key}`;
                 if (seen.has(key)) return false;
                 seen.add(key);
+                if (sharedMode) {
+                    // نفس الملف (الاسم + النوع) موجود عند أكثر من تخصص في المجموعة → يظهر مرة واحدة فقط
+                    const nameKey = `${normalizeText(String(d.name || d.original_name || ''))}|${getDocumentCategory(d)}`;
+                    const origin = sharedDocOrigin(d);
+                    if (seenNames.has(nameKey) && seenNames.get(nameKey) !== origin) return false;
+                    if (!seenNames.has(nameKey)) seenNames.set(nameKey, origin);
+                }
                 return true;
             });
             return currentSubjectFiles;
