@@ -56,6 +56,16 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 .btn.fav{background:#fff1f2;color:#be123c;padding:11px 14px;font-size:1rem;line-height:1}.btn.fav.on{background:#e11d48;color:#fff}
 .schedule .actions .fav{margin-inline-start:auto}
 html[dir="ltr"] #manualView{direction:ltr}
+#manualView .mv-grid .tt{height:auto}
+@media(max-width:700px){
+  #manualView .mv-inner{padding:6px;gap:4px}
+  #manualView .mv-title h2{font-size:.9rem!important;line-height:1.3}
+  #manualView .mv-title p{margin:0!important;font-size:.7rem!important}
+  .tt th,.tt td{padding:.18em .2em}
+  .tt .ent{padding:.14em .26em;margin:.1em 0;border-radius:5px}
+  .tt thead th.c0,.tt tbody th.dy{width:17%;font-size:.85em;word-break:normal;overflow-wrap:normal}
+  .viewer{padding:4px}.viewer-box{border-radius:14px}
+}
 .dl{display:grid;gap:12px;padding:2px 2px 14px}.dl-day h4{margin:0 0 6px;background:#0f5132;color:#fff;border-radius:10px;padding:7px 12px;font-size:.9rem;letter-spacing:.03em}
 .dl-item{display:flex;gap:10px;align-items:stretch;border-radius:10px;border-inline-start:5px solid;padding:8px 10px;margin-bottom:6px}
 .dl-t{flex:none;min-width:92px;font-weight:900;font-size:.82rem;color:#0f172a;align-self:center;text-align:center;background:rgba(255,255,255,.7);border-radius:8px;padding:5px 4px}
@@ -69,8 +79,8 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
 <body>
 <div class="page">
 <header class="top">
-  <div class="brand"><div class="logo">📅</div><div><h1 data-i18n="h1">الجداول الدراسية</h1><p class="sub">Emplois du temps — UNEM ISCAE</p></div></div>
-  <div style="display:flex;align-items:center;gap:8px"><button type="button" class="back" id="adminBtn" aria-label="Admin" title="Admin" style="border:0;cursor:pointer;font:inherit;font-weight:900">🛡️</button><button type="button" class="back" id="langBtn" aria-label="Langue / اللغة" title="Langue / اللغة" style="border:0;cursor:pointer;font:inherit;font-weight:900">FR</button><a class="back" href="/" data-i18n="back">← الرئيسية</a></div>
+  <div class="brand"><div class="logo" id="logoTap" style="cursor:default;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent">📅</div><div><h1 data-i18n="h1">الجداول الدراسية</h1><p class="sub">Emplois du temps — UNEM ISCAE</p></div></div>
+  <div style="display:flex;align-items:center;gap:8px"><button type="button" class="back" id="langBtn" aria-label="Langue / اللغة" title="Langue / اللغة" style="border:0;cursor:pointer;font:inherit;font-weight:900">FR</button><a class="back" href="/" data-i18n="back">← الرئيسية</a></div>
 </header>
 
 <section class="hero">
@@ -185,7 +195,7 @@ dl_prep:'⏳ جاري تحضير الملف للتنزيل...',dl_img_open:'تم
 fetch_pdf:'تعذر جلب ملف PDF',fetch_img:'تعذر جلب الصورة',bad_img:'صورة غير صالحة',
 fav_save_err:'❌ تعذر الحفظ على هذا الجهاز.',fav_removed:'تمت الإزالة من المفضلة',fav_added:'تمت الإضافة إلى المفضلة ❤️',gone:'هذا الجدول لم يعد متاحاً.',
 share_btn:'🔗 مشاركة',share_text:'الجدول الدراسي',share_copied:'✅ تم نسخ رابط الجدول.',share_fail:'تعذر نسخ الرابط. انسخه يدوياً:',
-exp_footer:'الاتحاد الوطني لطلبة موريتانيا — UNEM',exp_title:'جدول دراسي',img_alt:'الجدول الدراسي',adm_login_h:'🛡️ دخول المشرف',adm_login_p:'سجّل دخولك بحساب المشرف الرئيسي لإدارة الجداول (رفع، تعديل، حذف).',adm_email:'البريد الإلكتروني',adm_pass:'كلمة المرور',adm_login_btn:'دخول'},
+exp_footer:'الاتحاد الوطني لطلبة موريتانيا — UNEM',exp_title:'جدول دراسي',img_alt:'الجدول الدراسي',rotate_hint:'💡 أدِر الهاتف أفقياً لعرض أوضح للجدول',adm_login_h:'🛡️ دخول المشرف',adm_login_p:'سجّل دخولك بحساب المشرف الرئيسي لإدارة الجداول (رفع، تعديل، حذف).',adm_email:'البريد الإلكتروني',adm_pass:'كلمة المرور',adm_login_btn:'دخول'},
 fr:{title:'Emplois du temps | UNEM ISCAE',h1:'Emplois du temps',back:'← Accueil',hero_h:'Trouvez facilement votre emploi du temps',hero_p:"Choisissez la filière, le niveau et le groupe, puis ouvrez l'emploi du temps officiel publié par l'administration.",
 f_spec:'Filière',f_level:'Niveau',f_group:'Groupe',f_year:'Année universitaire',all_specs:'Toutes les filières',all_levels:'Tous les niveaux',all_groups:'Tous les groupes',all_years:'Toutes les années',
 btn_search:'🔎 Afficher les emplois du temps',btn_reset:'Réinitialiser',published:'Emplois du temps publiés',viewer_default:'Emploi du temps',btn_download:'⬇️ Télécharger',btn_share:'🔗 Partager',btn_close:'✕ Fermer',btn_view:"📋 Voir l'emploi du temps",
@@ -196,7 +206,7 @@ dl_prep:'⏳ Préparation du fichier à télécharger...',dl_img_open:"Image d'o
 fetch_pdf:'Impossible de récupérer le fichier PDF',fetch_img:"Impossible de récupérer l'image",bad_img:'Image invalide',
 fav_save_err:"❌ Impossible d'enregistrer sur cet appareil.",fav_removed:'Retiré des favoris',fav_added:'Ajouté aux favoris ❤️',gone:"Cet emploi du temps n'est plus disponible.",
 share_btn:'🔗 Partager',share_text:'Emploi du temps',share_copied:"✅ Lien de l'emploi du temps copié.",share_fail:'Impossible de copier le lien. Copiez-le manuellement :',
-exp_footer:'Union Nationale des Étudiants de Mauritanie — UNEM',exp_title:'Emploi du temps',img_alt:'Emploi du temps',adm_login_h:'🛡️ Connexion administrateur',adm_login_p:"Connectez-vous avec le compte administrateur principal pour gérer les emplois du temps (ajout, modification, suppression).",adm_email:'E-mail',adm_pass:'Mot de passe',adm_login_btn:'Se connecter'}
+exp_footer:'Union Nationale des Étudiants de Mauritanie — UNEM',exp_title:'Emploi du temps',img_alt:'Emploi du temps',rotate_hint:'💡 Tournez le téléphone en mode paysage pour un affichage plus lisible',adm_login_h:'🛡️ Connexion administrateur',adm_login_p:"Connectez-vous avec le compte administrateur principal pour gérer les emplois du temps (ajout, modification, suppression).",adm_email:'E-mail',adm_pass:'Mot de passe',adm_login_btn:'Se connecter'}
 };
 let LANG=(function(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}catch(_){return 'ar'}})();
 const t=(k,v)=>{let r=(I18N[LANG]&&I18N[LANG][k])||I18N.ar[k]||k;if(v)for(const a in v)r=r.replace('{'+a+'}',v[a]);return r};
@@ -274,13 +284,15 @@ function fitGrid(wrap,max,min){
 }
 function layoutManual(){
   const box=$('manualView');if(!box)return;
-  const mobNow=window.innerWidth<700;
-  if(currentId&&(box.dataset.mode==='list')!==mobNow){showManual(currentId);return}
   const inner=box.firstElementChild,wrap=inner.querySelector('.mv-grid');
   inner.style.height=box.clientHeight+'px';
-  if(box.dataset.mode==='list'){wrap.style.overflow='auto';return}
-  const small=window.innerWidth<600;
-  if(!fitGrid(wrap,small?14:18,5))wrap.style.overflow='auto';
+  const small=window.innerWidth<700;
+  const ok=fitGrid(wrap,small?13:18,small?6:5);
+  const tb=wrap.querySelector('table');
+  if(!ok){wrap.style.overflow='auto'}
+  /* على الهاتف عمودياً: تلميح لتدوير الهاتف إن صغر الخط كثيراً */
+  const hint=box.querySelector('.mv-hint');
+  if(hint){const fs=parseFloat(wrap.style.fontSize)||99;hint.style.display=(small&&window.innerHeight>window.innerWidth&&fs<8.5)?'block':'none'}
 }
 window.showManual=id=>{
   const x=schedules.find(a=>String(a.id)===String(id));if(!x)return;
@@ -288,8 +300,8 @@ window.showManual=id=>{
   $('viewerTitle').textContent=x.title||t('viewer_default');
   $('frame').src='about:blank';$('frame').style.display='none';
   const box=document.createElement('div');box.id='manualView';
-  const mob=window.innerWidth<700;box.dataset.mode=mob?'list':'grid';
-  box.innerHTML=`<div class="mv-inner"><div><h2 style="margin:0;font-size:1.25rem;color:#0f5132">${esc(x.title||'')}</h2><p style="margin:2px 0 0;color:#64748b;font-size:.8rem">${esc(metaText(x))}</p></div><div class="mv-grid">${(x.rows||[]).length?(mob?dayListHTML(x.rows):gridHTML(x.rows)):`<div class="empty">${t('no_rows')}</div>`}</div></div>`;
+  box.dataset.mode='grid';
+  box.innerHTML=`<div class="mv-inner"><div class="mv-title"><h2 style="margin:0;font-size:1.25rem;color:#0f5132">${esc(x.title||'')}</h2><p style="margin:2px 0 0;color:#64748b;font-size:.8rem">${esc(metaText(x))}</p></div><div class="mv-hint" style="display:none;font-size:.72rem;font-weight:800;color:#92400e;background:#fef3c7;border-radius:8px;padding:4px 8px;text-align:center">${t('rotate_hint')}</div><div class="mv-grid">${(x.rows||[]).length?gridHTML(x.rows):`<div class="empty">${t('no_rows')}</div>`}</div></div>`;
   $('viewer').querySelector('.viewer-box').appendChild(box);
   $('viewer').classList.add('open');setViewerDl(x.id);
   layoutManual();
@@ -350,12 +362,20 @@ $('admLoginBtn').onclick=adminLogin;
 $('admPass').addEventListener('keydown',e=>{if(e.key==='Enter')adminLogin()});
 $('loginClose').onclick=()=>{$('loginCard').style.display='none'};
 $('admLogout').onclick=async()=>{try{await sb.auth.signOut()}catch(_){}hideAdminPanel();await loadSchedules()};
-$('adminBtn').onclick=async()=>{
+async function openAdminEntry(){
   if($('adminPanel').classList.contains('show')){$('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});return}
   let session=null;try{const r=await sb.auth.getSession();session=r&&r.data&&r.data.session}catch(_){}
   if(session&&await getRole()==='admin'){await showAdminPanel(session);$('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});return}
   $('loginCard').style.display='block';$('loginCard').scrollIntoView({behavior:'smooth',block:'start'});
-};
+}
+/* صفحة دخول المشرف مخفية: تظهر فقط بعد الضغط 5 مرات متتالية على أيقونة الجدول 📅 */
+(function(){
+  let taps=0,timer=null;
+  $('logoTap').addEventListener('click',()=>{
+    taps++;clearTimeout(timer);timer=setTimeout(()=>{taps=0},2000);
+    if(taps>=5){taps=0;clearTimeout(timer);openAdminEntry()}
+  });
+})();
 /* ===== تنزيل الجداول مع توقيع المنصة وشعار UNEM ===== */
 const _loaded={};
 function loadScript(src){return _loaded[src]||(_loaded[src]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>{delete _loaded[src];rej(new Error('تعذر تحميل مكتبة التنزيل، تحقق من الاتصال'))};document.head.appendChild(s)}))}
