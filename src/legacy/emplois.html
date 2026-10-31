@@ -28,14 +28,33 @@ a{text-decoration:none;color:inherit}.page{width:min(1120px,calc(100% - 28px));m
 .manual{margin-top:15px;border-top:1px solid var(--line);padding-top:15px}.manual-row{display:grid;grid-template-columns:1fr 1fr 2fr 1fr 1.3fr auto;gap:7px;margin-bottom:7px}.manual-row input{min-width:0;border:1px solid #cbd5e1;border-radius:10px;padding:9px;font:inherit}.hint{font-size:.75rem;color:var(--muted);line-height:1.7}
 @media(max-width:800px){.filters,.admin-grid{grid-template-columns:repeat(2,1fr)}.results{grid-template-columns:1fr}.manual-row{grid-template-columns:1fr 1fr}.manual-row .wide{grid-column:1/-1}}
 @media(max-width:520px){.page{width:min(100% - 18px,1120px);padding-top:13px}.top{align-items:flex-start}.logo{width:45px;height:45px;border-radius:14px}.back{padding:8px 10px;font-size:.78rem}.hero{padding:21px;border-radius:22px}.card{padding:15px;border-radius:18px}.filters,.admin-grid{grid-template-columns:1fr}.admin-row{align-items:flex-start;flex-direction:column}.row-actions{width:100%}.row-actions .btn{flex:1}.viewer{padding:7px}.viewer-box{border-radius:13px}}
+
+.fr-sum{margin-top:12px;padding:12px 14px;border-radius:14px;background:#ecfdf5;color:#166534;font-weight:900;line-height:1.7}.fr-sum.warn{background:#fffbeb;color:#92400e}.fr-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.fr-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:12px;background:#dcfce7;color:#166534;font-weight:900;font-size:.9rem;border:1px solid #bbf7d0}.fr-chip.amphi{background:#e0e7ff;color:#3730a3;border-color:#c7d2fe}.fr-chip.lab{background:#fef3c7;color:#92400e;border-color:#fde68a}.fr-det{margin-top:12px}.fr-det summary{cursor:pointer;font-weight:900;color:#334155}.fr-busy-row{padding:7px 10px;margin-top:6px;border-radius:10px;background:#fef2f2;color:#7f1d1d;font-size:.84rem;line-height:1.6}.fr-scroll{overflow:auto;margin-top:8px}.frm{width:100%;border-collapse:collapse;font-size:.78rem;min-width:540px}.frm th,.frm td{border:1px solid #e2e8f0;padding:6px 7px;text-align:center}.frm thead th{background:#0f5132;color:#fff}.frm tbody th{background:#f1f5f9;font-weight:900;white-space:nowrap}.frm td.f{background:#f0fdf4;color:#166534;font-weight:900}.frm td.b{background:#fef2f2;color:#991b1b;font-size:.7rem;line-height:1.35}
+
+.ex-card{margin-top:14px;border:1px solid #bbf7d0;border-radius:18px;background:linear-gradient(180deg,#f0fdf4,#fff);overflow:hidden}.ex-head{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;padding:14px 16px;background:linear-gradient(135deg,#0b3d26,#0f5132 60%,#15803d);color:#fff}.ex-head h3{margin:0;font-size:1.05rem}.ex-sub{opacity:.85;font-size:.82rem;margin-top:3px}.ex-date{background:rgba(245,185,66,.95);color:#3b2a00;border-radius:999px;padding:6px 12px;font-weight:900;font-size:.8rem;white-space:nowrap}.ex-body{padding:12px 14px}.ex-group{margin-top:10px;border:1px solid #d1fae5;border-radius:14px;overflow:hidden}.ex-gl{background:#0f5132;color:#fff;font-weight:900;padding:6px 12px;font-size:.9rem}.ex-row{display:grid;grid-template-columns:96px 1fr auto;gap:8px;align-items:center;padding:9px 12px;border-top:1px solid #ecfdf5;font-size:.88rem}.ex-row:nth-child(even){background:#f7fef9}.ex-t{font-weight:900;color:#166534}.ex-r{font-weight:900;color:#0f5132;white-space:nowrap}.ex-imgbtn{margin-top:10px}.ex-lb{position:fixed;inset:0;z-index:99999;background:rgba(2,6,23,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}.ex-lb img{max-width:100%;max-height:84vh;border-radius:12px;background:#fff}.ex-lb .bar{display:flex;gap:8px;margin-bottom:10px}.exa-box{border:1px solid #cbd5e1;border-radius:14px;padding:12px;background:#fff;margin-top:10px}.exa-in{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:9px;font:inherit}.exa-grp{border:1px solid #bbf7d0;border-radius:12px;padding:10px;margin-top:10px;background:#f0fdf4}.exa-rowg{display:grid;grid-template-columns:110px 1fr 100px 34px;gap:6px;margin-top:6px}.exa-item{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 11px;border:1px solid #e2e8f0;border-radius:12px;margin-top:8px;background:#fff;font-size:.85rem}.exa-item.off{opacity:.55}@media(max-width:560px){.ex-row{grid-template-columns:84px 1fr}.ex-r{grid-column:1/-1}.exa-rowg{grid-template-columns:1fr 1fr}}
+
+.hero-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;position:relative;z-index:1}.hero-link{flex:1 1 170px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:11px 14px;border-radius:15px;text-decoration:none;font-weight:900;font-size:.95rem;line-height:1.35;text-align:center;border:1px solid transparent;transition:.2s;-webkit-tap-highlight-color:transparent}.hero-link:active{transform:scale(.98)}.hero-link.exc{background:linear-gradient(135deg,#fde68a,#f5b942);color:#3b2a00;box-shadow:0 10px 22px rgba(245,185,66,.38)}.hero-link.rooms{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.4)}.hero-link .n{background:#0f5132;color:#fff;border-radius:999px;min-width:22px;padding:1px 8px;font-size:.78rem;line-height:1.5}#excSection,#freeRooms{scroll-margin-top:14px}#excSection{border:2px solid #f5b942;box-shadow:0 12px 30px rgba(245,185,66,.18)}.ex-date.soon{background:#fecaca;color:#7f1d1d}
+
+.cfh-box{border:1px solid #cbd5e1;border-radius:14px;padding:12px;background:#fff;margin-top:10px}.cfh-sum{margin-top:12px;padding:11px 14px;border-radius:14px;background:#ecfdf5;color:#166534;font-weight:900;line-height:1.7}.cfh-sum.warn{background:#fffbeb;color:#92400e}.cfh-day{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;padding:9px 0;border-top:1px dashed #e2e8f0}.cfh-day:first-child{border-top:0}.cfh-dn{min-width:84px;font-weight:900;color:#0f172a}.cfh-chips{display:flex;flex-wrap:wrap;gap:7px}.cfh-chip{display:inline-flex;gap:6px;align-items:center;padding:7px 12px;border-radius:12px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0;font-weight:900;font-size:.88rem}.cfh-chip small{font-weight:700;opacity:.8}.cfh-chip.all{background:#fef3c7;color:#92400e;border-color:#fde68a}.cfh-none{color:#94a3b8;font-size:.84rem}.cfh-groups{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.cfh-gc{display:inline-flex;gap:6px;align-items:center;padding:6px 11px;border-radius:999px;border:1px solid #cbd5e1;background:#f8fafc;font-weight:800;font-size:.84rem;cursor:pointer}.cfh-gc.on{background:#0f5132;color:#fff;border-color:#0f5132}.cfh-mx{width:100%;border-collapse:collapse;font-size:.76rem;min-width:520px}.cfh-mx th,.cfh-mx td{border:1px solid #e2e8f0;padding:6px 7px;text-align:center}.cfh-mx thead th{background:#0f5132;color:#fff}.cfh-mx tbody th{background:#f1f5f9;font-weight:900;white-space:nowrap}.cfh-mx td.f{background:#f0fdf4;color:#166534;font-weight:900}.cfh-mx td.p{background:#fffbeb;color:#92400e;font-size:.7rem;line-height:1.35}.cfh-mx td.b{background:#fef2f2;color:#991b1b;font-size:.7rem}
 </style>
 <style id="mda-signature-shared">
-/* MDA signature — shared with UNEM ISCAE main footer */
-.mda-sign{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto;user-select:none;cursor:default;-webkit-user-select:none}
-.mda-sign::before,.mda-sign::after{content:"";flex:0 1 44px;height:1px;background:linear-gradient(90deg,transparent,rgba(245,185,66,.28))}
-.mda-sign::after{transform:scaleX(-1)}
-.mda-seal{width:22px;height:22px;display:block;flex:none;opacity:.42;filter:none;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .3s,filter .3s}
-.mda-sign:hover .mda-seal{transform:rotate(360deg);opacity:.9}
+/* MDA signature — premium badge */
+.mda-footer{text-align:center;padding:26px 0 18px;color:#64748b;font-size:.78rem}
+.mda-brand{margin-bottom:14px;font-weight:800;letter-spacing:.14em;color:#475569;font-size:.74rem}
+.mda-sign{position:relative;display:inline-flex;align-items:center;gap:12px;margin:0 auto;padding:8px;gap:0;border-radius:999px;background:linear-gradient(135deg,#0b3d26 0%,#0f5132 55%,#15803d 100%);border:1px solid rgba(245,185,66,.55);box-shadow:0 10px 28px rgba(15,81,50,.28),0 0 0 4px rgba(245,185,66,.10),inset 0 1px 0 rgba(255,255,255,.14);user-select:none;-webkit-user-select:none;cursor:pointer;overflow:hidden;direction:ltr;transition:transform .35s cubic-bezier(.4,0,.2,1),box-shadow .35s,padding .5s cubic-bezier(.4,0,.2,1),gap .5s;-webkit-tap-highlight-color:transparent}
+.mda-sign::before{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:mdaShine 4.5s ease-in-out infinite}
+.mda-sign::after{content:none}
+.mda-sign:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(15,81,50,.36),0 0 0 5px rgba(245,185,66,.18),inset 0 1px 0 rgba(255,255,255,.18)}
+.mda-seal{position:relative;width:44px;height:44px;display:block;flex:none;opacity:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));transition:transform .8s cubic-bezier(.4,0,.2,1)}
+.mda-sign:hover .mda-seal{transform:rotate(360deg)}
+.mda-sign.open{padding:8px 24px 8px 8px;gap:12px}
+.mda-sign.open .mda-seal{transform:rotate(360deg)}
+.mda-txt{position:relative;max-width:0;opacity:0;white-space:nowrap;overflow:hidden;transition:max-width .6s cubic-bezier(.4,0,.2,1),opacity .5s .1s;display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left}
+.mda-by{font-size:.58rem;letter-spacing:.32em;text-transform:uppercase;color:rgba(255,247,224,.72);font-weight:700}
+.mda-name{font-family:Georgia,'Times New Roman',serif;font-size:1.02rem;font-weight:700;letter-spacing:.04em;margin-top:3px;background:linear-gradient(90deg,#fde68a,#f5b942 45%,#fff7e0 75%,#f5b942);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.mda-sign.open .mda-txt{max-width:260px;opacity:1}
+@keyframes mdaShine{0%,55%{left:-60%}100%{left:130%}}
+@media(prefers-reduced-motion:reduce){.mda-sign::before{animation:none}}
 </style>
 <style id="tt-style">
 .tt{width:100%;border-collapse:collapse;table-layout:fixed;font-size:1em;background:#fff}
@@ -86,6 +105,7 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
 <section class="hero">
   <h2 data-i18n="hero_h">اعثر على جدولك الدراسي بسهولة</h2>
   <p data-i18n="hero_p">اختر التخصص والمستوى والمجموعة، ثم افتح الجدول الرسمي المنشور من الإدارة.</p>
+  <div class="hero-links"><a href="#excSection" class="hero-link exc" id="frLinkEx" style="display:none"><span data-i18n="ex_link">📚 التفوق الدراسي</span><b class="n" id="frLinkExN"></b></a><a href="#freeRooms" class="hero-link rooms" id="frLink"><span data-i18n="fr_link">🏫 القاعات الفارغة</span></a></div>
 </section>
 
 <section class="card">
@@ -104,6 +124,27 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
   <div id="results" class="results" style="margin-top:14px"></div>
 </section>
 
+<section class="card" id="excSection" style="display:none">
+  <div class="admin-title"><h2 data-i18n="ex_h">📚 جدول التفوق الدراسي</h2><span id="exBadge" class="badge"></span></div>
+  <p class="hint" data-i18n="ex_hint">جلسات المراجعة والتفوق الدراسي بتواريخها. تُحذف كل جلسة تلقائياً بعد انتهاء تاريخها.</p>
+  <div id="exList"></div>
+</section>
+
+<section class="card" id="freeRooms">
+  <div class="admin-title"><h2 data-i18n="fr_h">🏫 القاعات الفارغة</h2><span id="frBadge" class="badge"></span></div>
+  <p class="hint" data-i18n="fr_hint">تُحسب القاعات الفارغة تلقائياً من الجداول الدراسية المنشورة: القاعة تُعتبر فارغة إن لم تكن مذكورة في أي حصة في اليوم والفترة المختارين.</p>
+  <div class="filters" style="grid-template-columns:repeat(4,1fr)">
+    <div class="field"><label data-i18n="fr_day">اليوم</label><select id="frDay"></select></div>
+    <div class="field"><label data-i18n="fr_slot">الفترة</label><select id="frSlot" dir="ltr"></select></div>
+    <div class="field"><label data-i18n="fr_type">نوع القاعة</label><select id="frType"></select></div>
+    <div class="field" id="frPeriodWrap" style="display:none"><label data-i18n="fr_period">الفصل</label><select id="frPeriod"></select></div>
+  </div>
+  <div id="frSummary" class="fr-sum" style="display:none"></div>
+  <div id="frFree" class="fr-chips"></div>
+  <details class="fr-det" id="frBusyWrap" style="display:none"><summary id="frBusySum"></summary><div id="frBusy"></div></details>
+  <details class="fr-det" id="frMatrixWrap" style="display:none"><summary data-i18n="fr_matrix">📋 جدول القاعات لهذا اليوم</summary><div class="fr-scroll" id="frMatrix"></div></details>
+</section>
+
 <section class="card" id="loginCard" style="display:none">
   <div class="admin-title"><h2 data-i18n="adm_login_h">🛡️ دخول المشرف</h2><button class="btn ghost" id="loginClose" type="button" data-i18n="btn_close">✕ إغلاق</button></div>
   <p class="hint" data-i18n="adm_login_p">سجّل دخولك بحساب المشرف الرئيسي لإدارة الجداول (رفع، تعديل، حذف).</p>
@@ -118,6 +159,8 @@ html[dir="ltr"] .field label,html[dir="ltr"] .hint{text-align:left}
 <section class="card admin" id="adminPanel">
   <div class="admin-title"><h2>🛡️ إدارة الجداول — المشرف الرئيسي</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><span id="admWho" class="badge"></span><button class="btn ghost" id="admLogout" type="button">تسجيل الخروج</button></div></div>
   <div id="usa-host"></div>
+  <div id="exc-host" style="margin-top:22px;border-top:2px dashed #cbd5e1;padding-top:16px"></div>
+  <div id="cfh-host" style="margin-top:22px;border-top:2px dashed #cbd5e1;padding-top:16px"></div>
 </section>
 </div>
 
@@ -145,7 +188,7 @@ async function loadSchedules(){
   showStatus('status',t('loading'),'info');
   const {data,error}=await sb.from('study_schedules').select('*').eq('is_active',true).order('academic_year',{ascending:false}).order('specialization').order('level').order('group_name');
   if(error){showStatus('status',t('load_err')+error.message,'err');return}
-  schedules=data||[]; populateFilters(); renderResults(); clearStatus('status'); openFromParam();
+  schedules=data||[]; populateFilters(); renderResults(); frRender(); clearStatus('status'); excLoad(); try{cfhRefresh()}catch(_){} openFromParam();
 }
 function populateGroups(){
   const sSel=$('spec').value,lSel=$('level').value,old=$('group').value;
@@ -195,7 +238,7 @@ dl_prep:'⏳ جاري تحضير الملف للتنزيل...',dl_img_open:'تم
 fetch_pdf:'تعذر جلب ملف PDF',fetch_img:'تعذر جلب الصورة',bad_img:'صورة غير صالحة',
 fav_save_err:'❌ تعذر الحفظ على هذا الجهاز.',fav_removed:'تمت الإزالة من المفضلة',fav_added:'تمت الإضافة إلى المفضلة ❤️',gone:'هذا الجدول لم يعد متاحاً.',
 share_btn:'🔗 مشاركة',share_text:'الجدول الدراسي',share_copied:'✅ تم نسخ رابط الجدول.',share_fail:'تعذر نسخ الرابط. انسخه يدوياً:',
-exp_footer:'الاتحاد الوطني لطلبة موريتانيا — UNEM',exp_title:'جدول دراسي',img_alt:'الجدول الدراسي',rotate_hint:'💡 أدِر الهاتف أفقياً لعرض أوضح للجدول',adm_login_h:'🛡️ دخول المشرف',adm_login_p:'سجّل دخولك بحساب المشرف الرئيسي لإدارة الجداول (رفع، تعديل، حذف).',adm_email:'البريد الإلكتروني',adm_pass:'كلمة المرور',adm_login_btn:'دخول'},
+exp_footer:'الاتحاد الوطني لطلبة موريتانيا — UNEM',exp_title:'جدول دراسي',img_alt:'الجدول الدراسي',rotate_hint:'💡 أدِر الهاتف أفقياً لعرض أوضح للجدول',adm_login_h:'🛡️ دخول المشرف',adm_login_p:'سجّل دخولك بحساب المشرف الرئيسي لإدارة الجداول (رفع، تعديل، حذف).',adm_email:'البريد الإلكتروني',adm_pass:'كلمة المرور',adm_login_btn:'دخول',fr_link:'🏫 القاعات الفارغة',fr_h:'🏫 القاعات الفارغة',fr_hint:'تُحسب القاعات الفارغة تلقائياً من الجداول الدراسية المنشورة: القاعة تُعتبر فارغة إن لم تكن مذكورة في أي حصة في اليوم والفترة المختارين. القائمة تشمل القاعات الواردة في الجداول فقط.',fr_day:'اليوم',fr_slot:'الفترة',fr_type:'نوع القاعة',fr_period:'الفصل',fr_now:'⏱ الآن',fr_t_all:'كل القاعات',fr_t_regular:'قاعات عادية',fr_t_amphi:'مدرجات',fr_t_lab:'قاعات معلوماتية',fr_odd:'الفصول الفردية',fr_even:'الفصول الزوجية',fr_year:'السنة {y}',fr_sum:'القاعات الفارغة: {f} من أصل {n}',fr_none:'لا توجد قاعة فارغة في هذه الفترة',fr_outside:'لا توجد حصص في هذا الوقت، فكل القاعات فارغة',fr_busy_h:'القاعات المشغولة ({n})',fr_matrix:'📋 جدول القاعات لهذا اليوم',fr_room:'القاعة',fr_nodata:'لا توجد بيانات قاعات في الجداول المنشورة بعد.',fr_at:'عند الساعة',ex_link:'📚 التفوق الدراسي',ex_h:'📚 جدول التفوق الدراسي',ex_hint:'جلسات المراجعة والتفوق الدراسي بتواريخها. تُحذف كل جلسة تلقائياً بعد انتهاء تاريخها.',ex_today:'اليوم',ex_tomorrow:'غداً',ex_in:'بعد {n} أيام',ex_img:'🖼️ عرض الصورة الأصلية',ex_close:'✕ إغلاق',ex_dl:'⬇️ تنزيل',fr_exc_note:'يشمل حصص التفوق الدراسي بتاريخ {d}'},
 fr:{title:'Emplois du temps | UNEM ISCAE',h1:'Emplois du temps',back:'← Accueil',hero_h:'Trouvez facilement votre emploi du temps',hero_p:"Choisissez la filière, le niveau et le groupe, puis ouvrez l'emploi du temps officiel publié par l'administration.",
 f_spec:'Filière',f_level:'Niveau',f_group:'Groupe',f_year:'Année universitaire',all_specs:'Toutes les filières',all_levels:'Tous les niveaux',all_groups:'Tous les groupes',all_years:'Toutes les années',
 btn_search:'🔎 Afficher les emplois du temps',btn_reset:'Réinitialiser',published:'Emplois du temps publiés',viewer_default:'Emploi du temps',btn_download:'⬇️ Télécharger',btn_share:'🔗 Partager',btn_close:'✕ Fermer',btn_view:"📋 Voir l'emploi du temps",
@@ -206,7 +249,7 @@ dl_prep:'⏳ Préparation du fichier à télécharger...',dl_img_open:"Image d'o
 fetch_pdf:'Impossible de récupérer le fichier PDF',fetch_img:"Impossible de récupérer l'image",bad_img:'Image invalide',
 fav_save_err:"❌ Impossible d'enregistrer sur cet appareil.",fav_removed:'Retiré des favoris',fav_added:'Ajouté aux favoris ❤️',gone:"Cet emploi du temps n'est plus disponible.",
 share_btn:'🔗 Partager',share_text:'Emploi du temps',share_copied:"✅ Lien de l'emploi du temps copié.",share_fail:'Impossible de copier le lien. Copiez-le manuellement :',
-exp_footer:'Union Nationale des Étudiants de Mauritanie — UNEM',exp_title:'Emploi du temps',img_alt:'Emploi du temps',rotate_hint:'💡 Tournez le téléphone en mode paysage pour un affichage plus lisible',adm_login_h:'🛡️ Connexion administrateur',adm_login_p:"Connectez-vous avec le compte administrateur principal pour gérer les emplois du temps (ajout, modification, suppression).",adm_email:'E-mail',adm_pass:'Mot de passe',adm_login_btn:'Se connecter'}
+exp_footer:'Union Nationale des Étudiants de Mauritanie — UNEM',exp_title:'Emploi du temps',img_alt:'Emploi du temps',rotate_hint:'💡 Tournez le téléphone en mode paysage pour un affichage plus lisible',adm_login_h:'🛡️ Connexion administrateur',adm_login_p:"Connectez-vous avec le compte administrateur principal pour gérer les emplois du temps (ajout, modification, suppression).",adm_email:'E-mail',adm_pass:'Mot de passe',adm_login_btn:'Se connecter',fr_link:'🏫 Salles libres',fr_h:'🏫 Salles libres',fr_hint:"Les salles libres sont calculées automatiquement à partir des emplois du temps publiés : une salle est libre si elle n'apparaît dans aucun cours au jour et à la plage choisis. La liste ne contient que les salles citées dans les emplois du temps.",fr_day:'Jour',fr_slot:'Plage horaire',fr_type:'Type de salle',fr_period:'Semestre',fr_now:'⏱ Maintenant',fr_t_all:'Toutes les salles',fr_t_regular:'Salles ordinaires',fr_t_amphi:'Amphithéâtres',fr_t_lab:'Salles informatiques',fr_odd:'Semestres impairs',fr_even:'Semestres pairs',fr_year:'Année {y}',fr_sum:'{f} salle(s) libre(s) sur {n}',fr_none:'Aucune salle libre sur cette plage',fr_outside:"Aucun cours à cette heure : toutes les salles sont libres",fr_busy_h:'Salles occupées ({n})',fr_matrix:'📋 Tableau des salles pour ce jour',fr_room:'Salle',fr_nodata:'Aucune donnée de salle dans les emplois du temps publiés pour le moment.',fr_at:'à',ex_link:'📚 Excellence académique',ex_h:'📚 Séances d’excellence académique',ex_hint:'Séances de révision avec leur date. Chaque séance est supprimée automatiquement après sa date.',ex_today:'Aujourd’hui',ex_tomorrow:'Demain',ex_in:'Dans {n} jours',ex_img:'🖼️ Voir l’affiche originale',ex_close:'✕ Fermer',ex_dl:'⬇️ Télécharger',fr_exc_note:'Inclut les séances d’excellence académique du {d}'}
 };
 let LANG=(function(){try{return localStorage.getItem('unem_lang')==='fr'?'fr':'ar'}catch(_){return 'ar'}})();
 const t=(k,v)=>{let r=(I18N[LANG]&&I18N[LANG][k])||I18N.ar[k]||k;if(v)for(const a in v)r=r.replace('{'+a+'}',v[a]);return r};
@@ -222,6 +265,8 @@ function setLang(l){
   LANG=l==='fr'?'fr':'ar';try{localStorage.setItem('unem_lang',LANG)}catch(_){}
   applyLang();
   try{populateFilters();renderResults()}catch(_){}
+  try{frRender()}catch(_){}
+  try{excRender()}catch(_){}
   try{const v=document.getElementById('viewer');if(v&&v.classList.contains('open')){const x=schedules.find(a=>String(a.id)===String(currentId));if(x){$('viewerTitle').textContent=x.title||t('viewer_default');paintViewerFav()}}}catch(_){}
 }
 
@@ -335,8 +380,10 @@ async function showAdminPanel(session){
   $('loginCard').style.display='none';$('adminPanel').classList.add('show');
   $('admWho').textContent=(session&&session.user&&session.user.email)||'';
   if(!_admMounted){_admMounted=true;window.UNEMSchedAdmin.mount($('usa-host'),{sb:sb,api:p=>p,onChange:()=>{loadSchedules()}})}
+  try{excAdminMount(session)}catch(e){console.warn('excellence admin',e)}
+  try{cfhMount()}catch(e){console.warn('common free hours',e)}
 }
-function hideAdminPanel(){$('adminPanel').classList.remove('show');_admMounted=false;$('usa-host').innerHTML='';$('admWho').textContent=''}
+function hideAdminPanel(){$('adminPanel').classList.remove('show');_admMounted=false;$('usa-host').innerHTML='';$('exc-host').innerHTML='';_excMounted=false;$('cfh-host').innerHTML='';_cfhMounted=false;$('admWho').textContent=''}
 async function initAdmin(){
   let session=null;try{const r=await sb.auth.getSession();session=r&&r.data&&r.data.session}catch(_){}
   if(!session)return;
@@ -517,16 +564,304 @@ window.shareSchedule=async id=>{
   }
 };
 $('shareViewer').onclick=()=>{if(currentId)shareSchedule(currentId)};
+/* ===== القاعات الفارغة / Salles libres — محسوبة من الجداول المنشورة (اليوم + الفترة + نوع القاعة) ===== */
+const FR_DAYS=['LUNDI','MARDI','MERCREDI','JEUDI','VENDREDI','SAMEDI','DIMANCHE'];
+const FR_DN={ar:{LUNDI:'الاثنين',MARDI:'الثلاثاء',MERCREDI:'الأربعاء',JEUDI:'الخميس',VENDREDI:'الجمعة',SAMEDI:'السبت',DIMANCHE:'الأحد'},fr:{LUNDI:'Lundi',MARDI:'Mardi',MERCREDI:'Mercredi',JEUDI:'Jeudi',VENDREDI:'Vendredi',SAMEDI:'Samedi',DIMANCHE:'Dimanche'}};
+const FR={day:null,slot:'now',type:'all',period:null,timer:null};
+const frToday=()=>FR_DAYS[(new Date().getDay()+6)%7];
+const frNowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()};
+const frHM=m=>{const h=Math.floor(m/60),n=m%60;return (h<10?'0':'')+h+':'+(n<10?'0':'')+n};
+function frRange(v){const m=String(v||'').match(/^(\d{1,2})h(\d{2})?-(\d{1,2})h(\d{2})?$/);return m?[(+m[1])*60+(+(m[2]||0)),(+m[3])*60+(+(m[4]||0))]:null}
+const frKey=r=>String(r||'').replace(/^\s*(salle|قاعة)\s*/i,'').replace(/\s+/g,' ').trim().toLowerCase();
+const frKind=r=>/amphi|مدرج/i.test(r)?'amphi':(/info|lab|معلوم/i.test(r)?'lab':'regular');
+const frIcon={regular:'🏫',amphi:'🎓',lab:'💻'};
+function frParity(x){const s=String(x.semester||''),n=s.match(/(\d+)/);if(n)return (+n[1])%2?'i':'p';const h=s+' '+String(x.title||'');if(/impairs?/i.test(h))return 'i';if(/\bpairs?\b/i.test(h))return 'p';return ''}
+function frData(){
+  const act=schedules.filter(x=>x.is_active!==false);
+  const years=[...new Set(act.map(x=>String(x.academic_year||'').trim()).filter(Boolean))].sort().reverse();
+  const year=years[0]||'';
+  const ofYear=act.filter(x=>!year||String(x.academic_year||'').trim()===year);
+  const periods=[...new Set(ofYear.map(frParity).filter(Boolean))].sort();
+  let period=FR.period&&periods.includes(FR.period)?FR.period:'';
+  if(!period&&periods.length){const latest=ofYear.slice().sort((a,b)=>String(b.updated_at||b.created_at||'').localeCompare(String(a.updated_at||a.created_at||'')))[0];period=frParity(latest)||periods[0]}
+  const list=ofYear.filter(x=>!period||!frParity(x)||frParity(x)===period);
+  const withRows=list.filter(x=>Array.isArray(x.rows)&&x.rows.length);
+  return {year,periods,period,list,withRows,without:list.length-withRows.length};
+}
+function frCollect(d){
+  const out=[];
+  d.withRows.forEach(x=>{
+    const who=[x.specialization,x.level,x.group_name].filter(Boolean).join(' ');
+    cleanRows(x.rows).forEach(r=>{if(!r.room||!r.day)return;out.push({day:r.day,room:r.room,key:frKey(r.room),time:r.time,rg:frRange(r.time),who,subject:r.subject})});
+  });
+  return out;
+}
+let FR_CACHE=null;
+let EXC=[];
+const frISO=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function frDateOf(day){const t0=new Date();t0.setHours(12,0,0,0);const diff=(FR_DAYS.indexOf(day)-((t0.getDay()+6)%7)+7)%7;t0.setDate(t0.getDate()+diff);return frISO(t0)}
+function frExcRows(day){
+  const iso=frDateOf(day),out=[];
+  EXC.filter(x=>x.session_date===iso).forEach(x=>(x.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{
+    const tm=normTime(sp(it.time)),room=String(it.room||'').replace(/^\s*(salle|قاعة)\s*/i,'').trim();
+    if(!room||!frRange(tm))return;
+    out.push({day,room,key:frKey(room),time:tm,rg:frRange(tm),who:'🎓 '+(x.title||'')+(g.label?' · '+g.label:''),subject:it.subject,exc:true});
+  })));
+  return out;
+}
+const frSlots=base=>[...new Set(base.filter(r=>r.rg).map(r=>r.time).concat(frExcRows(FR.day).map(r=>r.time)))].sort((a,b)=>frRange(a)[0]-frRange(b)[0]);
+
+function frControls(){
+  if(!$('freeRooms'))return;
+  const d=frData(),rows=frCollect(d);FR_CACHE={d,rows};
+  if(!FR.day)FR.day=frToday();
+  $('frDay').innerHTML=FR_DAYS.map(x=>`<option value="${x}"${x===FR.day?' selected':''}>${esc(FR_DN[LANG][x])}</option>`).join('');
+  const slots=frSlots(rows);
+  if(FR.slot!=='now'&&!slots.includes(FR.slot))FR.slot='now';
+  $('frSlot').innerHTML=`<option value="now"${FR.slot==='now'?' selected':''}>${esc(t('fr_now'))}</option>`+slots.map(x=>`<option value="${esc(x)}"${x===FR.slot?' selected':''}>${esc(x)}</option>`).join('');
+  $('frType').innerHTML=['all','regular','amphi','lab'].map(k=>`<option value="${k}"${k===FR.type?' selected':''}>${esc(t('fr_t_'+k))}</option>`).join('');
+  const multi=d.periods.length>1;$('frPeriodWrap').style.display=multi?'':'none';
+  if(multi)$('frPeriod').innerHTML=d.periods.map(p=>`<option value="${p}"${p===d.period?' selected':''}>${esc(t(p==='i'?'fr_odd':'fr_even'))}</option>`).join('');
+  $('frBadge').textContent=d.year?t('fr_year',{y:d.year}):'';
+  frDraw();
+}
+function frDraw(){
+  if(!$('freeRooms')||!FR_CACHE)return;
+  const {d}=FR_CACHE;const exr=frExcRows(FR.day);const rows=FR_CACHE.rows.concat(exr);
+  const slots=frSlots(FR_CACHE.rows);
+  const rooms=new Map();rows.forEach(r=>{if(!rooms.has(r.key))rooms.set(r.key,{key:r.key,name:r.room,type:frKind(r.room)})});
+  const all=[...rooms.values()].filter(r=>FR.type==='all'||r.type===FR.type).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  const sum=$('frSummary'),free=$('frFree'),busyW=$('frBusyWrap'),matW=$('frMatrixWrap');
+  if(!rooms.size){sum.style.display='block';sum.className='fr-sum warn';sum.textContent=t('fr_nodata');free.innerHTML='';busyW.style.display='none';matW.style.display='none';return}
+  const n=frNowMin(),rg=FR.slot==='now'?[n,n+1]:frRange(FR.slot);
+  const busy=new Map();
+  rows.forEach(r=>{if(r.day!==FR.day||!r.rg)return;if(r.rg[0]<rg[1]&&rg[0]<r.rg[1]){if(!busy.has(r.key))busy.set(r.key,[]);busy.get(r.key).push(r)}});
+  const fr=all.filter(r=>!busy.has(r.key)),oc=all.filter(r=>busy.has(r.key));
+  const when=FR_DN[LANG][FR.day]+' · '+(FR.slot==='now'?frHM(n):FR.slot);
+  const outside=FR.slot==='now'&&!slots.some(x=>{const q=frRange(x);return q[0]<=n&&n<q[1]});
+  sum.className='fr-sum';sum.style.display='block';
+  sum.textContent=when+' — '+(fr.length?t('fr_sum',{f:fr.length,n:all.length}):t('fr_none'))+(outside&&!busy.size?' — '+t('fr_outside'):'')+(exr.length?' — '+t('fr_exc_note',{d:frDateOf(FR.day)}):'');
+  free.innerHTML=fr.map(r=>`<span class="fr-chip ${r.type}">${frIcon[r.type]} ${esc(r.name)}</span>`).join('');
+  if(oc.length){
+    busyW.style.display='block';$('frBusySum').textContent='🔴 '+t('fr_busy_h',{n:oc.length});
+    $('frBusy').innerHTML=oc.map(r=>`<div class="fr-busy-row"><b>${frIcon[r.type]} ${esc(r.name)}</b> — ${busy.get(r.key).map(b=>esc([b.who,b.subject].filter(Boolean).join(' · '))+(b.time?' <span dir="ltr">('+esc(b.time)+')</span>':'')).join(' | ')}</div>`).join('');
+  }else busyW.style.display='none';
+  if(all.length&&slots.length){
+    matW.style.display='block';
+    const head=`<tr><th>${esc(t('fr_room'))}</th>${slots.map(x=>`<th dir="ltr">${esc(x)}</th>`).join('')}</tr>`;
+    const body=all.map(r=>`<tr><th>${frIcon[r.type]} ${esc(r.name)}</th>${slots.map(x=>{const q=frRange(x),b=rows.filter(z=>z.key===r.key&&z.day===FR.day&&z.rg&&z.rg[0]<q[1]&&q[0]<z.rg[1]);return b.length?`<td class="b">${b.map(z=>esc(z.who)).join('<br>')}</td>`:'<td class="f">✓</td>'}).join('')}</tr>`).join('');
+    $('frMatrix').innerHTML=`<table class="frm"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  }else matW.style.display='none';
+}
+function frRender(){try{frControls()}catch(e){console.warn('free rooms',e)}}
+$('frDay').onchange=e=>{FR.day=e.target.value;frControls()};
+$('frSlot').onchange=e=>{FR.slot=e.target.value;frDraw()};
+$('frType').onchange=e=>{FR.type=e.target.value;frDraw()};
+$('frPeriod').onchange=e=>{FR.period=e.target.value;frControls()};
+FR.timer=setInterval(()=>{if(FR.slot==='now'&&!document.hidden)try{frDraw()}catch(e){}},60000);
+/* ===== جدول التفوق الدراسي: عرض الطلاب ===== */
+const exDate=iso=>{const [y,m,d]=String(iso).split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));const wd=FR_DAYS[(dt.getUTCDay()+6)%7];return FR_DN[LANG][wd]+' '+String(d).padStart(2,'0')+'-'+String(m).padStart(2,'0')+'-'+y};
+const exLeft=iso=>{const a=new Date();a.setHours(12,0,0,0);const [y,m,d]=String(iso).split('-').map(Number);const b=new Date(y,m-1,d,12,0,0,0);return Math.round((b-a)/86400000)};
+async function excLoad(){try{const r=await sb.rpc('excellence_list');EXC=Array.isArray(r.data)?r.data:[]}catch(e){EXC=[]}excRender();try{frRender()}catch(_){}}
+function excRender(){
+  const sec=$('excSection');if(!sec)return;
+  if(!EXC.length){sec.style.display='none';$('frLinkEx').style.display='none';return}
+  sec.style.display='';$('frLinkEx').style.display='';$('exBadge').textContent=String(EXC.length);$('frLinkExN').textContent=String(EXC.length);
+  $('exList').innerHTML=EXC.map(x=>{
+    const left=exLeft(x.session_date),lab=left<=0?t('ex_today'):left===1?t('ex_tomorrow'):t('ex_in',{n:left});
+    const groups=(x.groups||[]).map(g=>`<div class="ex-group"><div class="ex-gl">${esc(g.label||'')}</div>${(g.items||[]).map(it=>`<div class="ex-row"><span class="ex-t" dir="ltr">${esc(normTime(sp(it.time))||it.time||'—')}</span><b>${esc(it.subject||'—')}</b>${it.room?`<span class="ex-r">📍 ${esc(it.room)}</span>`:'<span></span>'}</div>`).join('')}</div>`).join('');
+    return `<article class="ex-card"><div class="ex-head"><div><h3>${esc(x.title)}</h3>${x.subtitle?`<div class="ex-sub">${esc(x.subtitle)}</div>`:''}</div><span class="ex-date${left<=1?' soon':''}">📅 ${esc(exDate(x.session_date))} · ${esc(lab)}</span></div><div class="ex-body">${groups}${x.image_url?`<button type="button" class="btn ghost ex-imgbtn" onclick="exOpenImg(this.dataset.u)" data-u="${esc(x.image_url)}">${esc(t('ex_img'))}</button>`:''}</div></article>`;
+  }).join('');
+}
+function exOpenImg(url){
+  if(!/^https:\/\//i.test(url||''))return;
+  const o=document.createElement('div');o.className='ex-lb';
+  o.innerHTML=`<div class="bar"><a class="btn primary" href="${esc(url)}" download target="_blank" rel="noopener">${esc(t('ex_dl'))}</a><button type="button" class="btn ghost" id="exLbX">${esc(t('ex_close'))}</button></div><img alt="" src="${esc(url)}">`;
+  document.body.appendChild(o);const close=()=>o.remove();o.querySelector('#exLbX').onclick=close;o.addEventListener('click',e=>{if(e.target===o)close()});
+}
+
+/* ===== جدول التفوق الدراسي: إدارة المشرف الرئيسي ===== */
+let _excMounted=false;
+const EXA={session:null,list:[],edit:null,file:null,groups:[],keep:null,prev:null};
+const exaSt=(m,type)=>{const e=$('exaStatus');if(e){e.textContent=m||'';e.className='status'+(m?' show '+(type||'info'):'')}};
+const exaNewGroup=()=>({label:'',items:[{time:'',subject:'',room:''}]});
+function exaShrink(file){return new Promise((ok,bad)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{try{const k=Math.min(1,1600/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.max(1,Math.round(im.naturalWidth*k)),h=Math.max(1,Math.round(im.naturalHeight*k)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);c.toBlob(b=>{URL.revokeObjectURL(u);b?ok(b):bad(new Error('image'))},'image/jpeg',.82)}catch(e){URL.revokeObjectURL(u);bad(e)}};im.onerror=()=>{URL.revokeObjectURL(u);bad(new Error('image'))};im.src=u})}
+function excAdminMount(session){
+  EXA.session=session;if(_excMounted)return;_excMounted=true;
+  $('exc-host').innerHTML=`<div class="admin-title"><h2>📚 إدارة جدول التفوق الدراسي</h2><span class="badge" id="exaCount"></span></div>
+  <p class="hint">أضف جلسة بتاريخ محدد: ارفع صورة الملصق (كما في المنشورات) و/أو أدخل الجدول يدوياً. تُحذف الجلسة تلقائياً بعد انتهاء تاريخها.</p>
+  <div class="exa-box" id="exaForm">
+    <div class="admin-grid" style="grid-template-columns:repeat(2,1fr);gap:10px">
+      <div class="field"><label>عنوان الجلسة</label><input class="exa-in" id="exaTitle" maxlength="120" value="التفوق الدراسي"></div>
+      <div class="field"><label>تاريخ الجلسة (يومها الأخير)</label><input class="exa-in" id="exaDate" type="date" dir="ltr"></div>
+    </div>
+    <div class="field" style="margin-top:8px"><label>عنوان فرعي (اختياري) — مثل: Révisions pour les étudiants de la deuxième année</label><input class="exa-in" id="exaSub" maxlength="200"></div>
+    <div class="field" style="margin-top:8px"><label>صورة الملصق (اختياري)</label><input class="exa-in" id="exaFile" type="file" accept="image/jpeg,image/png,image/webp"><div id="exaPrev" style="margin-top:6px"></div></div>
+    <div style="margin-top:10px"><b>الجدول اليدوي (اختياري إن رفعت صورة)</b><div id="exaGroups"></div><button type="button" class="btn ghost" id="exaAddG" style="margin-top:8px">➕ إضافة تخصص / مجموعة</button></div>
+    <label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="exaActive" checked> ظاهر للطلاب</label>
+    <div class="actions" style="margin-top:10px"><button type="button" class="btn primary" id="exaSave">💾 حفظ الجلسة</button><button type="button" class="btn ghost" id="exaCancel" style="display:none">إلغاء التعديل</button></div>
+    <div id="exaStatus" class="status"></div>
+  </div>
+  <div id="exaList"></div>`;
+  EXA.groups=[exaNewGroup()];exaGroupsRender();
+  $('exaAddG').onclick=()=>{EXA.groups.push(exaNewGroup());exaGroupsRender()};
+  $('exaFile').onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(!/^image\/(jpeg|png|webp)$/i.test(f.type)){e.target.value='';return exaSt('❌ اختر صورة JPG أو PNG أو WebP.','err')}EXA.file=f;if(EXA.prev)URL.revokeObjectURL(EXA.prev);EXA.prev=URL.createObjectURL(f);$('exaPrev').innerHTML=`<img src="${EXA.prev}" alt="" style="max-height:120px;border-radius:10px;border:1px solid #e2e8f0">`;exaSt('')};
+  $('exaGroups').addEventListener('input',e=>{const el=e.target,g=+el.dataset.g,i=el.dataset.i,f=el.dataset.f;if(!f||!EXA.groups[g])return;if(f==='label')EXA.groups[g].label=el.value;else EXA.groups[g].items[+i][f]=el.value});
+  $('exaGroups').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const g=+b.dataset.g,i=+b.dataset.i;if(b.dataset.act==='addrow')EXA.groups[g].items.push({time:'',subject:'',room:''});else if(b.dataset.act==='delrow')EXA.groups[g].items.splice(i,1);else if(b.dataset.act==='delg')EXA.groups.splice(g,1);exaGroupsRender()});
+  $('exaSave').onclick=exaSave;$('exaCancel').onclick=exaReset;
+  $('exaList').addEventListener('click',exaListClick);
+  exaLoad();
+}
+function exaGroupsRender(){
+  $('exaGroups').innerHTML=EXA.groups.map((g,gi)=>`<div class="exa-grp"><div style="display:flex;gap:8px"><input class="exa-in" data-g="${gi}" data-f="label" placeholder="التخصص / المجموعة (مثل BA أو BA · L2)" value="${esc(g.label)}" maxlength="40"><button type="button" class="btn ghost" data-act="delg" data-g="${gi}" title="حذف المجموعة">🗑️</button></div>${g.items.map((it,ii)=>`<div class="exa-rowg"><input class="exa-in" data-g="${gi}" data-i="${ii}" data-f="time" placeholder="08H-10H" dir="ltr" value="${esc(it.time)}"><input class="exa-in" data-g="${gi}" data-i="${ii}" data-f="subject" placeholder="المادة" value="${esc(it.subject)}"><input class="exa-in" data-g="${gi}" data-i="${ii}" data-f="room" placeholder="SALLE 03" dir="ltr" value="${esc(it.room)}"><button type="button" class="btn ghost" data-act="delrow" data-g="${gi}" data-i="${ii}">✕</button></div>`).join('')}<button type="button" class="btn ghost" data-act="addrow" data-g="${gi}" style="margin-top:8px">➕ حصة</button></div>`).join('');
+}
+function exaReset(){EXA.edit=null;EXA.file=null;EXA.keep=null;EXA.groups=[exaNewGroup()];$('exaTitle').value='التفوق الدراسي';$('exaSub').value='';$('exaDate').value='';$('exaFile').value='';$('exaPrev').innerHTML='';$('exaActive').checked=true;$('exaCancel').style.display='none';$('exaSave').textContent='💾 حفظ الجلسة';exaGroupsRender()}
+async function exaLoad(){
+  const r=await sb.from('excellence_sessions').select('*').order('session_date').order('created_at');
+  if(r.error){$('exaList').innerHTML=`<div class="status show err">❌ ${esc(r.error.message)}<br>تأكد من تنفيذ ملف الهجرة excellence_sessions في Supabase.</div>`;return}
+  EXA.list=r.data||[];$('exaCount').textContent=EXA.list.length+' جلسة';
+  $('exaList').innerHTML=EXA.list.length?EXA.list.map(x=>`<div class="exa-item${x.is_active?'':' off'}"><div><b>${esc(x.title)}</b> · 📅 <span dir="ltr">${esc(x.session_date)}</span> ${x.image_url?'· 🖼️':''} · ${(x.groups||[]).length} مجموعة<div style="font-size:.74rem;color:#64748b;margin-top:3px">${x.is_active?'':'(مخفية) '}تُحذف تلقائياً بعد ${esc(x.session_date)}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost" data-a="edit" data-id="${esc(x.id)}">✏️ تعديل</button><button class="btn ghost" data-a="toggle" data-id="${esc(x.id)}">${x.is_active?'👁️ إخفاء':'👁️ إظهار'}</button><button class="btn ghost" data-a="del" data-id="${esc(x.id)}">🗑️ حذف</button></div></div>`).join(''):'<div class="hint" style="margin-top:10px">لا توجد جلسات حالياً.</div>';
+}
+async function exaListClick(e){
+  const b=e.target.closest('[data-a]');if(!b)return;const x=EXA.list.find(z=>z.id===b.dataset.id);if(!x)return;
+  if(b.dataset.a==='edit'){
+    EXA.edit=x;EXA.file=null;EXA.keep=x.image_path?{path:x.image_path,url:x.image_url}:null;
+    EXA.groups=(x.groups||[]).length?JSON.parse(JSON.stringify(x.groups)):[exaNewGroup()];
+    $('exaTitle').value=x.title;$('exaSub').value=x.subtitle||'';$('exaDate').value=x.session_date;$('exaFile').value='';$('exaActive').checked=!!x.is_active;
+    $('exaPrev').innerHTML=x.image_url?`<img src="${esc(x.image_url)}" alt="" style="max-height:120px;border-radius:10px;border:1px solid #e2e8f0"> <small>(اختر ملفاً جديداً لاستبدالها)</small>`:'';
+    $('exaCancel').style.display='';$('exaSave').textContent='💾 حفظ التعديلات';exaGroupsRender();$('exaForm').scrollIntoView({behavior:'smooth',block:'center'});
+  }else if(b.dataset.a==='toggle'){
+    const r=await sb.from('excellence_sessions').update({is_active:!x.is_active}).eq('id',x.id);if(r.error)return exaSt('❌ '+r.error.message,'err');await exaLoad();excLoad();
+  }else if(b.dataset.a==='del'){
+    if(!confirm('حذف هذه الجلسة نهائياً؟'))return;
+    if(x.image_path){try{await sb.storage.from('pdf-files').remove([x.image_path])}catch(_){}}
+    const r=await sb.from('excellence_sessions').delete().eq('id',x.id);if(r.error)return exaSt('❌ '+r.error.message,'err');
+    if(EXA.edit&&EXA.edit.id===x.id)exaReset();exaSt('✅ تم حذف الجلسة.','ok');await exaLoad();excLoad();
+  }
+}
+async function exaSave(){
+  const title=$('exaTitle').value.trim(),sub=$('exaSub').value.trim(),date=$('exaDate').value;
+  if(title.length<2)return exaSt('❌ أدخل عنوان الجلسة.','err');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return exaSt('❌ حدّد تاريخ الجلسة.','err');
+  if(date<frISO(new Date()))return exaSt('❌ هذا التاريخ منتهٍ؛ تُحذف الجلسات تلقائياً بعد انتهاء تاريخها.','err');
+  const groups=EXA.groups.map(g=>({label:(g.label||'').trim(),items:(g.items||[]).map(i=>({time:(i.time||'').trim(),subject:(i.subject||'').trim(),room:(i.room||'').trim()})).filter(i=>i.time||i.subject||i.room)})).filter(g=>g.label||g.items.length);
+  if(!EXA.file&&!EXA.keep&&!groups.length)return exaSt('❌ ارفع صورة الملصق أو أضف جدولاً يدوياً واحداً على الأقل.','err');
+  const btn=$('exaSave');btn.disabled=true;exaSt('⏳ جاري الحفظ...','info');
+  let newPath=null,oldPath=null;
+  try{
+    let image_path=EXA.keep?EXA.keep.path:null,image_url=EXA.keep?EXA.keep.url:null;
+    if(EXA.file){
+      const blob=await exaShrink(EXA.file);newPath='excellence/'+crypto.randomUUID().replace(/-/g,'')+'.jpg';
+      const up=await sb.storage.from('pdf-files').upload(newPath,blob,{contentType:'image/jpeg',upsert:false,cacheControl:'86400'});if(up.error)throw up.error;
+      image_path=newPath;image_url=sb.storage.from('pdf-files').getPublicUrl(newPath).data.publicUrl;
+      if(EXA.edit&&EXA.edit.image_path)oldPath=EXA.edit.image_path;
+    }
+    const rec={title,subtitle:sub||null,session_date:date,image_path,image_url,groups,is_active:$('exaActive').checked};
+    const res=EXA.edit?await sb.from('excellence_sessions').update(rec).eq('id',EXA.edit.id):await sb.from('excellence_sessions').insert(Object.assign(rec,{uploaded_by:EXA.session.user.id}));
+    if(res.error)throw res.error;
+    if(oldPath){try{await sb.storage.from('pdf-files').remove([oldPath])}catch(_){}}
+    const edited=!!EXA.edit;exaReset();exaSt(edited?'✅ تم حفظ التعديلات.':'✅ تم نشر الجلسة، وستُحذف تلقائياً بعد '+date+'.','ok');await exaLoad();excLoad();
+  }catch(err){
+    if(newPath){try{await sb.storage.from('pdf-files').remove([newPath])}catch(_){}}
+    exaSt('❌ '+((err&&err.message)||err),'err');
+  }finally{btn.disabled=false}
+}
+/* ===== الساعات المشتركة الفارغة لتخصص ومستوى (للمشرف): فترات لا توجد فيها حصة لأي مجموعة ===== */
+let _cfhMounted=false;
+const CFH={spec:'',level:'',off:new Set()};
+const CFH_LV=['L1','L2','L3','M1','M2'];
+function cfhBase(){
+  const act=schedules.filter(x=>x.is_active!==false);
+  const years=[...new Set(act.map(x=>String(x.academic_year||'').trim()).filter(Boolean))].sort().reverse();
+  return act.filter(x=>!years[0]||String(x.academic_year||'').trim()===years[0]);
+}
+const cfhGLabel=(x,n)=>x.group_name?String(x.group_name):(n>1?'—':'المجموعة الوحيدة');
+function cfhMount(){
+  if(_cfhMounted||!$('cfh-host'))return;_cfhMounted=true;
+  $('cfh-host').innerHTML=`<div class="admin-title"><h2>🕐 الساعات المشتركة الفارغة</h2><span class="badge" id="cfhBadge"></span></div>
+  <p class="hint">اختر تخصصاً ومستوى لترى الفترات التي لا توجد فيها حصة لأي مجموعة من مجموعاته (مناسبة للاجتماعات والمراجعات والأنشطة المشتركة). تُحسب من الجداول المنشورة.</p>
+  <div class="admin-grid" style="grid-template-columns:repeat(2,1fr);gap:10px">
+    <div class="field"><label>التخصص</label><select id="cfhSpec"></select></div>
+    <div class="field"><label>المستوى</label><select id="cfhLevel"></select></div>
+  </div>
+  <div class="cfh-groups" id="cfhGroups"></div>
+  <div id="cfhOut"></div>`;
+  $('cfhSpec').onchange=e=>{CFH.spec=e.target.value;CFH.level='';CFH.off.clear();cfhControls()};
+  $('cfhLevel').onchange=e=>{CFH.level=e.target.value;CFH.off.clear();cfhControls()};
+  $('cfhGroups').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;const k=b.dataset.g;CFH.off.has(k)?CFH.off.delete(k):CFH.off.add(k);cfhDraw()});
+  cfhControls();
+}
+const cfhGN=n=>n===1?'مجموعة واحدة':n===2?'مجموعتان':n+' مجموعات';
+function cfhRefresh(){if(_cfhMounted&&$('cfhSpec'))cfhControls()}
+function cfhControls(){
+  const base=cfhBase();
+  const specs=[...new Set(base.map(x=>String(x.specialization||'').trim()).filter(Boolean))].sort();
+  if(!specs.includes(CFH.spec))CFH.spec=specs[0]||'';
+  $('cfhSpec').innerHTML=specs.map(x=>`<option value="${esc(x)}"${x===CFH.spec?' selected':''}>${esc(x)}</option>`).join('');
+  const lvls=[...new Set(base.filter(x=>x.specialization===CFH.spec).map(x=>String(x.level||'').trim()).filter(Boolean))].sort((a,b)=>{const i=CFH_LV.indexOf(a),j=CFH_LV.indexOf(b);return (i<0?99:i)-(j<0?99:j)||a.localeCompare(b)});
+  if(!lvls.includes(CFH.level))CFH.level=lvls[0]||'';
+  $('cfhLevel').innerHTML=lvls.map(x=>`<option value="${esc(x)}"${x===CFH.level?' selected':''}>${esc(x)}</option>`).join('');
+  cfhDraw();
+}
+function cfhCompute(){
+  const base=cfhBase();
+  let sel=base.filter(x=>x.specialization===CFH.spec&&x.level===CFH.level);
+  const pars=[...new Set(sel.map(frParity).filter(Boolean))];let note='';
+  if(pars.length>1){const latest=sel.slice().sort((a,b)=>String(b.updated_at||b.created_at||'').localeCompare(String(a.updated_at||a.created_at||'')))[0];const keep=frParity(latest);sel=sel.filter(x=>!frParity(x)||frParity(x)===keep);note='fr_period_note'}
+  const gAll=sel.map((x,i)=>({key:String(x.id||i),label:cfhGLabel(x,sel.length),sem:x.semester||'',rows:cleanRows(x.rows||[]).filter(r=>r.day&&frRange(r.time))}));
+  gAll.sort((a,b)=>a.label.localeCompare(b.label,undefined,{numeric:true}));
+  const noData=gAll.filter(g=>!g.rows.length);
+  const groups=gAll.filter(g=>g.rows.length&&!CFH.off.has(g.key));
+  // شبكة الفترات اليومية من كل الجداول المنشورة (ليتطابق مع جدول المعهد)
+  const allRows=base.flatMap(x=>cleanRows(x.rows||[])).filter(r=>r.day&&frRange(r.time));
+  const slots=[...new Set(allRows.map(r=>r.time))].sort((a,b)=>frRange(a)[0]-frRange(b)[0]||frRange(a)[1]-frRange(b)[1]);
+  const dset=new Set(allRows.map(r=>r.day));const days=FR_DAYS.filter(d=>dset.has(d));
+  const cell={};
+  days.forEach(d=>{cell[d]={};slots.forEach(sl=>{const q=frRange(sl);const busy=groups.filter(g=>g.rows.some(r=>{if(r.day!==d)return false;const z=frRange(r.time);return z[0]<q[1]&&q[0]<z[1]}));cell[d][sl]={busy:busy.map(g=>g.label),n:busy.length}})});
+  return {sel,gAll,groups,noData,slots,days,cell,note};
+}
+function cfhDraw(){
+  const out=$('cfhOut'),gw=$('cfhGroups');if(!out)return;
+  if(!CFH.spec||!CFH.level){out.innerHTML='<div class="cfh-sum warn">لا توجد جداول منشورة بعد.</div>';gw.innerHTML='';return}
+  const c=cfhCompute();
+  gw.innerHTML=c.gAll.length>1?'<span style="font-weight:900;font-size:.84rem">المجموعات المحسوبة:</span>'+c.gAll.map(g=>`<span class="cfh-gc${g.rows.length&&!CFH.off.has(g.key)?' on':''}" data-g="${esc(g.key)}">${g.rows.length?'':'⚠️ '}${esc(g.label)}</span>`).join(''):'';
+  $('cfhBadge').textContent=CFH.spec+' · '+CFH.level;
+  const warn=[];
+  if(c.noData.length)warn.push('⚠️ '+c.noData.map(g=>g.label).join('، ')+': جدول مرفوع كملف فقط (بلا حصص قابلة للحساب) ولا يدخل في الحساب.');
+  if(c.note)warn.push('ℹ️ يوجد أكثر من فصل لهذا المستوى؛ حُسب الفصل الأحدث فقط.');
+  if(!c.groups.length){out.innerHTML=`<div class="cfh-sum warn">${warn.join('<br>')||'لا توجد حصص قابلة للحساب لهذا التخصص والمستوى.'}${c.gAll.length>1&&c.gAll.some(g=>g.rows.length)?'<br>اختر مجموعة واحدة على الأقل.':''}</div>`;return}
+  const wins={};let total=0;
+  c.days.forEach(d=>{
+    const free=c.slots.filter(sl=>c.cell[d][sl].n===0),list=[];
+    free.forEach(sl=>{const q=frRange(sl),last=list[list.length-1];if(last&&last.e===q[0]){last.e=q[1];last.n+=1}else list.push({s:q[0],e:q[1],n:1})});
+    wins[d]=list;total+=free.length;
+  });
+  const dur=m=>{const h=Math.floor(m/60),r=m%60;return (h?h+'س':'')+(r?(h?' ':'')+r+'د':'')};
+  const fullDays=c.days.filter(d=>c.slots.every(sl=>c.cell[d][sl].n===0));
+  const sum=`<div class="cfh-sum">${esc(CFH.spec)} · ${esc(CFH.level)} — ${cfhGN(c.groups.length)} (${c.groups.map(g=>esc(g.label)).join('، ')}) — الفترات المشتركة الفارغة: <b>${total}</b> من أصل ${c.days.length*c.slots.length}${fullDays.length?`<br>🌟 أيام فارغة بالكامل: ${fullDays.map(d=>FR_DN.ar[d]).join('، ')}`:''}</div>`;
+  const dayHtml=c.days.map(d=>`<div class="cfh-day"><div class="cfh-dn">${FR_DN.ar[d]}</div><div class="cfh-chips">${wins[d].length?wins[d].map(w=>`<span class="cfh-chip${w.n===c.slots.length?' all':''}" dir="ltr">${frHM(w.s)} → ${frHM(w.e)} <small>${dur(w.e-w.s)}</small></span>`).join(''):'<span class="cfh-none">لا توجد فترة مشتركة فارغة</span>'}</div></div>`).join('');
+  const head=`<tr><th>اليوم</th>${c.slots.map(x=>`<th dir="ltr">${esc(x)}</th>`).join('')}</tr>`;
+  const body=c.days.map(d=>`<tr><th>${FR_DN.ar[d]}</th>${c.slots.map(sl=>{const z=c.cell[d][sl];return z.n===0?'<td class="f">✓</td>':z.n===c.groups.length&&c.groups.length>0?`<td class="b">${c.groups.length>1?'كل المجموعات':esc(z.busy[0])}</td>`:`<td class="p">${esc(z.busy.join('، '))}<br>مشغولة</td>`}).join('')}</tr>`).join('');
+  out.innerHTML=(warn.length?`<div class="cfh-sum warn">${warn.join('<br>')}</div>`:'')+sum+`<div class="cfh-box">${dayHtml}</div><details class="cfh-box"><summary style="cursor:pointer;font-weight:900">📋 الجدول التفصيلي (✓ حرة للجميع · أصفر: بعض المجموعات مشغولة · أحمر: الكل مشغول)</summary><div style="overflow:auto;margin-top:8px"><table class="cfh-mx"><thead>${head}</thead><tbody>${body}</tbody></table></div></details>`;
+}
 $('langBtn').onclick=()=>setLang(LANG==='ar'?'fr':'ar');
 applyLang();
 
 loadSchedules();initAdmin();
 </script>
 
-<footer class="mda-footer" style="text-align:center;padding:14px 0 6px;color:#64748b;font-size:.72rem;">
-  <div style="margin-bottom:7px;">UNEM ISCAE</div>
-  <div class="mda-sign" title="MDA" aria-label="MDA — Mohamed Dah Agove"><svg class="mda-seal" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="rgba(0,0,0,.22)" stroke="#f5b942" stroke-width="3"/><circle cx="50" cy="50" r="43" fill="none" stroke="#f5b942" stroke-width=".9" stroke-dasharray="1.2 2.6"/><circle cx="50" cy="50" r="38.5" fill="none" stroke="#f5b942" stroke-width="1"/><path d="M50 21l2.6 4.2L50 29.4l-2.6-4.2z" fill="#f5b942"/><text x="50" y="61" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="27" font-weight="700" fill="#fff7e0" letter-spacing="-.5">MDA</text><path d="M30 70h40" stroke="#f5b942" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="77" r="1.7" fill="#f5b942"/></svg></div>
+<footer class="mda-footer">
+  <div class="mda-brand">UNEM ISCAE</div>
+  <div class="mda-sign" id="mdaSign" role="button" tabindex="0" aria-expanded="false" title="MDA" aria-label="MDA"><svg class="mda-seal" viewBox="0 0 100 100" role="img" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="rgba(0,0,0,.22)" stroke="#f5b942" stroke-width="3"/><circle cx="50" cy="50" r="43" fill="none" stroke="#f5b942" stroke-width=".9" stroke-dasharray="1.2 2.6"/><circle cx="50" cy="50" r="38.5" fill="none" stroke="#f5b942" stroke-width="1"/><path d="M50 21l2.6 4.2L50 29.4l-2.6-4.2z" fill="#f5b942"/><text x="50" y="61" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="27" font-weight="700" fill="#fff7e0" letter-spacing="-.5">MDA</text><path d="M30 70h40" stroke="#f5b942" stroke-width="1.6" stroke-linecap="round"/><circle cx="50" cy="77" r="1.7" fill="#f5b942"/></svg><div class="mda-txt"><span class="mda-by">Designed &amp; Developed by</span><span class="mda-name">Mohamed Dah Agove</span></div></div>
 </footer>
+<script>
+(function(){
+  var b=document.getElementById('mdaSign');if(!b)return;
+  function tg(){var o=b.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false')}
+  b.addEventListener('click',tg);
+  b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();tg()}});
+})();
+</script>
 
 </body>
 </html>
