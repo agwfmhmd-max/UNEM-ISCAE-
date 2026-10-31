@@ -1,6 +1,6 @@
 // UNEM ISCAE Service Worker
 // ملاحظة: التطبيق يقرأ رقم الإصدار من CACHE_NAME لعرض رسالة التحديث المناسبة.
-const CACHE_NAME = 'unem-iscae-v28';
+const CACHE_NAME = 'unem-iscae-v38';
 const PRECACHE = ['/', '/manifest.json', '/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -40,12 +40,20 @@ self.addEventListener('push', (event) => {
     badge: '/icon-192.png',
     dir: 'rtl',
     lang: 'ar',
-    tag: 'unem-iscae-notification',
+    tag: data.tag || 'unem-iscae-notification',
     renotify: true,
     data: { url: data.url || '/' },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  // إشعارات الرسائل/المنشورات العادية (quiet) لا تظهر إن كان التطبيق مفتوحًا أمام الطالب؛ الإشارات والإعلانات تظهر دائمًا.
+  const show = async () => {
+    if (data.quiet) {
+      const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      if (wins.some((c) => c.visibilityState === 'visible')) return;
+    }
+    return self.registration.showNotification(title, options);
+  };
+  event.waitUntil(show());
 });
 
 self.addEventListener('notificationclick', (event) => {
