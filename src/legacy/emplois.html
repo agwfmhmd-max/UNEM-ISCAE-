@@ -373,7 +373,7 @@ async function getRole(){
 let _admMounted=false;
 function loadAdminModule(){
   if(window.UNEMSchedAdmin)return Promise.resolve();
-  return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='/unem-schedules-admin.js?v=29';sc.onload=res;sc.onerror=()=>rej(new Error('load'));document.head.appendChild(sc)});
+  return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='/unem-schedules-admin.js?v=30';sc.onload=res;sc.onerror=()=>rej(new Error('load'));document.head.appendChild(sc)});
 }
 async function showAdminPanel(session){
   try{await loadAdminModule()}catch(_){showStatus('loginStatus','❌ تعذر تحميل وحدة الإدارة (/unem-schedules-admin.js). تأكد من نشر آخر نسخة من المشروع.','err');$('loginCard').style.display='block';return}
