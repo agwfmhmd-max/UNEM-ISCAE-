@@ -1,12 +1,16 @@
 // UNEM ISCAE Service Worker
 // ملاحظة: التطبيق يقرأ رقم الإصدار من CACHE_NAME لعرض رسالة التحديث المناسبة.
-const CACHE_NAME = 'unem-iscae-v38';
+const CACHE_NAME = 'unem-iscae-v39';
 const PRECACHE = ['/', '/manifest.json', '/icon-192.png'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)).catch(() => {})
-  );
+  // التخزين المسبق لا يجوز أن يؤخر تفعيل الـ Service Worker: على الشبكات البطيئة (iPhone/Samsung)
+  // كان تحميل الصفحة الرئيسية الكبيرة يُبقي الـ SW في حالة installing فتفشل خدمة الإشعارات.
+  const precache = caches.open(CACHE_NAME).then((cache) =>
+    Promise.all(PRECACHE.map((u) => cache.add(u).catch(() => {})))
+  ).catch(() => {});
+  const cap = new Promise((resolve) => setTimeout(resolve, 3000));
+  event.waitUntil(Promise.race([precache, cap]));
 });
 
 self.addEventListener('activate', (event) => {
@@ -18,7 +22,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && (event.data.type === 'SKIP_WAITING' || event.data.action === 'skipWaiting')) self.skipWaiting();
 });
 
 /* ===================== إشعارات Push حقيقية ====================== *
