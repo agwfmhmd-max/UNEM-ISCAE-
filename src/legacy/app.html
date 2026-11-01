@@ -4592,13 +4592,39 @@ function closeAnalyticsDashboard() {
                 : /^https?:$/.test(location.protocol);
         }
 
-        /** يعيد تسجيل Service Worker الجاهز، أو null بعد مهلة قصوى — بدل الانتظار للأبد. */
+        /** يعيد تسجيل Service Worker «النشط»، ويسجّله بنفسه إن لم يكن مسجّلاً بعد (iOS/Samsung)،
+            وينتظر تفعيله بمهلة كافية بدل الاعتماد على serviceWorker.ready وحدها. */
         async function getPushServiceWorker() {
             if (!('serviceWorker' in navigator) || !unemPushOriginOk()) return null;
             try {
-                const timeout = new Promise(resolve => setTimeout(() => resolve(null), 8000));
-                const ready = navigator.serviceWorker.ready.then(reg => reg).catch(() => null);
-                return await Promise.race([ready, timeout]);
+                let reg = null;
+                try { reg = await navigator.serviceWorker.getRegistration('/'); } catch (_) {}
+                if (!reg) { try { reg = await navigator.serviceWorker.getRegistration(); } catch (_) {} }
+                if (!reg) {
+                    try { reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' }); }
+                    catch (e) { console.warn('SW register (push) failed:', e); }
+                }
+                if (reg && reg.active) return reg;
+                const worker = reg && (reg.installing || reg.waiting);
+                const waitActive = new Promise(resolve => {
+                    if (!worker) { resolve(null); return; }
+                    const check = () => {
+                        if (worker.state === 'activated') { resolve(reg); return true; }
+                        if (worker.state === 'redundant') { resolve(null); return true; }
+                        return false;
+                    };
+                    if (check()) return;
+                    if (worker.state === 'installed' && reg.waiting === worker) {
+                        try { worker.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+                    }
+                    worker.addEventListener('statechange', check);
+                });
+                const ready = navigator.serviceWorker.ready.then(r => r).catch(() => null);
+                const timeout = new Promise(resolve => setTimeout(() => resolve(null), 25000));
+                const got = await Promise.race([waitActive, ready, timeout]);
+                if (got && got.active) return got;
+                const again = await navigator.serviceWorker.getRegistration('/').catch(() => null);
+                return (again && again.active) ? again : null;
             } catch (_) { return null; }
         }
 
@@ -4654,25 +4680,44 @@ function closeAnalyticsDashboard() {
             if (!unemPushOriginOk()) {
                 throw new Error('الإشعارات تعمل فقط عند فتح المنصة عبر رابطها الرسمي (https)، لا من نسخة محفوظة على الجهاز.');
             }
+            // مهم لـ iPhone/Safari: طلب الإذن يجب أن يكون أول عملية async داخل نقرة المستخدم،
+            // وإلا يُرفض لانتهاء «حركة المستخدم» أثناء انتظار الشبكة/الـ Service Worker.
+            let permission = Notification.permission;
+            if (permission === 'default') {
+                permission = await Notification.requestPermission();
+            }
+            if (permission !== 'granted') return false;
+
             const reg = await getPushServiceWorker();
             if (!reg) {
                 throw new Error('تعذّر تجهيز خدمة الإشعارات في هذا المتصفح. أعد تحميل الصفحة من الرابط الرسمي ثم حاول مجدداً.');
             }
-            const res = await fetch(unemApi('/api/public/push/vapid-key'));
-            const data = await res.json().catch(() => ({}));
+            let data = {};
+            try {
+                const res = await fetch(unemApi('/api/public/push/vapid-key'));
+                data = await res.json().catch(() => ({}));
+            } catch (e) {
+                throw new Error('تعذّر الاتصال بخادم الإشعارات. تحقق من الإنترنت ثم حاول مجدداً.');
+            }
             if (!data || !data.publicKey) {
                 alert('❌ الإشعارات غير مفعّلة على الخادم حالياً.');
                 return false;
             }
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') return false;
+            const appKey = urlBase64ToUint8Array(data.publicKey);
+            const doSubscribe = () => reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appKey });
 
             let sub = await reg.pushManager.getSubscription();
             if (!sub) {
-                sub = await reg.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(data.publicKey),
-                });
+                try {
+                    sub = await doSubscribe();
+                } catch (e1) {
+                    // iOS/Samsung: أول محاولة بعد تفعيل الـ SW قد تفشل (AbortError)؛ نعيد مرة واحدة.
+                    await new Promise(r => setTimeout(r, 1200));
+                    try { sub = await doSubscribe(); }
+                    catch (e2) {
+                        throw new Error('تعذّر إنشاء اشتراك الإشعارات: ' + ((e2 && e2.message) || e2));
+                    }
+                }
             }
             const saved = await savePushSubscriptionToDb(sub);
             if (!saved.ok) {
@@ -4760,6 +4805,12 @@ function closeAnalyticsDashboard() {
             const btn = document.getElementById('push-toggle-btn');
             if (btn) btn.disabled = true;
             try {
+                if (Notification.permission === 'default') {
+                    const ok0 = await subscribeToPush();
+                    setPushIcon(ok0);
+                    if (ok0) alert('🔔 تم تفعيل الإشعارات! ستصلك التنبيهات الجديدة حتى خارج الموقع.');
+                    return;
+                }
                 const reg = await getPushServiceWorker();
                 const existing = reg ? await reg.pushManager.getSubscription() : null;
                 if (existing && Notification.permission === 'granted') {
@@ -8424,8 +8475,8 @@ function escapeHtml(value){
 <script>
       let newWorker;
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').then(reg => {
+        const __unemSwBoot = () => {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(reg => {
             console.log('SW Registered');
             
             // 1. فحص التحديث فور تشغيل التطبيق المثبت
@@ -8526,12 +8577,17 @@ function escapeHtml(value){
           }).catch(err => { console.warn('SW registration failed:', err); });
           
           let refreshing;
+          let hadController = !!navigator.serviceWorker.controller;
           navigator.serviceWorker.addEventListener('controllerchange', () => {
+            // أول تثبيت للـ SW (clients.claim) لا يستدعي إعادة تحميل — كانت تقاطع تفعيل الإشعارات.
+            if (!hadController) { hadController = true; return; }
             if (refreshing) return;
             refreshing = true;
             window.location.reload();
           });
-        });
+        };
+        if (document.readyState === 'complete') __unemSwBoot();
+        else window.addEventListener('load', __unemSwBoot);
 
         document.getElementById('update-btn').addEventListener('click', () => {
           document.getElementById('update-toast').classList.remove('show');
