@@ -71,7 +71,7 @@ function ensureParser(){
   if(window.UNEMSchedParser)return Promise.resolve();
   if(loading)return loading;
   loading=new Promise(function(res,rej){
-    var sc=document.createElement('script');sc.src='/legacy/app/09-sched-parser.js?v=2';
+    var sc=document.createElement('script');sc.src='/legacy/app/09-sched-parser.js?v=3';
     sc.onload=function(){window.UNEMSchedParser?res():rej(new Error('parser'));};
     sc.onerror=function(){loading=null;rej(new Error('parser-load'));};
     document.head.appendChild(sc);
@@ -296,7 +296,10 @@ async function analyze(){
 function computeMatches(){
   var y=(($('#usa-year')||{}).value||'').trim();
   state.items.forEach(function(it){
-    var m=state.existing.filter(function(x){return x.academic_year===y&&x.specialization===it.spec&&x.level===it.level&&grp(x.group_name)===grp(it.group)&&semTag(x.title)===semTag(it.title);})[0];
+    var c=state.existing.filter(function(x){return x.academic_year===y&&x.specialization===it.spec&&x.level===it.level&&grp(x.group_name)===grp(it.group);});
+    var st=semTag(it.title);
+    /* same semester first; otherwise an existing record without a semester tag (old/manual title) is the same table */
+    var m=c.filter(function(x){return semTag(x.title)===st;})[0]||(c.length===1&&(!semTag(c[0].title)||!st)?c[0]:null);
     it.match=m?m.id:null;
   });
   /* an existing record can be replaced by ONE table only (prevents several pages overwriting each other) */
@@ -344,6 +347,9 @@ async function publish(){
   var sb=client(),year=$('#usa-year').value.trim(),sel=state.items.filter(function(i){return i.include;});
   if(!/^\d{4}-\d{4}$/.test(year))return status('usa-st-pub','❌ السنة الجامعية يجب أن تكون بصيغة 2025-2026.','err');
   if(!sel.length)return status('usa-st-pub','حدّد جدولاً واحداً على الأقل للنشر.','warn');
+  var seenK={},dups=[];
+  sel.forEach(function(i){var k=[year,i.spec,i.level,grp(i.group),semTag(i.title)].join('|');if(seenK[k]){dups.push('صفحة '+seenK[k].page+' و صفحة '+i.page+' : '+i.spec+' '+i.level+' '+(i.group||'(بدون مجموعة)'));}else seenK[k]=i;});
+  if(dups.length)return status('usa-st-pub','❌ جداول متكررة بنفس (التخصص/المستوى/المجموعة) ولا يمكن نشرها معاً:\n'+dups.join('\n')+'\nصحّح خانة «المجموعة» لكل جدول (مثل G1 (TD)) ثم أعد المحاولة.','err');
   var bad=sel.filter(function(i){return !i.spec||!i.level||!i.title.trim();});
   if(bad.length)return status('usa-st-pub','❌ أكمل التخصص والمستوى والعنوان لكل جدول محدد.','err');
   var btn=$('#up-publish');btn.disabled=true;
@@ -369,8 +375,22 @@ async function publish(){
       var rec={academic_year:year,specialization:it.spec,level:it.level,group_name:it.group?grp(it.group):null,title:it.title.trim(),rows:it.rows,is_active:true};
       if(url){rec.file_url=url+'#page='+it.page;rec.file_name=state.file.name;rec.cloudinary_public_id=pid;}
       var m=replace&&it.match?it.match:null,res;
-      if(m){res=await sb.from('study_schedules').update(rec).eq('id',m);if(res.error)throw res.error;upd++;}
-      else{rec.uploaded_by=session.user.id;if(!url){rec.file_url=null;}res=await sb.from('study_schedules').insert(rec);if(res.error)throw res.error;ins++;}
+      if(m){res=await sb.from('study_schedules').update(rec).eq('id',m);if(res.error)throw new Error('صفحة '+it.page+' ('+it.title+'): '+res.error.message);upd++;}
+      else{rec.uploaded_by=session.user.id;if(!url){rec.file_url=null;}res=await sb.from('study_schedules').insert(rec);
+        if(res.error&&(res.error.code==='23505'||/duplicate key|unique/i.test(res.error.message||''))&&replace){
+          /* a record with the same key already exists in the DB (not matched locally): update it instead of failing */
+          var q=sb.from('study_schedules').select('id,title').eq('academic_year',year).eq('specialization',it.spec).eq('level',it.level);
+          q=it.group?q.eq('group_name',grp(it.group)):q.is('group_name',null);
+          var ex=await q;if(ex.error)throw new Error('صفحة '+it.page+' ('+it.title+'): '+ex.error.message);
+          var cand=(ex.data||[]).filter(function(x){return semTag(x.title)===semTag(it.title);})[0]||(ex.data||[])[0];
+          if(!cand)throw new Error('صفحة '+it.page+' ('+it.title+'): '+res.error.message);
+          var up2=Object.assign({},rec);delete up2.uploaded_by;
+          res=await sb.from('study_schedules').update(up2).eq('id',cand.id);
+          if(res.error)throw new Error('صفحة '+it.page+' ('+it.title+'): '+res.error.message);upd++;
+        }else{
+          if(res.error)throw new Error('صفحة '+it.page+' ('+it.title+'): '+res.error.message+(/duplicate key|unique/i.test(res.error.message||'')?'\nفعّل «استبدال الموجود» ثم أعد المحاولة.':''));
+          ins++;
+        }}
     }
     status('usa-st-pub','✅ تم النشر بنجاح: '+ins+' جدول جديد، '+upd+' جدول تم تحديثه.'+warnUp,warnUp?'warn':'ok');
     state.items=[];state.file=null;var fi=$('#usa-file');if(fi)fi.value='';
