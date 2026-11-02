@@ -7125,7 +7125,7 @@ function closeAnalyticsDashboard() {
         const ADMIN_PERMISSIONS = [
             ['upload_files','رفع الملفات'],['delete_files','حذف الملفات'],['manage_whatsapp','إدارة مجموعات WhatsApp'],
             ['manage_announcements','إدارة الإعلانات'],['send_notifications','إرسال الإشعارات'],['view_analytics','عرض الإحصائيات'],
-            ['manage_document_types','إدارة أنواع الملفات']
+            ['manage_document_types','إدارة أنواع الملفات'],['view_free_rooms','عرض القاعات الفارغة (صفحة الجداول)']
         ];
         let myPermissions = {};
         function hasPermission(key){ return isAdmin() || myPermissions[key] === true; }
@@ -7516,7 +7516,7 @@ function escapeHtml(value){
             const {data}=await supabaseClient.from('supervisor_permissions').select('*').eq('email',email).maybeSingle();
             box.innerHTML='<div style="display:grid;gap:10px;margin-top:15px">'+ADMIN_PERMISSIONS.map(([k,label])=>`<label style="display:flex;gap:10px;align-items:center;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:11px"><input type="checkbox" id="perm-${k}" ${data&&data[k]?'checked':''}> ${label}</label>`).join('')+'<button class="btn-submit" onclick="saveSupervisorPermission()" style="margin-top:10px">حفظ الصلاحيات</button></div>';
         }
-        async function saveSupervisorPermission(){const email=document.getElementById('perm-email').value.trim().toLowerCase();if(!email)return;const row={email};ADMIN_PERMISSIONS.forEach(([k])=>row[k]=!!document.getElementById('perm-'+k)?.checked);const {error}=await supabaseClient.from('supervisor_permissions').upsert(row,{onConflict:'email'});alert(error?'❌ '+error.message:'✅ تم حفظ صلاحيات المشرف.');}
+        async function saveSupervisorPermission(){const email=document.getElementById('perm-email').value.trim().toLowerCase();if(!email)return;const row={email};ADMIN_PERMISSIONS.forEach(([k])=>row[k]=!!document.getElementById('perm-'+k)?.checked);let {error}=await supabaseClient.from('supervisor_permissions').upsert(row,{onConflict:'email'});if(error&&/view_free_rooms/i.test(error.message||'')){const r2=Object.assign({},row);delete r2.view_free_rooms;const rr=await supabaseClient.from('supervisor_permissions').upsert(r2,{onConflict:'email'});if(!rr.error){alert('⚠️ حُفظت بقية الصلاحيات، لكن صلاحية «القاعات الفارغة» تحتاج تنفيذ ملف SQL: supabase/migrations/20260816090000_supervisor_view_free_rooms.sql في Supabase ثم أعد الحفظ.');return;}error=rr.error;}alert(error?'❌ '+error.message:'✅ تم حفظ صلاحيات المشرف.');}
 
         function setAdminSectionVisibility(section){
             const overlay=document.getElementById('upload-modal-overlay'); if(!overlay)return;
